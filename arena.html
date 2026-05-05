@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MOGME.TV — 1V1 Arena</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    .arena-inner {
+      padding: 28px 36px 60px;
+    }
+
+    .arena-tag {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--gold-dim);
+      margin-bottom: 6px;
+    }
+
+    .arena-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 52px;
+      letter-spacing: 5px;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 24px;
+    }
+
+    /* ELO BAR */
+    .elo-bar-strip {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 24px;
+      padding: 12px 20px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      max-width: 860px;
+    }
+
+    .elo-stat {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+    }
+
+    .elo-stat span { color: var(--gold); font-size: 16px; }
+
+    /* CAMERAS */
+    .cameras-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 16px;
+      max-width: 860px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    .cam-box {
+      position: relative;
+      aspect-ratio: 4/3;
+      background: #000;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .cam-box video, .cam-box canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    #my-video { transform: scaleX(-1); }
+    #my-canvas { transform: scaleX(-1); }
+
+    .cam-label {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      background: rgba(0,0,0,0.6);
+      padding: 3px 8px;
+      border-radius: 2px;
+    }
+
+    .cam-score {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 32px;
+      color: var(--gold);
+      text-shadow: 0 0 20px var(--gold-glow);
+      display: none;
+    }
+
+    .vs-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .vs-text {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 40px;
+      color: var(--gold);
+      letter-spacing: 4px;
+    }
+
+    .vs-scanning {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      text-align: center;
+    }
+
+    /* STATUS BAR */
+    .status-bar {
+      max-width: 860px;
+      padding: 14px 20px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    /* RESULT */
+    #result-box {
+      display: none;
+      max-width: 860px;
+      padding: 28px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .result-outcome {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 60px;
+      letter-spacing: 6px;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .result-elo-change {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    /* CONTROLS */
+    .arena-controls {
+      display: flex;
+      gap: 12px;
+      max-width: 860px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="arena-inner">
+  <div class="arena-tag">// LIVE MATCHES</div>
+  <div class="arena-title">1V1 ARENA</div>
+
+  <div class="elo-bar-strip">
+    <div class="elo-stat">ELO: <span id="display-elo">800</span></div>
+    <div class="elo-stat">RANK: <span id="display-rank">SUB3</span></div>
+    <div class="elo-stat">W: <span id="display-wins">0</span></div>
+    <div class="elo-stat">L: <span id="display-losses">0</span></div>
+  </div>
+
+  <div class="cameras-row">
+    <!-- MY CAM -->
+    <div class="cam-box" id="my-cam-box">
+      <video id="my-video" autoplay playsinline muted></video>
+      <canvas id="my-canvas"></canvas>
+      <div class="cam-label">YOU</div>
+      <div class="cam-score" id="my-score">0</div>
+    </div>
+
+    <!-- VS -->
+    <div class="vs-block">
+      <div class="vs-text">VS</div>
+      <div class="vs-scanning" id="vs-status">—</div>
+    </div>
+
+    <!-- OPPONENT CAM -->
+    <div class="cam-box" id="opp-cam-box">
+      <video id="opp-video" autoplay playsinline></video>
+      <div class="cam-label">OPPONENT</div>
+      <div class="cam-score" id="opp-score">0</div>
+    </div>
+  </div>
+
+  <div class="status-bar" id="status-bar">START YOUR CAMERA TO BEGIN</div>
+
+  <div id="result-box">
+    <div class="result-outcome" id="result-outcome">—</div>
+    <div class="result-elo-change" id="result-elo-change">—</div>
+  </div>
+
+  <div class="arena-controls">
+    <button class="btn-gold" id="start-btn">START CAMERA</button>
+    <button class="btn-gold-solid" id="match-btn" disabled>FIND MATCH</button>
+    <button class="btn-gold" id="skip-btn" style="display:none">SKIP</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="shared.js"></script>
+<script>
+  initSharedLayout('arena');
+
+  const WS_URL = 'wss://mogmetv-production.up.railway.app';
+  let arenaWs = null;
+  let peerConn = null;
+  let myStream = null;
+  let myLandmarks = null;
+  let myScore = 0;
+  let matchId = null;
+  let inMatch = false;
+  let faceMeshArena = null;
+  let mpCamArena = null;
+  let waitingForAnswer = false;
+
+  // ELO display
+  let myElo = parseInt(localStorage.getItem('mogme-elo') || '800');
+  let myWins = parseInt(localStorage.getItem('mogme-wins') || '0');
+  let myLosses = parseInt(localStorage.getItem('mogme-losses') || '0');
+
+  function updateEloDisplay() {
+    document.getElementById('display-elo').textContent = myElo;
+    document.getElementById('display-rank').textContent = getRankFromElo(myElo);
+    document.getElementById('display-wins').textContent = myWins;
+    document.getElementById('display-losses').textContent = myLosses;
+  }
+  updateEloDisplay();
+
+  // ---- Face Mesh ----
+  function setupArenaFaceMesh() {
+    faceMeshArena = new FaceMesh({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}` });
+    faceMeshArena.setOptions({ maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.5, minTrackingConfidence:0.5 });
+    faceMeshArena.onResults(onArenaResults);
+  }
+
+  function onArenaResults(results) {
+    const canvas = document.getElementById('my-canvas');
+    const video = document.getElementById('my-video');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+      const lm = results.multiFaceLandmarks[0];
+      myLandmarks = lm;
+      myScore = calcArenaScore(lm);
+      drawArenaLandmarks(ctx, lm, canvas.width, canvas.height);
+    }
+  }
+
+  function drawArenaLandmarks(ctx, lm, W, H) {
+    lm.forEach(pt => {
+      ctx.fillStyle = 'rgba(212,175,55,0.5)';
+      ctx.beginPath();
+      ctx.arc(pt.x*W, pt.y*H, 1, 0, Math.PI*2);
+      ctx.fill();
+    });
+  }
+
+  function calcArenaScore(lm) {
+    const nose = lm[1];
+    const pairs = [[234,454],[93,323],[132,361]];
+    const sym = pairs.reduce((sum,[l,r]) => {
+      const ld = Math.abs(lm[l].x - nose.x), rd = Math.abs(lm[r].x - nose.x);
+      return sum + (1 - Math.abs(ld-rd) / Math.max(ld,rd,0.001));
+    }, 0) / pairs.length;
+
+    const faceW = Math.abs(lm[234].x - lm[454].x);
+    const jawW = Math.abs(lm[172].x - lm[397].x);
+    const jaw = Math.min(1, Math.max(0, 1 - Math.abs(jawW/faceW - 0.72)/0.25));
+
+    const cheekW = Math.abs(lm[116].x - lm[345].x);
+    const cheek = Math.min(1, Math.max(0, 1 - Math.abs(cheekW/jawW - 1.15)/0.3));
+
+    return Math.round((sym*0.4 + jaw*0.3 + cheek*0.3) * 100);
+  }
+
+  // ---- Start Camera ----
+  document.getElementById('start-btn').addEventListener('click', async () => {
+    try {
+      myStream = await navigator.mediaDevices.getUserMedia({ video:true, audio:false });
+      document.getElementById('my-video').srcObject = myStream;
+      document.getElementById('start-btn').textContent = 'CAMERA ON';
+      document.getElementById('start-btn').disabled = true;
+      document.getElementById('match-btn').disabled = false;
+      setStatus('CAMERA READY — CLICK FIND MATCH');
+      setupArenaFaceMesh();
+      mpCamArena = new Camera(document.getElementById('my-video'), {
+        onFrame: async () => { await faceMeshArena.send({ image: document.getElementById('my-video') }); },
+        width: 480, height: 360
+      });
+      mpCamArena.start();
+      connectArenaWs();
+    } catch(e) {
+      alert('Camera access required for the arena.');
+    }
+  });
+
+  // ---- Arena WS ----
+  function connectArenaWs() {
+    arenaWs = new WebSocket(WS_URL);
+    arenaWs.onopen = () => { setStatus('CONNECTED — CLICK FIND MATCH'); };
+    arenaWs.onmessage = e => { try { handleArenaMsg(JSON.parse(e.data)); } catch(err) {} };
+    arenaWs.onclose = () => { if (!inMatch) setTimeout(connectArenaWs, 3000); };
+  }
+
+  function handleArenaMsg(msg) {
+    if (msg.type === 'match-found') {
+      matchId = msg.matchId;
+      inMatch = true;
+      setStatus('MATCH FOUND — CONNECTING CAMERAS...');
+      document.getElementById('skip-btn').style.display = 'inline-block';
+      document.getElementById('match-btn').style.display = 'none';
+      startWebRTC(msg.isInitiator);
+    }
+
+    if (msg.type === 'webrtc-offer') {
+      handleOffer(msg.offer);
+    }
+
+    if (msg.type === 'webrtc-answer') {
+      if (peerConn) peerConn.setRemoteDescription(new RTCSessionDescription(msg.answer));
+    }
+
+    if (msg.type === 'webrtc-ice') {
+      if (peerConn) peerConn.addIceCandidate(new RTCIceCandidate(msg.candidate)).catch(()=>{});
+    }
+
+    if (msg.type === 'match-result') {
+      showResult(msg.winner, msg.eloChange, msg.yourScore, msg.oppScore);
+    }
+
+    if (msg.type === 'opponent-left') {
+      setStatus('OPPONENT LEFT THE MATCH');
+      cleanupMatch();
+    }
+  }
+
+  // ---- WebRTC ----
+  function createPeerConnection() {
+    const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+    peerConn = new RTCPeerConnection(config);
+
+    if (myStream) {
+      myStream.getTracks().forEach(t => peerConn.addTrack(t, myStream));
+    }
+
+    peerConn.ontrack = e => {
+      const oppVideo = document.getElementById('opp-video');
+      oppVideo.srcObject = e.streams[0];
+    };
+
+    peerConn.onicecandidate = e => {
+      if (e.candidate && arenaWs.readyState === WebSocket.OPEN) {
+        arenaWs.send(JSON.stringify({ type:'webrtc-ice', candidate:e.candidate, matchId }));
+      }
+    };
+
+    peerConn.onconnectionstatechange = () => {
+      if (peerConn.connectionState === 'connected') {
+        setStatus('MATCH IN PROGRESS — SCANNING...');
+        startScanCountdown();
+      }
+    };
+  }
+
+  async function startWebRTC(isInitiator) {
+    createPeerConnection();
+    if (isInitiator) {
+      const offer = await peerConn.createOffer();
+      await peerConn.setLocalDescription(offer);
+      arenaWs.send(JSON.stringify({ type:'webrtc-offer', offer, matchId }));
+    }
+  }
+
+  async function handleOffer(offer) {
+    createPeerConnection();
+    await peerConn.setRemoteDescription(new RTCSessionDescription(offer));
+    const answer = await peerConn.createAnswer();
+    await peerConn.setLocalDescription(answer);
+    arenaWs.send(JSON.stringify({ type:'webrtc-answer', answer, matchId }));
+  }
+
+  // ---- Scan Countdown ----
+  function startScanCountdown() {
+    let count = 5;
+    const vs = document.getElementById('vs-status');
+    const timer = setInterval(() => {
+      vs.textContent = `SCANNING IN ${count}...`;
+      if (count <= 0) {
+        clearInterval(timer);
+        submitScore();
+      }
+      count--;
+    }, 1000);
+  }
+
+  function submitScore() {
+    document.getElementById('my-score').textContent = myScore;
+    document.getElementById('my-score').style.display = 'block';
+    if (arenaWs.readyState === WebSocket.OPEN) {
+      arenaWs.send(JSON.stringify({ type:'submit-score', score:myScore, matchId, elo:myElo }));
+    }
+    setStatus('SCORES SUBMITTED — CALCULATING RESULT...');
+  }
+
+  function showResult(winner, eloChange, yourScore, oppScore) {
+    const isWin = winner === 'you';
+    const resultBox = document.getElementById('result-box');
+    const outcome = document.getElementById('result-outcome');
+    const eloChangeEl = document.getElementById('result-elo-change');
+
+    resultBox.style.display = 'block';
+    outcome.textContent = isWin ? 'VICTORY' : 'DEFEAT';
+    outcome.style.color = isWin ? '#4caf50' : '#f44336';
+    eloChangeEl.textContent = `ELO: ${myElo} → ${myElo + eloChange} (${eloChange > 0 ? '+' : ''}${eloChange})`;
+    eloChangeEl.style.color = eloChange > 0 ? '#4caf50' : '#f44336';
+
+    myElo = Math.max(100, myElo + eloChange);
+    if (isWin) myWins++; else myLosses++;
+    localStorage.setItem('mogme-elo', myElo);
+    localStorage.setItem('mogme-wins', myWins);
+    localStorage.setItem('mogme-losses', myLosses);
+    updateEloDisplay();
+
+    // Show scores
+    if (yourScore !== undefined) {
+      document.getElementById('my-score').textContent = yourScore;
+      document.getElementById('my-score').style.display = 'block';
+    }
+    if (oppScore !== undefined) {
+      document.getElementById('opp-score').textContent = oppScore;
+      document.getElementById('opp-score').style.display = 'block';
+    }
+
+    document.getElementById('skip-btn').style.display = 'none';
+    document.getElementById('match-btn').style.display = 'inline-block';
+    document.getElementById('match-btn').disabled = false;
+    setStatus('MATCH COMPLETE');
+    inMatch = false;
+  }
+
+  // ---- Find Match ----
+  document.getElementById('match-btn').addEventListener('click', () => {
+    if (!arenaWs || arenaWs.readyState !== WebSocket.OPEN) return;
+    document.getElementById('match-btn').disabled = true;
+    document.getElementById('result-box').style.display = 'none';
+    document.getElementById('my-score').style.display = 'none';
+    document.getElementById('opp-score').style.display = 'none';
+    setStatus('SEARCHING FOR OPPONENT...');
+    document.getElementById('vs-status').textContent = 'SEARCHING';
+    arenaWs.send(JSON.stringify({ type:'queue-join', elo:myElo }));
+  });
+
+  // ---- Skip ----
+  document.getElementById('skip-btn').addEventListener('click', () => {
+    cleanupMatch();
+    setStatus('SKIPPED — SEARCHING FOR NEW OPPONENT...');
+    arenaWs.send(JSON.stringify({ type:'queue-join', elo:myElo }));
+    document.getElementById('vs-status').textContent = 'SEARCHING';
+  });
+
+  function cleanupMatch() {
+    if (peerConn) { peerConn.close(); peerConn = null; }
+    document.getElementById('opp-video').srcObject = null;
+    document.getElementById('skip-btn').style.display = 'none';
+    document.getElementById('match-btn').style.display = 'inline-block';
+    document.getElementById('match-btn').disabled = false;
+    inMatch = false;
+    matchId = null;
+  }
+
+  function setStatus(text) {
+    document.getElementById('status-bar').textContent = text;
+  }
+</script>
+</body>
+</html>

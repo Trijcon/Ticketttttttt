@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MOGME.TV — Global Rank</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    .rank-inner {
+      padding: 36px 40px 60px;
+    }
+
+    .rank-header {
+      margin-bottom: 32px;
+    }
+
+    .rank-tag {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--gold-dim);
+      margin-bottom: 6px;
+    }
+
+    .rank-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 52px;
+      letter-spacing: 5px;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    /* TIER LADDER */
+    .tier-ladder {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 36px;
+      flex-wrap: wrap;
+    }
+
+    .tier-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 20px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--bg2);
+      min-width: 90px;
+    }
+
+    .tier-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 2px;
+    }
+
+    .tier-elo-range {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      color: var(--text-dim);
+    }
+
+    .tier-block.is-current {
+      border-color: rgba(212,175,55,0.5);
+      background: rgba(212,175,55,0.05);
+    }
+
+    /* LEADERBOARD TABLE */
+    .lb-section {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      max-width: 800px;
+    }
+
+    .lb-header-row {
+      display: grid;
+      grid-template-columns: 60px 1fr 120px 80px 80px;
+      gap: 0;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+    }
+
+    .lb-row {
+      display: grid;
+      grid-template-columns: 60px 1fr 120px 80px 80px;
+      gap: 0;
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(212,175,55,0.06);
+      align-items: center;
+      transition: background 0.15s;
+    }
+
+    .lb-row:last-child { border-bottom: none; }
+    .lb-row:hover { background: rgba(212,175,55,0.03); }
+
+    .lb-position {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      color: var(--text-dim);
+    }
+
+    .lb-position.top3 {
+      color: var(--gold);
+      text-shadow: 0 0 10px var(--gold-glow);
+    }
+
+    .lb-name {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lb-elo {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 14px;
+      color: var(--gold);
+    }
+
+    .lb-wins, .lb-losses {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .lb-wins { color: #4caf50; }
+    .lb-losses { color: #f44336; }
+
+    .lb-loading {
+      padding: 40px;
+      text-align: center;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+    }
+
+    /* My rank card */
+    .my-rank-card {
+      background: var(--bg2);
+      border: 1px solid rgba(212,175,55,0.3);
+      border-radius: 6px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      max-width: 800px;
+    }
+
+    .mrc-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--text-dim);
+      margin-bottom: 4px;
+    }
+
+    .mrc-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 32px;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    .mrc-divider {
+      width: 1px;
+      height: 40px;
+      background: var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<div class="rank-inner">
+  <div class="rank-header">
+    <div class="rank-tag">// LEADERBOARD</div>
+    <div class="rank-title">GLOBAL RANK</div>
+  </div>
+
+  <!-- TIER LADDER -->
+  <div class="tier-ladder" id="tier-ladder">
+    <div class="tier-block" style="border-color:#888">
+      <div class="tier-name" style="color:#888">SUB3</div>
+      <div class="tier-elo-range">0 — 799</div>
+    </div>
+    <div class="tier-block" style="border-color:#4fa3e0">
+      <div class="tier-name" style="color:#4fa3e0">LTN</div>
+      <div class="tier-elo-range">800 — 999</div>
+    </div>
+    <div class="tier-block" style="border-color:#5bc45b">
+      <div class="tier-name" style="color:#5bc45b">MTN</div>
+      <div class="tier-elo-range">1000 — 1199</div>
+    </div>
+    <div class="tier-block" style="border-color:#c4a827">
+      <div class="tier-name" style="color:#c4a827">HTN</div>
+      <div class="tier-elo-range">1200 — 1399</div>
+    </div>
+    <div class="tier-block" style="border-color:#c47a27">
+      <div class="tier-name" style="color:#c47a27">CHADLITE</div>
+      <div class="tier-elo-range">1400 — 1599</div>
+    </div>
+    <div class="tier-block" style="border-color:#d4af37">
+      <div class="tier-name" style="color:#d4af37">CHAD</div>
+      <div class="tier-elo-range">1600+</div>
+    </div>
+  </div>
+
+  <!-- MY RANK -->
+  <div class="my-rank-card">
+    <div>
+      <div class="mrc-label">YOUR RANK</div>
+      <div class="mrc-value" id="my-rank-display">—</div>
+    </div>
+    <div class="mrc-divider"></div>
+    <div>
+      <div class="mrc-label">ELO</div>
+      <div class="mrc-value" id="my-elo-display">—</div>
+    </div>
+    <div class="mrc-divider"></div>
+    <div>
+      <div class="mrc-label">W/L</div>
+      <div class="mrc-value" id="my-wl-display">—</div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="lb-section">
+    <div class="lb-header-row">
+      <span>#</span>
+      <span>PLAYER</span>
+      <span>RANK</span>
+      <span>ELO</span>
+      <span>W — L</span>
+    </div>
+    <div id="lb-body">
+      <div class="lb-loading">LOADING LEADERBOARD...</div>
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+  initSharedLayout('rank');
+
+  const myElo = parseInt(localStorage.getItem('mogme-elo') || '800');
+  const myRank = getRankFromElo(myElo);
+  document.getElementById('my-rank-display').textContent = myRank;
+  document.getElementById('my-elo-display').textContent = myElo;
+  const wins = parseInt(localStorage.getItem('mogme-wins') || '0');
+  const losses = parseInt(localStorage.getItem('mogme-losses') || '0');
+  document.getElementById('my-wl-display').textContent = `${wins} — ${losses}`;
+
+  // Highlight my current tier block
+  const tiers = [
+    { name: 'SUB3', min: 0 }, { name: 'LTN', min: 800 }, { name: 'MTN', min: 1000 },
+    { name: 'HTN', min: 1200 }, { name: 'CHADLITE', min: 1400 }, { name: 'CHAD', min: 1600 }
+  ];
+  tiers.forEach((t, i) => {
+    const block = document.querySelectorAll('.tier-block')[i];
+    if (t.name === myRank) block.classList.add('is-current');
+  });
+
+  async function loadLeaderboard() {
+    try {
+      const res = await fetch('https://mogmetv-production.up.railway.app/leaderboard');
+      const data = await res.json();
+      renderLeaderboard(data);
+    } catch(e) {
+      renderFallback();
+    }
+  }
+
+  function renderLeaderboard(players) {
+    const body = document.getElementById('lb-body');
+    if (!players || players.length === 0) {
+      body.innerHTML = '<div class="lb-loading">NO PLAYERS YET. BE THE FIRST.</div>';
+      return;
+    }
+    body.innerHTML = players.map((p, i) => {
+      const rank = getRankFromElo(p.elo || 800);
+      const rc = RANKS[rank];
+      return `
+        <div class="lb-row">
+          <span class="lb-position ${i < 3 ? 'top3' : ''}">${i + 1}</span>
+          <span class="lb-name">
+            ${escapeHtml(p.name || 'Anonymous')}
+          </span>
+          <span>${getRankBadge(rank)}</span>
+          <span class="lb-elo">${p.elo || 800}</span>
+          <span class="lb-wins">${p.wins||0}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderFallback() {
+    document.getElementById('lb-body').innerHTML = '<div class="lb-loading">COULD NOT CONNECT TO SERVER. PLAY MATCHES TO POPULATE THE LEADERBOARD.</div>';
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  loadLeaderboard();
+  setInterval(loadLeaderboard, 30000);
+</script>
+</body>
+</html>
