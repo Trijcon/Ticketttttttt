@@ -1,301 +1,252 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MOGME.TV — Enter the Arena</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <style>
-    /* Page-specific styles */
-    .dashboard-inner {
-      padding: 40px 40px 60px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MogMe.TV — Enter the Arena</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.hero {
+  text-align:center; padding:48px 0 32px;
+}
+.season-badge {
+  display:inline-flex; align-items:center; gap:8px;
+  background:linear-gradient(135deg,#2a1a4a,#1e1232);
+  border:1px solid rgba(201,168,76,0.35); border-radius:999px;
+  padding:8px 20px; margin-bottom:12px;
+  font-family:'Syne',sans-serif; font-size:13px; font-weight:700;
+  letter-spacing:2px; color:var(--gold);
+}
+.hero-title {
+  font-family:'Syne',sans-serif; font-weight:800;
+  font-size:clamp(40px,7vw,80px); line-height:1;
+  letter-spacing:-1px; margin-bottom:12px;
+}
+.hero-title span { color:var(--gold); text-shadow:0 0 40px rgba(201,168,76,0.3); }
+.hero-sub { font-size:15px; color:var(--muted); }
 
-    .dashboard-hero {
-      margin-bottom: 50px;
-      padding-bottom: 40px;
-      border-bottom: 1px solid var(--border);
-    }
+/* Cards */
+.cards-grid {
+  display:grid; grid-template-columns:1.5fr 1fr 1fr 1fr;
+  gap:12px; margin-bottom:14px;
+}
+.card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:18px; padding:28px 22px;
+  display:flex; flex-direction:column; align-items:center;
+  cursor:pointer; transition:all 0.2s;
+  position:relative; overflow:hidden; min-height:320px;
+  text-decoration:none; color:inherit;
+}
+.card:hover { background:var(--card-hover); transform:translateY(-3px); border-color:rgba(124,92,191,0.35); }
 
-    .hero-label {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 4px;
-      color: var(--gold-dim);
-      text-transform: uppercase;
-      margin-bottom: 12px;
-    }
+.card.arena {
+  background:linear-gradient(145deg,#1c1535,#15112a,#1a1530);
+  border-color:rgba(124,92,191,0.3); align-items:flex-start;
+}
+.card.arena::before {
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(ellipse at 70% 20%,rgba(124,92,191,0.15) 0%,transparent 60%);
+  pointer-events:none;
+}
+.card.arena:hover { border-color:rgba(124,92,191,0.6); }
 
-    .hero-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(52px, 6vw, 88px);
-      letter-spacing: 6px;
-      line-height: 0.95;
-      color: var(--text);
-      margin-bottom: 16px;
-    }
+.how-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+  border-radius:999px; padding:5px 14px;
+  font-size:11px; font-weight:600; letter-spacing:1px; color:var(--muted);
+  margin-bottom:20px;
+}
 
-    .hero-title span {
-      color: var(--gold);
-      text-shadow: 0 0 40px var(--gold-glow);
-    }
+.card-icon { font-size:42px; margin-bottom:12px; filter:drop-shadow(0 0 16px rgba(124,92,191,0.4)); }
+.card.arena .card-icon { align-self:center; }
+.card-title {
+  font-family:'Syne',sans-serif; font-size:19px; font-weight:800;
+  text-align:center; margin-bottom:5px;
+}
+.card.arena .card-title { align-self:center; }
+.card-sub {
+  font-family:'Space Mono',monospace; font-size:10px;
+  letter-spacing:2px; color:var(--purple-light);
+  text-align:center; margin-bottom:12px;
+}
+.card.arena .card-sub { align-self:center; }
+.card-desc { font-size:12px; color:var(--muted); text-align:center; line-height:1.6; }
 
-    .hero-sub {
-      font-size: 16px;
-      color: var(--text-dim);
-      max-width: 480px;
-      line-height: 1.5;
-      font-weight: 500;
-    }
+/* Player mini card inside arena */
+.player-card {
+  width:100%; background:rgba(0,0,0,0.35);
+  border:1px solid rgba(0,229,255,0.15); border-radius:12px;
+  padding:12px 14px; margin-top:auto;
+}
+.player-header {
+  display:flex; align-items:center; gap:8px; margin-bottom:10px;
+  font-family:'Space Mono',monospace; font-size:11px; color:var(--muted);
+}
+.player-name { color:var(--white); font-weight:700; font-size:12px; }
+.elo-val { margin-left:auto; font-size:11px; color:var(--cyan); font-weight:700; }
+.player-stats { display:flex; flex-direction:column; gap:4px; }
+.stat-row {
+  display:flex; justify-content:space-between;
+  font-family:'Space Mono',monospace; font-size:10px; color:var(--muted);
+}
+.stat-row span:last-child { color:var(--white); }
+.stat-row .dim { color:var(--muted2); }
+.stat-row .cy { color:var(--cyan); }
+.elo-bar { height:4px; background:rgba(255,255,255,0.07); border-radius:999px; overflow:hidden; margin:8px 0 4px; }
+.elo-bar-fill {
+  height:100%; background:linear-gradient(90deg,var(--purple),var(--cyan));
+  border-radius:999px; width:80%; position:relative; overflow:hidden;
+}
+.elo-bar-fill::after {
+  content:''; position:absolute; top:0; left:-100%; width:60%; height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent);
+  animation:shimmer 2s infinite;
+}
+@keyframes shimmer{to{left:200%}}
+.elo-bar-labels {
+  display:flex; justify-content:space-between;
+  font-family:'Space Mono',monospace; font-size:9px; color:var(--muted2);
+}
 
-    .stats-row {
-      display: flex;
-      gap: 32px;
-      margin-top: 28px;
-    }
+/* Private room code btn */
+.code-btn {
+  margin-top:auto; padding:10px 16px;
+  background:rgba(201,168,76,0.1); border:1px solid rgba(201,168,76,0.3);
+  border-radius:999px; color:var(--gold);
+  font-family:'Space Mono',monospace; font-size:10px; letter-spacing:1px;
+  text-align:center; line-height:1.6; width:100%;
+}
 
-    .stat-item {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
+/* Social grid */
+.social-grid {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
+}
+.social-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:14px; padding:16px 18px;
+  display:flex; align-items:center; gap:12px;
+  cursor:pointer; transition:all 0.2s;
+  text-decoration:none; color:inherit;
+}
+.social-card:hover { background:var(--card-hover); border-color:rgba(124,92,191,0.25); transform:translateY(-1px); }
+.social-icon {
+  width:36px; height:36px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;
+}
+.social-info { flex:1; }
+.social-label { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; color:var(--muted2); margin-bottom:2px; }
+.social-name { font-size:13px; font-weight:600; }
+.social-arrow { color:var(--muted2); font-size:14px; transition:all 0.2s; }
+.social-card:hover .social-arrow { transform:translateX(3px); color:var(--white); }
 
-    .stat-num {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 32px;
-      color: var(--gold);
-      line-height: 1;
-    }
-
-    .stat-label {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 2px;
-      color: var(--text-dim);
-    }
-
-    /* CARD GRID */
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-      max-width: 900px;
-    }
-
-    .card-grid .card-featured {
-      grid-column: span 2;
-    }
-
-    .nav-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 28px;
-      cursor: pointer;
-      text-decoration: none;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      transition: all 0.25s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .nav-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, var(--gold-glow), transparent);
-      opacity: 0;
-      transition: opacity 0.25s;
-    }
-
-    .nav-card:hover {
-      border-color: rgba(212,175,55,0.4);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-    }
-
-    .nav-card:hover::before { opacity: 1; }
-
-    .card-tag {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 3px;
-      color: var(--gold-dim);
-      text-transform: uppercase;
-    }
-
-    .card-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 32px;
-      letter-spacing: 3px;
-      color: var(--text);
-      line-height: 1;
-    }
-
-    .card-desc {
-      font-size: 14px;
-      color: var(--text-dim);
-      line-height: 1.5;
-      font-weight: 500;
-    }
-
-    .card-arrow {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 18px;
-      color: var(--gold);
-      margin-top: 4px;
-    }
-
-    .card-featured .card-title {
-      font-size: 44px;
-    }
-
-    /* My rank bar */
-    .my-rank-bar {
-      margin-top: 40px;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 20px 28px;
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      max-width: 900px;
-    }
-
-    .my-rank-label {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 3px;
-      color: var(--text-dim);
-    }
-
-    .my-rank-value {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 28px;
-      color: var(--gold);
-      letter-spacing: 2px;
-    }
-
-    .my-elo-value {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 14px;
-      color: var(--text-dim);
-    }
-
-    .elo-bar-wrap {
-      flex: 1;
-      height: 4px;
-      background: var(--bg3);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-
-    .elo-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--gold-dim), var(--gold));
-      border-radius: 2px;
-      transition: width 1s ease;
-    }
-  </style>
+@media(max-width:900px){
+  .cards-grid{grid-template-columns:1fr 1fr}
+  .social-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:560px){
+  .cards-grid{grid-template-columns:1fr}
+  .social-grid{grid-template-columns:1fr}
+}
+</style>
 </head>
 <body>
+<div class="page-wrap">
 
-<!-- PAGE CONTENT (will be wrapped by shared.js) -->
-<div class="dashboard-inner">
-
-  <!-- HERO -->
-  <div class="dashboard-hero">
-    <div class="hero-label">// FACIAL COMPETITION PLATFORM</div>
-    <div class="hero-title">MOGME<span>.</span>TV</div>
-    <div class="hero-sub">Rate your face. Challenge strangers. Climb the ranks. Find out where you actually stand.</div>
-    <div class="stats-row">
-      <div class="stat-item">
-        <div class="stat-num" id="dash-online">0</div>
-        <div class="stat-label">Online Now</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num" id="dash-matches">—</div>
-        <div class="stat-label">Matches Today</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num" id="dash-scans">—</div>
-        <div class="stat-label">Scans Completed</div>
-      </div>
-    </div>
+  <div class="hero">
+    <div class="season-badge">🏆 SEASON 1</div>
+    <div class="hero-title">ENTER THE<br><span>ARENA</span></div>
+    <p class="hero-sub">Compete. Rank. Dominate. Face-to-face matchmaking powered by AI.</p>
   </div>
 
-  <!-- CARD GRID -->
-  <div class="card-grid">
-    <a href="arena.html" class="nav-card card-featured">
-      <div class="card-tag">// Main Feature</div>
+  <div class="cards-grid" style="margin-bottom:14px;">
+    <!-- 1V1 ARENA -->
+    <a class="card arena" href="arena.html">
+      <div class="how-badge">? HOW TO MOG</div>
+      <div class="card-icon" style="align-self:center;">⚔️</div>
       <div class="card-title">1V1 ARENA</div>
-      <div class="card-desc">Get matched with a random stranger. Both faces are scanned and compared. Higher score wins. Your ELO updates after every match.</div>
-      <div class="card-arrow">→ ENTER</div>
+      <div class="card-sub">RANKED MATCHMAKING</div>
+      <div class="player-card">
+        <div class="player-header">
+          <span class="player-name" id="dashName">YOU</span>
+          <span>🔥</span>
+          <span id="dashElo" style="color:var(--cyan);font-size:11px;">400</span>
+          <span class="elo-val" id="dashEloVal">400 ELO</span>
+        </div>
+        <div class="player-stats">
+          <div class="stat-row"><span>SEASON RECORD:</span><span id="dashRecord">0W – 0L</span></div>
+          <div class="stat-row"><span>WORLD STANDING:</span><span class="dim">UNRANKED</span></div>
+          <div class="stat-row"><span>PEAK:</span><span>400 ELO</span></div>
+          <div class="stat-row"><span>NEXT RANK:</span><span class="cy">🌙 LTN</span></div>
+        </div>
+        <div class="elo-bar"><div class="elo-bar-fill"></div></div>
+        <div class="elo-bar-labels"><span>80%</span><span>101 ELO NEEDED</span></div>
+      </div>
     </a>
 
-    <a href="lab.html" class="nav-card">
-      <div class="card-tag">// AI Analysis</div>
+    <!-- THE LAB -->
+    <a class="card" href="lab.html">
+      <div class="card-icon">🧬</div>
       <div class="card-title">THE LAB</div>
-      <div class="card-desc">Deep facial analysis. Real AI scores your symmetry, jaw, cheekbones, eyes, nose, and lips. No sugarcoating.</div>
-      <div class="card-arrow">→ SCAN</div>
+      <div class="card-sub">SOLO CALIBRATION</div>
+      <p class="card-desc">In-depth facial analysis. Discover your attractiveness score and what to improve.</p>
     </a>
 
-    <a href="rank.html" class="nav-card">
-      <div class="card-tag">// Leaderboard</div>
+    <!-- GLOBAL RANK -->
+    <a class="card" href="rank.html">
+      <div class="card-icon">🏆</div>
       <div class="card-title">GLOBAL RANK</div>
-      <div class="card-desc">See where you stand globally. Top players by ELO. Tier ladder from Sub3 to Chad.</div>
-      <div class="card-arrow">→ VIEW</div>
+      <div class="card-sub">TOP MOGGERS</div>
+      <div style="display:flex;flex-direction:column;gap:5px;width:100%;margin-top:10px;">
+        <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);padding:5px 0;border-bottom:1px solid var(--border);">
+          <span>🔴 SUB3</span><span style="color:var(--muted2)">0 ELO</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);padding:5px 0;border-bottom:1px solid var(--border);">
+          <span>🌙 LTN</span><span style="color:var(--muted2)">500+</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);padding:5px 0;border-bottom:1px solid var(--border);">
+          <span>⚡ MTN</span><span style="color:var(--muted2)">1000+</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:10px;color:var(--gold);padding:5px 0;">
+          <span>🔱 CHAD</span><span>3000+</span>
+        </div>
+      </div>
     </a>
 
-    <a href="private.html" class="nav-card">
-      <div class="card-tag">// Invite Only</div>
+    <!-- PRIVATE ROOM -->
+    <a class="card" href="private.html">
+      <div class="card-icon" style="opacity:0.5;">🔒</div>
       <div class="card-title">PRIVATE ROOM</div>
-      <div class="card-desc">Generate a code. Send it to someone. Challenge them directly in a private 1V1 match.</div>
-      <div class="card-arrow">→ CREATE</div>
+      <div class="card-sub">INVITE ONLY</div>
+      <p class="card-desc">Generate a code and challenge a friend to a private 1V1 match.</p>
+      <div class="code-btn" style="margin-top:auto;">HAVE A CODE?<br>JOIN →</div>
     </a>
   </div>
 
-  <!-- MY RANK BAR -->
-  <div class="my-rank-bar">
-    <div>
-      <div class="my-rank-label">YOUR RANK</div>
-      <div class="my-rank-value" id="dash-myrank">SUB3</div>
-    </div>
-    <div>
-      <div class="my-rank-label">ELO</div>
-      <div class="my-elo-value" id="dash-myelo">800</div>
-    </div>
-    <div class="elo-bar-wrap">
-      <div class="elo-bar-fill" id="dash-elobar" style="width:0%"></div>
-    </div>
+  <!-- Social -->
+  <div class="social-grid">
+    <a href="#" class="social-card"><div class="social-icon" style="background:rgba(88,101,242,0.15);">💬</div><div class="social-info"><div class="social-label">DISCORD</div><div class="social-name">Join the Discord</div></div><div class="social-arrow">→</div></a>
+    <a href="#" class="social-card"><div class="social-icon" style="background:rgba(255,255,255,0.05);">🎵</div><div class="social-info"><div class="social-label">TIKTOK</div><div class="social-name">Follow MogMe.TV</div></div><div class="social-arrow">→</div></a>
+    <a href="#" class="social-card"><div class="social-icon" style="background:rgba(225,48,108,0.12);">📸</div><div class="social-info"><div class="social-label">INSTAGRAM</div><div class="social-name">Follow MogMe.TV</div></div><div class="social-arrow">→</div></a>
+    <a href="#" class="social-card"><div class="social-icon" style="background:rgba(255,69,0,0.12);">🔴</div><div class="social-info"><div class="social-label">REDDIT</div><div class="social-name">Follow MogMe.TV</div></div><div class="social-arrow">→</div></a>
+    <a href="#" class="social-card"><div class="social-icon" style="background:rgba(255,0,0,0.12);">▶️</div><div class="social-info"><div class="social-label">YOUTUBE</div><div class="social-name">Follow MogMe.TV</div></div><div class="social-arrow">→</div></a>
+    <a href="#" class="social-card"><div class="social-icon" style="background:rgba(255,255,255,0.05);">✖️</div><div class="social-info"><div class="social-label">X / TWITTER</div><div class="social-name">Follow MogMe.TV</div></div><div class="social-arrow">→</div></a>
   </div>
 
 </div>
-
 <script src="shared.js"></script>
 <script>
-  initSharedLayout('dashboard');
-
-  // Update my rank display
-  const myElo = parseInt(localStorage.getItem('mogme-elo') || '800');
-  const myRank = getRankFromElo(myElo);
-  document.getElementById('dash-myrank').textContent = myRank.toUpperCase();
-  document.getElementById('dash-myelo').textContent = myElo;
-  const pct = Math.min(100, ((myElo - 800) / (1800 - 800)) * 100);
-  document.getElementById('dash-elobar').style.width = Math.max(2, pct) + '%';
-
-  // Pull online count from nav
-  function syncOnlineCount() {
-    const navCount = document.getElementById('nav-online-count');
-    if (navCount) {
-      document.getElementById('dash-online').textContent = navCount.textContent;
-    }
-  }
-  setInterval(syncOnlineCount, 1000);
+  injectSharedUI();
+  connectWS();
+  // Update dashboard stats from localStorage
+  const n = localStorage.getItem('mogme_name'); if(n) document.getElementById('dashName').textContent = n;
+  const e = localStorage.getItem('mogme_elo');
+  if(e){ document.getElementById('dashElo').textContent=e; document.getElementById('dashEloVal').textContent=e+' ELO'; }
+  const w = localStorage.getItem('mogme_wins')||0;
+  const l = localStorage.getItem('mogme_losses')||0;
+  document.getElementById('dashRecord').textContent = w+'W – '+l+'L';
 </script>
 </body>
 </html>
