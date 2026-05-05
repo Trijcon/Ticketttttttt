@@ -1618,15 +1618,30 @@ function handleServerMsg(msg) {
       document.getElementById('arenaMainBtn').onclick = arenaMainAction;
       document.getElementById('skipBtn').style.display = 'none';
       resetOpponentBox();
+      closeWebRTC();
       arenaState = 'camera';
       break;
 
     case 'opponent_skipped':
       setArenaStatus('', 'You were skipped');
       resetOpponentBox();
+      closeWebRTC();
       arenaState = 'camera';
       document.getElementById('arenaMainBtn').textContent = 'FIND MATCH →';
       document.getElementById('arenaMainBtn').disabled = false;
+      break;
+
+    // WebRTC signaling relay
+    case 'webrtc_offer':
+      handleWebRTCOffer(msg);
+      break;
+
+    case 'webrtc_answer':
+      handleWebRTCAnswer(msg);
+      break;
+
+    case 'webrtc_ice':
+      handleWebRTCIce(msg);
       break;
 
     case 'room_created':
@@ -1752,23 +1767,156 @@ function startSearching() {
   wsSend({ type: 'join_queue' });
 }
 
+/* ══════════════════════════════
+   REAL WEBRTC — CAMERA FEEDS
+══════════════════════════════ */
+let peerConnection = null;
+let opponentSocketId = null;
+let myWebRTCRole = null; // 'offerer' or 'answerer'
+
+const ICE_SERVERS = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+  ]
+};
+
 function onMatchFound(msg) {
   arenaState = 'matched';
   const opp = msg.opponent || {};
+  opponentSocketId = opp.id;
+  myWebRTCRole = msg.role; // 'offerer' or 'answerer'
   const tierName = opp.tier ? opp.tier.name : 'Sub3';
   const tierEmoji = opp.tier ? opp.tier.emoji : '🔴';
-  setArenaStatus('connected', `Opponent found: ${opp.name || 'Unknown'}`);
+
+  setArenaStatus('connected', `Matched with ${opp.name || 'Opponent'} — connecting cameras...`);
+
+  // Show opponent box with loading state
   document.getElementById('opponentBox').innerHTML = `
     <div class="feed-label">OPPONENT</div>
-    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;">
-      <div style="font-size:52px;opacity:0.6">👤</div>
-      <div style="font-family:'Space Mono',monospace;font-size:12px;color:var(--purple-light);">${escapeHtml(opp.name||'Opponent')}</div>
-      <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted2);">${tierEmoji} ${tierName} · ${opp.elo||400} ELO</div>
+    <video id="opponentVideo" autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>
+    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(13,13,20,0.7);" id="oppConnecting">
+      <div style="font-size:36px;">📡</div>
+      <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--purple-light);">CONNECTING...</div>
+      <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted2);">${escapeHtml(opp.name||'Opponent')} · ${tierEmoji} ${tierName}</div>
     </div>`;
+
   document.getElementById('arenaMainBtn').textContent = 'RUN SCAN';
   document.getElementById('arenaMainBtn').disabled = false;
   document.getElementById('arenaMainBtn').onclick = runArenaScan;
   document.getElementById('skipBtn').style.display = 'flex';
+
+  // Start WebRTC
+  startWebRTC();
+}
+
+async function startWebRTC() {
+  try {
+    // Close any existing connection
+    closeWebRTC();
+
+    peerConnection = new RTCPeerConnection(ICE_SERVERS);
+
+    // Add your local camera stream to the connection
+    if (activeArenaStream) {
+      activeArenaStream.getTracks().forEach(track => {
+        peerConnection.addTrack(track, activeArenaStream);
+      });
+    }
+
+    // When we receive opponent's video track
+    peerConnection.ontrack = (event) => {
+      const oppVideo = document.getElementById('opponentVideo');
+      if (oppVideo && event.streams[0]) {
+        oppVideo.srcObject = event.streams[0];
+        // Hide the connecting overlay
+        const overlay = document.getElementById('oppConnecting');
+        if (overlay) overlay.style.display = 'none';
+        setArenaStatus('connected', 'Cameras connected — run your scan!');
+      }
+    };
+
+    // Send ICE candidates to opponent via server
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        wsSend({
+          type: 'webrtc_ice',
+          targetId: opponentSocketId,
+          candidate: event.candidate,
+        });
+      }
+    };
+
+    peerConnection.onconnectionstatechange = () => {
+      console.log('WebRTC state:', peerConnection.connectionState);
+      if (peerConnection.connectionState === 'connected') {
+        setArenaStatus('connected', 'Live feed connected ✓');
+      }
+      if (peerConnection.connectionState === 'failed') {
+        setArenaStatus('', 'Camera connection failed — scan anyway');
+      }
+    };
+
+    // If we are the offerer — create and send offer
+    if (myWebRTCRole === 'offerer') {
+      const offer = await peerConnection.createOffer({ offerToReceiveVideo: true, offerToReceiveAudio: false });
+      await peerConnection.setLocalDescription(offer);
+      wsSend({
+        type: 'webrtc_offer',
+        targetId: opponentSocketId,
+        offer: peerConnection.localDescription,
+      });
+    }
+    // Answerer waits for offer (handled in handleWebRTCOffer)
+
+  } catch(err) {
+    console.error('WebRTC start error:', err);
+    setArenaStatus('connected', 'Camera link failed — scan still works');
+  }
+}
+
+async function handleWebRTCOffer(msg) {
+  if (!peerConnection) return;
+  try {
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(msg.offer));
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+    wsSend({
+      type: 'webrtc_answer',
+      targetId: msg.fromId,
+      answer: peerConnection.localDescription,
+    });
+  } catch(err) {
+    console.error('WebRTC offer error:', err);
+  }
+}
+
+async function handleWebRTCAnswer(msg) {
+  if (!peerConnection) return;
+  try {
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(msg.answer));
+  } catch(err) {
+    console.error('WebRTC answer error:', err);
+  }
+}
+
+async function handleWebRTCIce(msg) {
+  if (!peerConnection || !msg.candidate) return;
+  try {
+    await peerConnection.addIceCandidate(new RTCIceCandidate(msg.candidate));
+  } catch(err) {
+    console.error('ICE error:', err);
+  }
+}
+
+function closeWebRTC() {
+  if (peerConnection) {
+    peerConnection.close();
+    peerConnection = null;
+  }
+  opponentSocketId = null;
+  myWebRTCRole = null;
 }
 
 function onMatchResult(msg) {
@@ -1793,6 +1941,7 @@ function onMatchResult(msg) {
 function skipOpponent() {
   wsSend({ type: 'skip_opponent' });
   resetOpponentBox();
+  closeWebRTC();
   arenaState = 'camera';
   setArenaStatus('', 'Camera active — find a match!');
   document.getElementById('arenaMainBtn').textContent = 'FIND MATCH →';
