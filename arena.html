@@ -4,413 +4,284 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MogMe.TV — 1V1 Arena</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <style>
-.arena-wrap { max-width:900px; margin:0 auto; }
-.page-title { font-family:'Syne',sans-serif; font-weight:800; font-size:36px; margin-bottom:4px; }
-.page-sub { font-family:'Space Mono',monospace; font-size:11px; letter-spacing:2px; color:var(--purple-light); margin-bottom:24px; }
+.arena-wrap { max-width:880px; margin:0 auto; }
+.page-title { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:38px; letter-spacing:1px; margin-bottom:4px; color:var(--white); }
+.page-sub { font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:2px; color:var(--muted); margin-bottom:20px; }
 
-.status-bar-top {
-  width:100%; background:var(--card); border:1px solid var(--border);
-  border-radius:12px; padding:14px 20px;
-  display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;
+.status-top {
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  padding:12px 18px; display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;
 }
-.status-indicator { display:flex; align-items:center; gap:8px; }
-.status-dot { width:8px;height:8px;border-radius:50%;background:var(--muted2);flex-shrink:0; }
-.status-dot.searching{background:var(--gold);box-shadow:0 0 8px var(--gold);animation:pulse 1s infinite;}
-.status-dot.connected{background:var(--green);box-shadow:0 0 8px var(--green);}
-.status-label { font-family:'Space Mono',monospace; font-size:12px; color:var(--muted); }
-.queue-size { font-family:'Space Mono',monospace; font-size:11px; color:var(--muted2); }
+.status-dot { width:8px; height:8px; border-radius:50%; background:var(--muted2); flex-shrink:0; transition:all 0.3s; }
+.status-dot.searching { background:var(--amber); box-shadow:0 0 8px var(--amber); animation:blink 0.8s infinite; }
+.status-dot.connected { background:var(--green); box-shadow:0 0 8px var(--green); }
+.status-label { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); display:flex; align-items:center; gap:8px; }
+.queue-label { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2); }
 
-.feeds-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
-
+.feeds-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
 .feed-box {
-  position:relative; border-radius:16px; overflow:hidden;
+  position:relative; border-radius:14px; overflow:hidden;
   background:#020208; border:1px solid var(--border); aspect-ratio:4/3;
 }
 .feed-label {
-  position:absolute; top:12px; left:12px; z-index:5;
-  font-family:'Space Mono',monospace; font-size:10px; letter-spacing:1px; color:var(--white);
-  background:rgba(0,0,0,0.55); border:1px solid rgba(255,255,255,0.1);
-  border-radius:6px; padding:3px 10px;
+  position:absolute; top:10px; left:10px; z-index:5;
+  font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--white);
+  background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.1);
+  border-radius:5px; padding:3px 10px;
 }
-.feed-video { width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1); }
-.feed-canvas { position:absolute;top:0;left:0;width:100%;height:100%;transform:scaleX(-1);pointer-events:none; }
+.feed-video { width:100%; height:100%; object-fit:cover; display:block; transform:scaleX(-1); }
+.feed-canvas { position:absolute; top:0; left:0; width:100%; height:100%; transform:scaleX(-1); pointer-events:none; }
 .feed-score {
   position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
-  background:rgba(0,0,0,0.7); border:1px solid rgba(201,168,76,0.4);
-  border-radius:999px; padding:4px 16px; z-index:5;
-  font-family:'Syne',sans-serif; font-weight:800; font-size:18px; color:var(--gold);
-  display:none; white-space:nowrap;
+  background:rgba(0,0,0,0.75); border:1px solid rgba(13,242,200,0.3); border-radius:999px;
+  padding:4px 18px; z-index:5; font-family:'Barlow Condensed',sans-serif; font-weight:800;
+  font-size:20px; color:var(--teal); display:none; white-space:nowrap;
 }
-.feed-placeholder {
-  position:absolute;inset:0;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:10px;
-}
-.feed-placeholder-icon{font-size:48px;opacity:0.3;}
-.feed-placeholder-text{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted2);letter-spacing:1px;}
+.feed-ph { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; }
+.feed-ph-icon { font-size:44px; opacity:0.25; }
+.feed-ph-text { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2); letter-spacing:1px; }
 
-.actions-row { display:flex; gap:12px; margin-bottom:14px; }
+.actions-row { display:flex; gap:10px; margin-bottom:12px; }
 
 .result-card {
-  display:none; background:linear-gradient(135deg,#1c1535,#15112a);
-  border:1px solid rgba(201,168,76,0.35); border-radius:18px; padding:32px;
-  text-align:center; animation:fadeUp 0.4s ease;
+  display:none; background:linear-gradient(135deg,#141228,#0f0d20);
+  border:1px solid rgba(13,242,200,0.2); border-radius:16px;
+  padding:28px; text-align:center;
 }
-.result-card.show{display:block;}
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-.result-label{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:12px;}
-.result-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-bottom:16px;}
-.result-scores{display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:12px;}
-.result-score-num{font-family:'Syne',sans-serif;font-size:64px;font-weight:800;color:var(--gold);line-height:1;}
-.result-vs{font-family:'Space Mono',monospace;font-size:18px;color:var(--muted2);}
-.result-elo{font-family:'Space Mono',monospace;font-size:13px;margin-bottom:20px;}
-.elo-up{color:var(--green);} .elo-down{color:var(--red);}
-.result-actions{display:flex;gap:12px;justify-content:center;}
+.result-card.show { display:block; }
+.result-eyebrow { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:2px; margin-bottom:10px; }
+.result-title { font-family:'Barlow Condensed',sans-serif; font-size:36px; font-weight:900; margin-bottom:14px; }
+.scores-row { display:flex; align-items:center; justify-content:center; gap:20px; margin-bottom:10px; }
+.score-big { font-family:'Barlow Condensed',sans-serif; font-size:68px; font-weight:900; color:var(--teal); line-height:1; }
+.score-vs { font-family:'JetBrains Mono',monospace; font-size:18px; color:var(--muted2); }
+.score-label { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); margin-top:3px; }
+.elo-line { font-family:'JetBrains Mono',monospace; font-size:13px; margin-bottom:18px; }
+.elo-up { color:var(--green); } .elo-down { color:var(--crimson); }
+.result-actions { display:flex; gap:10px; justify-content:center; }
 </style>
 </head>
 <body>
 <div class="page-wrap">
 <div class="arena-wrap">
-
   <div class="page-title">⚔️ 1V1 ARENA</div>
-  <div class="page-sub">RANKED MATCHMAKING</div>
+  <div class="page-sub">RANKED MATCHMAKING — PEER TO PEER</div>
 
-  <div class="status-bar-top">
-    <div class="status-indicator">
-      <div class="status-dot" id="statusDot"></div>
-      <div class="status-label" id="statusLabel">Ready — start your camera to begin</div>
+  <div class="status-top">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="status-dot" id="sDot"></div>
+      <div class="status-label" id="sText">Start your camera to enter the queue</div>
     </div>
-    <div class="queue-size" id="queueSize"></div>
+    <div class="queue-label" id="qText"></div>
   </div>
 
   <div class="feeds-grid">
-    <!-- Your feed -->
     <div class="feed-box">
       <div class="feed-label">YOU</div>
-      <video class="feed-video" id="myVideo" autoplay playsinline muted></video>
+      <video class="feed-video" id="myVid" autoplay playsinline muted></video>
       <canvas class="feed-canvas" id="myCanvas"></canvas>
       <div class="feed-score" id="myScore"></div>
-      <div class="feed-placeholder" id="myPlaceholder">
-        <div class="feed-placeholder-icon">📷</div>
-        <div class="feed-placeholder-text">CAMERA OFF</div>
+      <div class="feed-ph" id="myPH">
+        <div class="feed-ph-icon">📷</div>
+        <div class="feed-ph-text">CAMERA OFF</div>
       </div>
     </div>
-    <!-- Opponent feed -->
     <div class="feed-box">
       <div class="feed-label">OPPONENT</div>
-      <video class="feed-video" id="oppVideo" autoplay playsinline style="display:none;"></video>
+      <video class="feed-video" id="oppVid" autoplay playsinline style="display:none;"></video>
       <div class="feed-score" id="oppScore"></div>
-      <div class="feed-placeholder" id="oppPlaceholder">
-        <div class="feed-placeholder-icon">👤</div>
-        <div class="feed-placeholder-text" id="oppText">WAITING FOR OPPONENT...</div>
+      <div class="feed-ph" id="oppPH">
+        <div class="feed-ph-icon">👤</div>
+        <div class="feed-ph-text" id="oppPHText">WAITING FOR OPPONENT...</div>
       </div>
     </div>
   </div>
 
   <div class="actions-row">
-    <button class="btn-outline" id="skipBtn" onclick="skipOpponent()" style="display:none;flex:0 0 120px;">SKIP →</button>
-    <button class="btn-gold" id="mainBtn" onclick="mainAction()" style="flex:1;font-size:16px;padding:16px;">START CAMERA</button>
+    <button class="btn-outline" id="skipBtn" onclick="skipOpp()" style="display:none;flex:0 0 110px;">SKIP →</button>
+    <button class="btn-amber" id="mainBtn" onclick="mainAction()" style="flex:1;font-size:17px;padding:15px;">START CAMERA</button>
   </div>
 
   <div class="result-card" id="resultCard">
-    <div class="result-label">MATCH RESULT</div>
-    <div class="result-title" id="resultTitle">—</div>
-    <div class="result-scores">
-      <div>
-        <div class="result-score-num" id="myFinalScore">—</div>
-        <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;">YOU</div>
-      </div>
-      <div class="result-vs">VS</div>
-      <div>
-        <div class="result-score-num" id="oppFinalScore">—</div>
-        <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;">OPPONENT</div>
-      </div>
+    <div class="result-eyebrow">MATCH COMPLETE</div>
+    <div class="result-title" id="rTitle">—</div>
+    <div class="scores-row">
+      <div><div class="score-big" id="rMy">—</div><div class="score-label">YOU</div></div>
+      <div class="score-vs">VS</div>
+      <div><div class="score-big" id="rOpp">—</div><div class="score-label">OPPONENT</div></div>
     </div>
-    <div class="result-elo" id="resultElo"></div>
+    <div class="elo-line" id="rElo"></div>
     <div class="result-actions">
-      <button class="btn-gold" onclick="rematch()">REMATCH</button>
+      <button class="btn-amber" onclick="rematch()">REMATCH</button>
       <button class="btn-outline" onclick="window.location.href='index.html'">DASHBOARD</button>
     </div>
   </div>
-
 </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script src="shared.js"></script>
 <script>
-let arenaState = 'idle'; // idle|camera|searching|matched|scanning|result
-let myStream = null;
-let faceMesh = null;
-let fmReady = false;
-let myLandmarks = null;
-let peerConn = null;
-let oppSocketId = null;
-let myRole = null;
+let state='idle',myStream=null,faceMesh=null,fmReady=false,myLandmarks=null;
+let peerConn=null,oppSocketId=null,myRole=null;
+const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]};
 
-const ICE = { iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}] };
-
-// ── PAGE SETUP ──
 injectSharedUI();
-connectWS(onArenaMsg);
+connectWS(onMsg);
 
-function onArenaMsg(msg) {
-  switch(msg.type) {
+function onMsg(msg){
+  switch(msg.type){
     case 'queue_joined':
-      setStatus('searching','Searching for opponent...');
+      setS('searching','Searching for opponent...');
       document.getElementById('mainBtn').textContent='SEARCHING...';
       document.getElementById('mainBtn').disabled=true;
       document.getElementById('skipBtn').style.display='flex';
-      arenaState='searching';
-      break;
-    case 'match_found':
-      onMatchFound(msg); break;
-    case 'match_result':
-      onMatchResult(msg); break;
-    case 'score_submitted':
-      setStatus('searching','Score submitted — waiting for opponent...'); break;
+      state='searching'; break;
+    case 'queue_update':
+      document.getElementById('qText').textContent=msg.size>0?msg.size+' in queue':''; break;
+    case 'match_found': onMatchFound(msg); break;
+    case 'match_result': onResult(msg); break;
+    case 'score_submitted': setS('searching','Score submitted — awaiting opponent...'); break;
     case 'opponent_disconnected':
-      setStatus('','Opponent disconnected');
-      resetOpp(); closeRTC();
-      arenaState='camera';
-      document.getElementById('mainBtn').textContent='FIND MATCH →';
-      document.getElementById('mainBtn').disabled=false;
-      document.getElementById('mainBtn').onclick=findMatch;
-      document.getElementById('skipBtn').style.display='none';
-      break;
+      setS('','Opponent disconnected');resetOpp();closeRTC();state='camera';
+      setBtnFind(); document.getElementById('skipBtn').style.display='none'; break;
     case 'opponent_skipped':
-      setStatus('','You were skipped');
-      resetOpp(); closeRTC(); arenaState='camera';
-      document.getElementById('mainBtn').textContent='FIND MATCH →';
-      document.getElementById('mainBtn').disabled=false;
-      break;
+      setS('','You were skipped');resetOpp();closeRTC();state='camera';setBtnFind();
+      document.getElementById('skipBtn').style.display='none'; break;
     case 'webrtc_offer': handleOffer(msg); break;
     case 'webrtc_answer': handleAnswer(msg); break;
     case 'webrtc_ice': handleIce(msg); break;
-    case 'queue_update':
-      if(msg.size>0) document.getElementById('queueSize').textContent=msg.size+' in queue';
-      else document.getElementById('queueSize').textContent='';
-      break;
   }
 }
 
-// ── MAIN BUTTON ──
-function mainAction() {
-  if (arenaState==='idle') startCamera();
-  else if (arenaState==='camera') findMatch();
-}
+function mainAction(){ if(state==='idle')startCam(); else if(state==='camera')findMatch(); }
 
-// ── CAMERA ──
-async function startCamera() {
-  try {
-    myStream = await navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'},audio:false});
-    const vid = document.getElementById('myVideo');
-    vid.srcObject = myStream;
-    vid.onloadedmetadata = () => {
-      const canvas = document.getElementById('myCanvas');
-      canvas.width = vid.videoWidth; canvas.height = vid.videoHeight;
-      document.getElementById('myPlaceholder').style.display='none';
-      arenaState='camera';
-      document.getElementById('mainBtn').textContent='FIND MATCH →';
-      document.getElementById('mainBtn').onclick=findMatch;
-      setStatus('','Camera active — find a match!');
-      initFaceMesh(vid, canvas);
+async function startCam(){
+  try{
+    myStream=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'},audio:false});
+    const v=document.getElementById('myVid'); v.srcObject=myStream;
+    v.onloadedmetadata=()=>{
+      const c=document.getElementById('myCanvas'); c.width=v.videoWidth; c.height=v.videoHeight;
+      document.getElementById('myPH').style.display='none';
+      state='camera'; setBtnFind(); setS('','Camera active — find a match!');
+      initFM(v,c);
     };
-  } catch(e) {
-    setStatus('','Camera denied — allow access in browser');
-  }
+  }catch(e){ setS('','Camera denied — allow camera access to continue'); }
 }
 
-function initFaceMesh(vid, canvas) {
-  faceMesh = new FaceMesh({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
+function initFM(v,c){
+  faceMesh=new FaceMesh({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
   faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.6,minTrackingConfidence:0.6});
   faceMesh.onResults(r=>{
-    const ctx=canvas.getContext('2d');
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    if(r.multiFaceLandmarks&&r.multiFaceLandmarks.length>0){
-      myLandmarks=r.multiFaceLandmarks[0];
-      drawMesh(canvas,myLandmarks);
-    } else { myLandmarks=null; }
+    const ctx=c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height);
+    if(r.multiFaceLandmarks&&r.multiFaceLandmarks.length>0){myLandmarks=r.multiFaceLandmarks[0];drawMesh(c,myLandmarks);}else{myLandmarks=null;}
   });
   fmReady=true;
-  (async function loop(){if(!fmReady||!myStream)return;await faceMesh.send({image:vid});requestAnimationFrame(loop)})();
+  (async function loop(){if(!fmReady||!myStream)return;await faceMesh.send({image:v});requestAnimationFrame(loop)})();
 }
 
-function drawMesh(canvas, lm) {
-  const ctx=canvas.getContext('2d');
-  const w=canvas.width,h=canvas.height;
-  ctx.fillStyle='rgba(201,168,76,0.55)';
+function drawMesh(canvas,lm){
+  const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
+  ctx.fillStyle='rgba(245,166,35,0.55)';
   for(const p of lm){ctx.beginPath();ctx.arc(p.x*w,p.y*h,1.2,0,Math.PI*2);ctx.fill();}
-  const conn=[[33,7],[7,163],[163,144],[144,145],[145,153],[153,154],[154,155],[155,133],[362,382],[382,381],[381,380],[380,374],[374,373],[373,390],[390,249],[249,263],[61,185],[185,40],[40,39],[39,37],[37,0],[0,267],[267,269],[269,270],[270,409],[409,291],[291,375],[375,321],[321,405],[405,314],[314,17],[17,84],[84,181],[181,91],[91,146],[146,61],[10,338],[338,297],[297,332],[332,284],[284,251],[251,389],[389,356],[356,454],[454,323],[323,361],[361,288],[288,397],[397,365],[365,379],[379,378],[378,400],[400,377],[377,152],[152,148],[148,176],[176,149],[149,150],[150,136],[136,172],[172,58],[58,132],[132,93],[93,234],[234,127],[127,162],[162,21],[21,54],[54,103],[103,67],[67,109],[109,10]];
-  ctx.strokeStyle='rgba(201,168,76,0.18)';ctx.lineWidth=0.7;
-  for(const[a,b]of conn){if(lm[a]&&lm[b]){ctx.beginPath();ctx.moveTo(lm[a].x*w,lm[a].y*h);ctx.lineTo(lm[b].x*w,lm[b].y*h);ctx.stroke();}}
+  const c=[[33,7],[7,163],[163,144],[144,145],[145,153],[153,154],[154,155],[155,133],[362,382],[382,381],[381,380],[380,374],[374,373],[373,390],[390,249],[249,263],[61,185],[185,40],[40,39],[39,37],[37,0],[0,267],[267,269],[269,270],[270,409],[409,291],[291,375],[375,321],[321,405],[405,314],[314,17],[17,84],[84,181],[181,91],[91,146],[146,61],[10,338],[338,297],[297,332],[332,284],[284,251],[251,389],[389,356],[356,454],[454,323],[323,361],[361,288],[288,397],[397,365],[365,379],[379,378],[378,400],[400,377],[377,152]];
+  ctx.strokeStyle='rgba(245,166,35,0.15)';ctx.lineWidth=0.7;
+  for(const[a,b]of c){if(lm[a]&&lm[b]){ctx.beginPath();ctx.moveTo(lm[a].x*w,lm[a].y*h);ctx.lineTo(lm[b].x*w,lm[b].y*h);ctx.stroke();}}
 }
 
-// ── MATCHMAKING ──
-function findMatch() {
-  if(!myStream){setStatus('','Start camera first!');return;}
-  wsSend({type:'join_queue'});
+function findMatch(){if(!myStream){setS('','Start camera first!');return;}wsSend({type:'join_queue'});}
+function setBtnFind(){const b=document.getElementById('mainBtn');b.textContent='FIND MATCH →';b.disabled=false;b.onclick=findMatch;}
+function setBtnScan(){const b=document.getElementById('mainBtn');b.textContent='RUN SCAN';b.disabled=false;b.onclick=runScan;}
+
+function onMatchFound(msg){
+  state='matched'; const opp=msg.opponent||{}; oppSocketId=opp.id; myRole=msg.role;
+  const t=opp.tier||{name:'Sub3',emoji:'🔴'};
+  setS('connected',`Matched: ${opp.name||'Opponent'} · ${t.emoji} ${t.name} · ${opp.elo||400} ELO`);
+  document.getElementById('oppPHText').textContent=(opp.name||'Opponent')+' · Connecting...';
+  setBtnScan(); document.getElementById('skipBtn').style.display='flex';
+  startRTC();
 }
 
-// ── MATCH FOUND ──
-function onMatchFound(msg) {
-  arenaState='matched';
-  const opp=msg.opponent||{};
-  oppSocketId=opp.id;
-  myRole=msg.role;
-  const tier=opp.tier||{name:'Sub3',emoji:'🔴'};
-  setStatus('connected',`Matched with ${opp.name||'Opponent'} · ${tier.emoji} ${tier.name}`);
-  document.getElementById('oppText').textContent=`${opp.name||'Opponent'} · Connecting...`;
-  document.getElementById('mainBtn').textContent='RUN SCAN';
-  document.getElementById('mainBtn').disabled=false;
-  document.getElementById('mainBtn').onclick=runScan;
-  document.getElementById('skipBtn').style.display='flex';
-  startWebRTC();
-}
-
-// ── WEBRTC ──
-async function startWebRTC() {
-  closeRTC();
-  peerConn=new RTCPeerConnection(ICE);
-  if(myStream) myStream.getTracks().forEach(t=>peerConn.addTrack(t,myStream));
+async function startRTC(){
+  closeRTC(); peerConn=new RTCPeerConnection(ICE);
+  if(myStream)myStream.getTracks().forEach(t=>peerConn.addTrack(t,myStream));
   peerConn.ontrack=e=>{
-    const vid=document.getElementById('oppVideo');
-    vid.srcObject=e.streams[0];
-    vid.style.display='block';
-    document.getElementById('oppPlaceholder').style.display='none';
-    setStatus('connected','Cameras connected — run your scan!');
+    const v=document.getElementById('oppVid'); v.srcObject=e.streams[0]; v.style.display='block';
+    document.getElementById('oppPH').style.display='none'; setS('connected','Cameras live — run your scan!');
   };
-  peerConn.onicecandidate=e=>{
-    if(e.candidate) wsSend({type:'webrtc_ice',targetId:oppSocketId,candidate:e.candidate});
-  };
-  peerConn.onconnectionstatechange=()=>{
-    if(peerConn.connectionState==='failed') setStatus('connected','Camera link failed — scan still works');
-  };
+  peerConn.onicecandidate=e=>{if(e.candidate)wsSend({type:'webrtc_ice',targetId:oppSocketId,candidate:e.candidate});};
+  peerConn.onconnectionstatechange=()=>{if(peerConn.connectionState==='failed')setS('connected','Camera link failed — scan still works');};
   if(myRole==='offerer'){
-    const offer=await peerConn.createOffer({offerToReceiveVideo:true,offerToReceiveAudio:false});
-    await peerConn.setLocalDescription(offer);
+    const o=await peerConn.createOffer({offerToReceiveVideo:true,offerToReceiveAudio:false});
+    await peerConn.setLocalDescription(o);
     wsSend({type:'webrtc_offer',targetId:oppSocketId,offer:peerConn.localDescription});
   }
 }
+async function handleOffer(msg){if(!peerConn)return;try{await peerConn.setRemoteDescription(new RTCSessionDescription(msg.offer));const a=await peerConn.createAnswer();await peerConn.setLocalDescription(a);wsSend({type:'webrtc_answer',targetId:msg.fromId,answer:peerConn.localDescription});}catch(e){console.error(e);}}
+async function handleAnswer(msg){if(!peerConn)return;try{await peerConn.setRemoteDescription(new RTCSessionDescription(msg.answer));}catch(e){}}
+async function handleIce(msg){if(!peerConn||!msg.candidate)return;try{await peerConn.addIceCandidate(new RTCIceCandidate(msg.candidate));}catch(e){}}
+function closeRTC(){if(peerConn){peerConn.close();peerConn=null;}oppSocketId=null;myRole=null;}
 
-async function handleOffer(msg) {
-  if(!peerConn)return;
-  try{
-    await peerConn.setRemoteDescription(new RTCSessionDescription(msg.offer));
-    const ans=await peerConn.createAnswer();
-    await peerConn.setLocalDescription(ans);
-    wsSend({type:'webrtc_answer',targetId:msg.fromId,answer:peerConn.localDescription});
-  }catch(e){console.error(e);}
-}
-
-async function handleAnswer(msg) {
-  if(!peerConn)return;
-  try{await peerConn.setRemoteDescription(new RTCSessionDescription(msg.answer));}catch(e){console.error(e);}
-}
-
-async function handleIce(msg) {
-  if(!peerConn||!msg.candidate)return;
-  try{await peerConn.addIceCandidate(new RTCIceCandidate(msg.candidate));}catch(e){}
-}
-
-function closeRTC() {
-  if(peerConn){peerConn.close();peerConn=null;}
-  oppSocketId=null; myRole=null;
-}
-
-// ── SCAN ──
-function runScan() {
-  if(!myLandmarks){setStatus('connected','⚠ Center your face in frame');return;}
-  arenaState='scanning';
-  document.getElementById('mainBtn').textContent='SCANNING...';
-  document.getElementById('mainBtn').disabled=true;
-  setStatus('searching','AI scanning your face...');
+function runScan(){
+  if(!myLandmarks){setS('connected','⚠ Center your face in frame');return;}
+  state='scanning';
+  document.getElementById('mainBtn').textContent='SCANNING...'; document.getElementById('mainBtn').disabled=true;
+  setS('searching','AI scanning your face...');
   setTimeout(()=>{
     const score=calcScore();
-    document.getElementById('myScore').textContent=score.toFixed(1);
-    document.getElementById('myScore').style.display='block';
-    wsSend({type:'submit_score',score});
-    setStatus('searching','Score submitted — awaiting opponent...');
-  },2000);
+    document.getElementById('myScore').textContent=score.toFixed(1); document.getElementById('myScore').style.display='block';
+    wsSend({type:'submit_score',score}); setS('searching','Score submitted — awaiting opponent...');
+  },2200);
 }
 
-function calcScore() {
-  if(!myLandmarks) return (Math.random()*3+5).toFixed(1)*1;
-  const lm=myLandmarks;
-  function dist(a,b){return Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2);}
-  const nose=lm[1];
-  const pairs=[[33,263],[130,359],[226,446],[159,386],[145,374],[61,291],[234,454]];
-  let diff=0,count=0;
-  for(const[l,r]of pairs){
-    if(!lm[l]||!lm[r])continue;
-    diff+=Math.abs(Math.abs(nose.x-lm[l].x)-Math.abs(lm[r].x-nose.x));
-    count++;
-  }
-  const sym=Math.max(0,Math.min(1,1-(diff/count)*14));
-  const jawW=dist(lm[234],lm[454]);
-  const faceH=dist(lm[10],lm[152]);
-  const jaw=Math.max(0,Math.min(1,1-Math.abs(jawW/faceH-0.72)*5));
-  const le=lm[33],re=lm[263];
-  const tilt=(lm[133].y-le.y+lm[362].y-re.y)/2;
+function calcScore(){
+  if(!myLandmarks)return+(Math.random()*3+5).toFixed(1)*1;
+  const lm=myLandmarks,dist=(a,b)=>Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2),nose=lm[1];
+  const pairs=[[33,263],[130,359],[159,386],[145,374],[61,291],[234,454]];
+  let d=0,c=0;for(const[l,r]of pairs){if(!lm[l]||!lm[r])continue;d+=Math.abs(Math.abs(nose.x-lm[l].x)-Math.abs(lm[r].x-nose.x));c++;}
+  const sym=Math.max(0,Math.min(1,1-(d/c)*14));
+  const jaw=Math.max(0,Math.min(1,1-Math.abs(dist(lm[234],lm[454])/dist(lm[10],lm[152])-0.72)*5));
+  const tilt=(lm[133].y-lm[33].y+lm[362].y-lm[263].y)/2;
   const canthal=Math.max(0,Math.min(1,0.5+tilt*14));
   return Math.min(10,Math.max(1,sym*3.5+jaw*3+canthal*2.5+Math.random()*0.8));
 }
 
-// ── RESULT ──
-function onMatchResult(msg) {
-  arenaState='result';
-  document.getElementById('myFinalScore').textContent=(msg.myScore||0).toFixed(1);
-  document.getElementById('oppFinalScore').textContent=(msg.opponentScore||0).toFixed(1);
-  document.getElementById('resultTitle').textContent=msg.won?'🏆 VICTORY':'💀 DEFEAT';
-  document.getElementById('resultTitle').style.color=msg.won?'var(--green)':'var(--red)';
+function onResult(msg){
+  state='result';
+  document.getElementById('rMy').textContent=(msg.myScore||0).toFixed(1);
+  document.getElementById('rOpp').textContent=(msg.opponentScore||0).toFixed(1);
+  document.getElementById('rTitle').textContent=msg.won?'🏆 VICTORY':'💀 DEFEATED';
+  document.getElementById('rTitle').style.color=msg.won?'var(--green)':'var(--crimson)';
   const chg=msg.eloChange||0;
-  document.getElementById('resultElo').innerHTML=`ELO: <span class="${chg>=0?'elo-up':'elo-down'}">${chg>=0?'+':''}${chg} → ${msg.newElo} total</span>`;
+  document.getElementById('rElo').innerHTML=`ELO: <span class="${chg>=0?'elo-up':'elo-down'}">${chg>=0?'+':''}${chg} → ${msg.newElo||myElo} total</span>`;
   document.getElementById('resultCard').classList.add('show');
-  document.getElementById('mainBtn').style.display='none';
-  document.getElementById('skipBtn').style.display='none';
-  if(msg.won){document.getElementById('myScore').style.borderColor='var(--green)';}
-  else{document.getElementById('oppScore').textContent=(msg.opponentScore||0).toFixed(1);document.getElementById('oppScore').style.display='block';}
-  setStatus(msg.won?'connected':'','Match complete');
+  document.getElementById('mainBtn').style.display='none'; document.getElementById('skipBtn').style.display='none';
 }
 
-function rematch() {
+function rematch(){
   document.getElementById('resultCard').classList.remove('show');
-  document.getElementById('mainBtn').style.display='block';
-  document.getElementById('mainBtn').textContent='FIND MATCH →';
-  document.getElementById('mainBtn').disabled=false;
-  document.getElementById('mainBtn').onclick=findMatch;
-  document.getElementById('myScore').style.display='none';
-  document.getElementById('oppScore').style.display='none';
-  arenaState='camera';
-  setStatus('','Camera active — find a match!');
+  document.getElementById('mainBtn').style.display='block'; document.getElementById('myScore').style.display='none';
+  state='camera'; setS('','Camera active — find a match!'); setBtnFind();
 }
 
-function skipOpponent() {
-  wsSend({type:'skip_opponent'});
-  resetOpp(); closeRTC();
-  arenaState='camera';
-  setStatus('','Looking for new opponent...');
-  document.getElementById('mainBtn').textContent='FIND MATCH →';
-  document.getElementById('mainBtn').disabled=false;
-  document.getElementById('mainBtn').onclick=findMatch;
+function skipOpp(){
+  wsSend({type:'skip_opponent'}); resetOpp(); closeRTC(); state='camera';
+  setS('','Searching for new opponent...'); setBtnFind();
   document.getElementById('skipBtn').style.display='none';
 }
 
-function resetOpp() {
-  const vid=document.getElementById('oppVideo');
-  vid.srcObject=null; vid.style.display='none';
-  document.getElementById('oppPlaceholder').style.display='flex';
-  document.getElementById('oppText').textContent='WAITING FOR OPPONENT...';
+function resetOpp(){
+  const v=document.getElementById('oppVid'); v.srcObject=null; v.style.display='none';
+  document.getElementById('oppPH').style.display='flex'; document.getElementById('oppPHText').textContent='WAITING FOR OPPONENT...';
   document.getElementById('oppScore').style.display='none';
 }
 
-// ── STATUS ──
-function setStatus(type, text) {
-  const dot=document.getElementById('statusDot');
-  dot.className='status-dot'+(type?' '+type:'');
-  document.getElementById('statusLabel').textContent=text;
+function setS(type,text){
+  const d=document.getElementById('sDot'); d.className='status-dot'+(type?' '+type:'');
+  document.getElementById('sText').textContent=text;
 }
 </script>
 </body>
