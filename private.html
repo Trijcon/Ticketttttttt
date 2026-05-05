@@ -1,427 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MOGME.TV — Private Room</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <style>
-    .private-inner {
-      padding: 36px 40px 60px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MogMe.TV — Private Room</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.page-title{font-family:'Syne',sans-serif;font-weight:800;font-size:36px;margin-bottom:4px;}
+.page-sub{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--purple-light);margin-bottom:32px;}
 
-    .private-tag {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 4px;
-      color: var(--gold-dim);
-      margin-bottom: 6px;
-    }
+.private-wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:14px;}
 
-    .private-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 52px;
-      letter-spacing: 5px;
-      color: var(--text);
-      line-height: 1;
-      margin-bottom: 32px;
-    }
+.priv-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:32px;}
+.priv-card-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:6px;}
+.priv-card-sub{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.6;}
 
-    .private-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      max-width: 720px;
-      margin-bottom: 32px;
-    }
+.code-display{
+  background:rgba(0,0,0,0.3);border:1px solid rgba(124,92,191,0.3);
+  border-radius:12px;padding:18px 22px;
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;
+}
+.code-val{font-family:'Space Mono',monospace;font-size:30px;font-weight:700;color:var(--purple-light);letter-spacing:6px;}
+.copy-btn{
+  background:rgba(124,92,191,0.15);border:1px solid rgba(124,92,191,0.3);
+  border-radius:8px;padding:8px 14px;color:var(--purple-light);
+  font-family:'Space Mono',monospace;font-size:10px;cursor:pointer;transition:all 0.2s;
+}
+.copy-btn:hover{background:rgba(124,92,191,0.3);}
+.copy-btn.copied{color:var(--green);border-color:rgba(0,230,118,0.3);background:rgba(0,230,118,0.1);}
 
-    .private-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 28px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+.divider{display:flex;align-items:center;gap:14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted2);margin:20px 0;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
 
-    .pc-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 26px;
-      letter-spacing: 3px;
-      color: var(--text);
-    }
+.code-input-row{display:flex;gap:10px;}
+.code-input{
+  flex:1;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;padding:14px 18px;
+  font-family:'Space Mono',monospace;font-size:20px;font-weight:700;
+  color:var(--white);letter-spacing:4px;text-align:center;outline:none;transition:border-color 0.2s;
+}
+.code-input::placeholder{color:var(--muted2);letter-spacing:2px;font-size:13px;}
+.code-input:focus{border-color:rgba(124,92,191,0.5);}
 
-    .pc-desc {
-      font-size: 13px;
-      color: var(--text-dim);
-      line-height: 1.5;
-    }
-
-    .code-display {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 40px;
-      letter-spacing: 10px;
-      color: var(--gold);
-      text-shadow: 0 0 20px var(--gold-glow);
-      text-align: center;
-      padding: 16px;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      display: none;
-    }
-
-    .code-input {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 24px;
-      letter-spacing: 8px;
-      padding: 12px 16px;
-      border-radius: 4px;
-      width: 100%;
-      text-align: center;
-      outline: none;
-      text-transform: uppercase;
-    }
-
-    .code-input:focus { border-color: var(--gold-dim); }
-    .code-input::placeholder {
-      color: #333;
-      letter-spacing: 4px;
-      font-size: 18px;
-    }
-
-    /* MATCH AREA */
-    #match-area {
-      display: none;
-      max-width: 860px;
-    }
-
-    .match-status {
-      padding: 14px 20px;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 12px;
-      letter-spacing: 2px;
-      color: var(--text-dim);
-      text-align: center;
-      margin-bottom: 16px;
-    }
-
-    .priv-cameras {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      gap: 16px;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .cam-box-p {
-      position: relative;
-      aspect-ratio: 4/3;
-      background: #000;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-    }
-
-    .cam-box-p video, .cam-box-p canvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    #pv-my-video { transform: scaleX(-1); }
-    #pv-my-canvas { transform: scaleX(-1); }
-
-    .cam-label-p {
-      position: absolute;
-      bottom: 8px;
-      left: 8px;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px;
-      color: var(--text-dim);
-      background: rgba(0,0,0,0.6);
-      padding: 3px 8px;
-      border-radius: 2px;
-    }
-
-    .vs-p {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 40px;
-      color: var(--gold);
-      letter-spacing: 4px;
-      text-align: center;
-    }
-
-    #result-box-p {
-      display: none;
-      padding: 28px;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      text-align: center;
-      margin-bottom: 16px;
-    }
-
-    .result-outcome-p {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 60px;
-      letter-spacing: 6px;
-    }
-  </style>
+/* Waiting state */
+.waiting-card{
+  display:none;background:var(--card);border:1px solid rgba(124,92,191,0.3);
+  border-radius:18px;padding:40px 32px;
+  flex-direction:column;align-items:center;gap:16px;text-align:center;
+}
+.waiting-card.show{display:flex;}
+.waiting-spinner{
+  width:56px;height:56px;border-radius:50%;
+  border:3px solid rgba(124,92,191,0.2);
+  border-top-color:var(--purple-light);
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.waiting-title{font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:1px;}
+.waiting-code{font-family:'Space Mono',monospace;font-size:28px;font-weight:700;color:var(--purple-light);letter-spacing:6px;}
+.waiting-hint{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted2);}
+.cancel-btn{
+  padding:10px 24px;border-radius:10px;
+  border:1px solid rgba(255,77,109,0.3);
+  background:transparent;color:var(--red);
+  font-family:'Space Mono',monospace;font-size:11px;
+  cursor:pointer;transition:all 0.2s;
+}
+.cancel-btn:hover{background:rgba(255,77,109,0.1);}
+.notice{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted2);text-align:center;}
+</style>
 </head>
 <body>
+<div class="page-wrap">
+  <div class="page-title">🔒 PRIVATE ROOM</div>
+  <div class="page-sub">CHALLENGE A FRIEND</div>
 
-<div class="private-inner">
-  <div class="private-tag">// INVITE ONLY</div>
-  <div class="private-title">PRIVATE ROOM</div>
+  <div class="private-wrap">
 
-  <!-- LOBBY -->
-  <div id="lobby-section">
-    <div class="private-grid">
-      <div class="private-card">
-        <div class="pc-title">CREATE ROOM</div>
-        <div class="pc-desc">Generate a unique code and share it with someone to challenge them to a private match.</div>
-        <div class="code-display" id="gen-code-display">——————</div>
-        <button class="btn-gold-solid" id="gen-code-btn">GENERATE CODE</button>
-        <button class="btn-gold" id="start-room-btn" style="display:none">START CAMERA</button>
+    <div class="priv-card" id="mainCard">
+      <div class="priv-card-title">Generate a Room Code</div>
+      <div class="priv-card-sub">Create a private 1V1 session. Share the code with your opponent and wait for them to join. Room expires in 10 minutes.</div>
+      <div class="code-display" id="codeDisplay" style="display:none;">
+        <div class="code-val" id="codeVal">——————</div>
+        <button class="copy-btn" id="copyBtn" onclick="copyCode()">COPY</button>
       </div>
-
-      <div class="private-card">
-        <div class="pc-title">JOIN ROOM</div>
-        <div class="pc-desc">Enter the code someone sent you to join their private match.</div>
-        <input type="text" class="code-input" id="join-code-input" placeholder="ENTER CODE" maxlength="6" />
-        <button class="btn-gold-solid" id="join-room-btn">JOIN ROOM</button>
-      </div>
-    </div>
-
-    <div id="waiting-msg" style="display:none;font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:2px;color:var(--gold-dim);padding:16px 0;">
-      WAITING FOR OPPONENT TO JOIN...
-    </div>
-  </div>
-
-  <!-- MATCH AREA -->
-  <div id="match-area">
-    <div class="match-status" id="pv-status">CONNECTING...</div>
-
-    <div class="priv-cameras">
-      <div class="cam-box-p">
-        <video id="pv-my-video" autoplay playsinline muted></video>
-        <canvas id="pv-my-canvas"></canvas>
-        <div class="cam-label-p">YOU</div>
-      </div>
-      <div class="vs-p">VS</div>
-      <div class="cam-box-p">
-        <video id="pv-opp-video" autoplay playsinline></video>
-        <div class="cam-label-p">OPPONENT</div>
+      <button class="btn-purple" id="generateBtn" onclick="generateCode()" style="width:100%;font-size:16px;padding:16px;">⚡ GENERATE CODE</button>
+      <div class="divider">OR</div>
+      <div class="priv-card-title" style="margin-bottom:6px;">Join with a Code</div>
+      <div class="priv-card-sub" style="margin-bottom:16px;">Have a code? Enter it below to join your friend's private match.</div>
+      <div class="code-input-row">
+        <input class="code-input" id="codeInput" type="text" maxlength="6" placeholder="ENTER CODE" oninput="this.value=this.value.toUpperCase()">
+        <button class="btn-purple" onclick="joinRoom()" style="flex:0 0 100px;padding:14px;">JOIN →</button>
       </div>
     </div>
 
-    <div id="result-box-p">
-      <div class="result-outcome-p" id="pv-outcome">—</div>
-      <div id="pv-elo-change" style="font-family:'Share Tech Mono',monospace;font-size:14px;margin-top:8px;">—</div>
+    <div class="waiting-card" id="waitingCard">
+      <div class="waiting-spinner"></div>
+      <div class="waiting-title">WAITING FOR OPPONENT</div>
+      <div class="waiting-code" id="waitingCode">——————</div>
+      <div class="waiting-hint">Share this code with your friend</div>
+      <button class="cancel-btn" onclick="cancelWaiting()">CANCEL</button>
     </div>
 
-    <div style="display:flex;gap:12px">
-      <button class="btn-gold" id="pv-leave-btn">LEAVE ROOM</button>
-      <button class="btn-gold-solid" id="pv-scan-btn" style="display:none">SCAN NOW</button>
-    </div>
+    <p class="notice">Private matches are not ranked · Room expires after 10 minutes</p>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="shared.js"></script>
 <script>
-  initSharedLayout('private');
+let currentCode = null;
 
-  const WS_URL = 'wss://mogmetv-production.up.railway.app';
-  let pvWs = null;
-  let pvPeer = null;
-  let pvStream = null;
-  let pvLandmarks = null;
-  let pvScore = 0;
-  let pvRoomCode = null;
-  let pvFaceMesh = null;
-  let pvMpCam = null;
-  let myElo = parseInt(localStorage.getItem('mogme-elo') || '800');
+injectSharedUI();
+connectWS(onPrivateMsg);
 
-  // Generate code
-  document.getElementById('gen-code-btn').addEventListener('click', () => {
-    pvRoomCode = Array.from({length:6}, () => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random()*36)]).join('');
-    document.getElementById('gen-code-display').textContent = pvRoomCode;
-    document.getElementById('gen-code-display').style.display = 'block';
-    document.getElementById('start-room-btn').style.display = 'inline-block';
-    document.getElementById('gen-code-btn').textContent = 'REGENERATE';
-  });
-
-  document.getElementById('start-room-btn').addEventListener('click', async () => {
-    await startPrivateCamera();
-    connectPvWs(() => {
-      pvWs.send(JSON.stringify({ type:'private-create', code:pvRoomCode }));
-      document.getElementById('waiting-msg').style.display = 'block';
-    });
-  });
-
-  document.getElementById('join-room-btn').addEventListener('click', async () => {
-    const code = document.getElementById('join-code-input').value.trim().toUpperCase();
-    if (code.length !== 6) { alert('Enter a valid 6-character code'); return; }
-    pvRoomCode = code;
-    await startPrivateCamera();
-    connectPvWs(() => {
-      pvWs.send(JSON.stringify({ type:'private-join', code:pvRoomCode }));
-    });
-  });
-
-  async function startPrivateCamera() {
-    pvStream = await navigator.mediaDevices.getUserMedia({ video:true, audio:false });
-    document.getElementById('pv-my-video').srcObject = pvStream;
-    setupPvFaceMesh();
+function onPrivateMsg(msg) {
+  switch(msg.type) {
+    case 'room_created':
+      currentCode = msg.code;
+      document.getElementById('codeVal').textContent = msg.code;
+      document.getElementById('codeDisplay').style.display = 'flex';
+      document.getElementById('generateBtn').textContent = '↺ REGENERATE';
+      document.getElementById('mainCard').style.display = 'none';
+      document.getElementById('waitingCode').textContent = msg.code;
+      document.getElementById('waitingCard').classList.add('show');
+      break;
+    case 'private_match_start':
+      // Redirect to arena with private match flag
+      sessionStorage.setItem('privateMatch', JSON.stringify(msg));
+      window.location.href = 'arena.html';
+      break;
+    case 'room_error':
+      alert(msg.error);
+      break;
   }
+}
 
-  function setupPvFaceMesh() {
-    pvFaceMesh = new FaceMesh({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}` });
-    pvFaceMesh.setOptions({ maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.5, minTrackingConfidence:0.5 });
-    pvFaceMesh.onResults(res => {
-      if (res.multiFaceLandmarks && res.multiFaceLandmarks.length > 0) {
-        pvLandmarks = res.multiFaceLandmarks[0];
-        pvScore = calcPvScore(pvLandmarks);
-      }
-    });
-    pvMpCam = new Camera(document.getElementById('pv-my-video'), {
-      onFrame: async () => { await pvFaceMesh.send({ image: document.getElementById('pv-my-video') }); },
-      width:480, height:360
-    });
-    pvMpCam.start();
+function generateCode() { wsSend({ type: 'create_private_room' }); }
+
+function copyCode() {
+  if (!currentCode) return;
+  navigator.clipboard.writeText(currentCode).catch(()=>{});
+  const btn = document.getElementById('copyBtn');
+  btn.textContent = 'COPIED!'; btn.classList.add('copied');
+  setTimeout(()=>{ btn.textContent='COPY'; btn.classList.remove('copied'); }, 2000);
+}
+
+function joinRoom() {
+  const code = document.getElementById('codeInput').value.trim().toUpperCase();
+  if (code.length < 4) {
+    document.getElementById('codeInput').style.borderColor = 'rgba(255,77,109,0.5)';
+    return;
   }
+  document.getElementById('codeInput').style.borderColor = '';
+  wsSend({ type: 'join_private_room', code });
+}
 
-  function calcPvScore(lm) {
-    const nose = lm[1];
-    const pairs = [[234,454],[93,323],[132,361]];
-    const sym = pairs.reduce((sum,[l,r]) => {
-      const ld=Math.abs(lm[l].x-nose.x), rd=Math.abs(lm[r].x-nose.x);
-      return sum + (1-Math.abs(ld-rd)/Math.max(ld,rd,0.001));
-    },0)/pairs.length;
-    const faceW=Math.abs(lm[234].x-lm[454].x);
-    const jawW=Math.abs(lm[172].x-lm[397].x);
-    const jaw=Math.min(1,Math.max(0,1-Math.abs(jawW/faceW-0.72)/0.25));
-    return Math.round((sym*0.5+jaw*0.5)*100);
-  }
-
-  function connectPvWs(onOpen) {
-    pvWs = new WebSocket(WS_URL);
-    pvWs.onopen = onOpen;
-    pvWs.onmessage = e => { try { handlePvMsg(JSON.parse(e.data)); } catch(err){} };
-  }
-
-  function handlePvMsg(msg) {
-    if (msg.type === 'private-ready') {
-      document.getElementById('waiting-msg').style.display = 'none';
-      document.getElementById('lobby-section').style.display = 'none';
-      document.getElementById('match-area').style.display = 'block';
-      setPvStatus('OPPONENT JOINED — CONNECTING CAMERAS...');
-      startPvWebRTC(msg.isInitiator);
-    }
-
-    if (msg.type === 'private-not-found') {
-      alert('Room code not found. Check the code and try again.');
-    }
-
-    if (msg.type === 'webrtc-offer') handlePvOffer(msg.offer);
-    if (msg.type === 'webrtc-answer') { if (pvPeer) pvPeer.setRemoteDescription(new RTCSessionDescription(msg.answer)); }
-    if (msg.type === 'webrtc-ice') { if (pvPeer) pvPeer.addIceCandidate(new RTCIceCandidate(msg.candidate)).catch(()=>{}); }
-
-    if (msg.type === 'match-result') {
-      showPvResult(msg.winner, msg.eloChange, msg.yourScore, msg.oppScore);
-    }
-
-    if (msg.type === 'opponent-left') {
-      setPvStatus('OPPONENT LEFT');
-    }
-  }
-
-  function createPvPeer() {
-    pvPeer = new RTCPeerConnection({ iceServers:[{urls:'stun:stun.l.google.com:19302'}] });
-    if (pvStream) pvStream.getTracks().forEach(t => pvPeer.addTrack(t, pvStream));
-    pvPeer.ontrack = e => { document.getElementById('pv-opp-video').srcObject = e.streams[0]; };
-    pvPeer.onicecandidate = e => {
-      if (e.candidate && pvWs.readyState === WebSocket.OPEN) {
-        pvWs.send(JSON.stringify({ type:'webrtc-ice', candidate:e.candidate, matchId:pvRoomCode }));
-      }
-    };
-    pvPeer.onconnectionstatechange = () => {
-      if (pvPeer.connectionState === 'connected') {
-        setPvStatus('CONNECTED — SCANNING IN 5 SECONDS...');
-        document.getElementById('pv-scan-btn').style.display = 'inline-block';
-        startPvCountdown();
-      }
-    };
-  }
-
-  async function startPvWebRTC(isInit) {
-    createPvPeer();
-    if (isInit) {
-      const offer = await pvPeer.createOffer();
-      await pvPeer.setLocalDescription(offer);
-      pvWs.send(JSON.stringify({ type:'webrtc-offer', offer, matchId:pvRoomCode }));
-    }
-  }
-
-  async function handlePvOffer(offer) {
-    createPvPeer();
-    await pvPeer.setRemoteDescription(new RTCSessionDescription(offer));
-    const answer = await pvPeer.createAnswer();
-    await pvPeer.setLocalDescription(answer);
-    pvWs.send(JSON.stringify({ type:'webrtc-answer', answer, matchId:pvRoomCode }));
-  }
-
-  function startPvCountdown() {
-    let c = 5;
-    const t = setInterval(() => {
-      setPvStatus(`SCANNING IN ${c}...`);
-      if (c <= 0) { clearInterval(t); submitPvScore(); }
-      c--;
-    }, 1000);
-  }
-
-  function submitPvScore() {
-    if (pvWs.readyState === WebSocket.OPEN) {
-      pvWs.send(JSON.stringify({ type:'submit-score', score:pvScore, matchId:pvRoomCode, elo:myElo }));
-    }
-    setPvStatus('SCORES SUBMITTED...');
-  }
-
-  document.getElementById('pv-scan-btn').addEventListener('click', submitPvScore);
-
-  function showPvResult(winner, eloChange, yourScore, oppScore) {
-    const isWin = winner === 'you';
-    document.getElementById('result-box-p').style.display = 'block';
-    const outcome = document.getElementById('pv-outcome');
-    outcome.textContent = isWin ? 'VICTORY' : 'DEFEAT';
-    outcome.style.color = isWin ? '#4caf50' : '#f44336';
-    document.getElementById('pv-elo-change').textContent = `ELO: ${myElo} → ${myElo + eloChange} (${eloChange > 0 ? '+' : ''}${eloChange})`;
-    myElo = Math.max(100, myElo + eloChange);
-    if (isWin) { localStorage.setItem('mogme-wins', parseInt(localStorage.getItem('mogme-wins')||0)+1); }
-    else { localStorage.setItem('mogme-losses', parseInt(localStorage.getItem('mogme-losses')||0)+1); }
-    localStorage.setItem('mogme-elo', myElo);
-    setPvStatus('MATCH COMPLETE');
-  }
-
-  document.getElementById('pv-leave-btn').addEventListener('click', () => {
-    if (pvPeer) pvPeer.close();
-    if (pvWs) pvWs.close();
-    window.location.href = 'index.html';
-  });
-
-  function setPvStatus(t) { document.getElementById('pv-status').textContent = t; }
+function cancelWaiting() {
+  document.getElementById('waitingCard').classList.remove('show');
+  document.getElementById('mainCard').style.display = 'block';
+  document.getElementById('codeDisplay').style.display = 'none';
+  document.getElementById('generateBtn').textContent = '⚡ GENERATE CODE';
+  currentCode = null;
+}
 </script>
 </body>
 </html>
