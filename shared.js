@@ -1,268 +1,331 @@
-:root {
-  --bg:       #080810;
-  --bg2:      #0e0e1a;
-  --surface:  #13131f;
-  --surface2: #1a1a28;
-  --surface3: #202030;
-  --border:   rgba(255,255,255,0.06);
-  --border2:  rgba(255,255,255,0.1);
-  --teal:        #0df2c8;
-  --teal-dim:    rgba(13,242,200,0.1);
-  --teal-glow:   rgba(13,242,200,0.25);
-  --amber:       #f5a623;
-  --amber-dim:   rgba(245,166,35,0.1);
-  --amber-glow:  rgba(245,166,35,0.3);
-  --violet:      #7b61ff;
-  --violet-dim:  rgba(123,97,255,0.1);
-  --crimson:     #ff3d6b;
-  --green:       #0df27a;
-  --white:       #f2f2ff;
-  --muted:       #6b6b8f;
-  --muted2:      #3f3f5a;
-  --nav-h:    56px;
-  --chat-w:   268px;
+const SERVER_WS   = 'wss://mogmetv-production.up.railway.app';
+const SERVER_HTTP = 'https://mogmetv-production.up.railway.app';
+
+let ws = null, mySocketId = null, reconnectTimer = null, pageOnMsg = null;
+let myName   = localStorage.getItem('mgm_name')    || 'Anonymous';
+let myElo    = parseInt(localStorage.getItem('mgm_elo')     || '400');
+let myWins   = parseInt(localStorage.getItem('mgm_wins')    || '0');
+let myLosses = parseInt(localStorage.getItem('mgm_losses')  || '0');
+
+function getTierName(elo) {
+  if (elo >= 5001) return 'Slayer';
+  if (elo >= 3501) return 'Chad';
+  if (elo >= 2001) return 'Chadlite';
+  if (elo >= 1501) return 'HTN';
+  if (elo >= 1001) return 'MTN';
+  if (elo >= 501)  return 'LTN';
+  if (elo >= 1)    return 'Sub3';
+  return 'Molecule';
+}
+function getTierEmoji(elo) {
+  const map = {Slayer:'💀',Chad:'👑',Chadlite:'🔥',HTN:'⭐',MTN:'⚡',LTN:'🌙',Sub3:'🔴',Molecule:'🧪'};
+  return map[getTierName(elo)] || '🔴';
+}
+function rankClass(t) {
+  const map = {Slayer:'slayer',Chad:'chad',Chadlite:'chadlite',HTN:'htn',MTN:'mtn',LTN:'ltn',Sub3:'sub3',Molecule:'molecule'};
+  return map[t] || 'sub3';
+}
+function escapeHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function saveStats() {
+  localStorage.setItem('mgm_name', myName);
+  localStorage.setItem('mgm_elo', myElo);
+  localStorage.setItem('mgm_wins', myWins);
+  localStorage.setItem('mgm_losses', myLosses);
+}
+function getTime() {
+  return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 }
 
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html { background: #080810; }
-
-body {
-  background: var(--bg);
-  color: var(--white);
-  font-family: 'Barlow', 'DM Sans', sans-serif;
-  min-height: 100vh;
-  padding-top: calc(var(--nav-h) + 36px);
-  padding-right: var(--chat-w);
-  overflow-x: hidden;
+/* ── WEBSOCKET ── */
+function connectWS(onMsg) {
+  pageOnMsg = onMsg || null;
+  if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+  if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+  try {
+    ws = new WebSocket(SERVER_WS);
+  } catch(e) {
+    chatSys('Server unavailable — retrying...');
+    reconnectTimer = setTimeout(() => connectWS(pageOnMsg), 5000);
+    return;
+  }
+  ws.onopen = () => {
+    chatSys('Connected to MogMe.TV ✓');
+    wsSend({ type: 'set_user', name: myName });
+  };
+  ws.onmessage = (e) => {
+    let msg; try { msg = JSON.parse(e.data); } catch { return; }
+    handleShared(msg);
+    if (typeof pageOnMsg === 'function') pageOnMsg(msg);
+  };
+  ws.onclose = () => {
+    chatSys('Disconnected — reconnecting...');
+    ws = null;
+    reconnectTimer = setTimeout(() => connectWS(pageOnMsg), 3000);
+  };
+  ws.onerror = () => {};
 }
 
-body::before {
-  content: '';
-  position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background:
-    radial-gradient(ellipse 70% 50% at 15% 0%, rgba(123,97,255,0.08) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 60% at 90% 100%, rgba(13,242,200,0.05) 0%, transparent 55%);
+function wsSend(data) {
+  if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify(data)); return true; }
+  return false;
 }
 
-/* ════════ TOP NAV ════════ */
-.top-nav {
-  position: fixed; top: 0; left: 0; right: var(--chat-w);
-  height: var(--nav-h); z-index: 300;
-  background: rgba(8,8,16,0.98);
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center;
-  padding: 0 20px; gap: 6px;
-}
-.nav-logo {
-  font-family: 'Barlow Condensed', 'DM Sans', sans-serif;
-  font-weight: 900; font-size: 20px;
-  letter-spacing: 2px; color: var(--teal);
-  text-decoration: none; margin-right: 12px; flex-shrink: 0;
-  text-shadow: 0 0 20px var(--teal-glow);
-}
-.nav-links { display: flex; align-items: center; gap: 2px; flex: 1; }
-.nav-link {
-  padding: 6px 12px; border-radius: 8px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px; letter-spacing: 0.5px;
-  color: var(--muted); text-decoration: none;
-  transition: all 0.2s; border: 1px solid transparent;
-  white-space: nowrap;
-}
-.nav-link:hover { color: var(--white); background: rgba(255,255,255,0.05); }
-.nav-link.active { color: var(--teal); background: var(--teal-dim); border-color: rgba(13,242,200,0.2); }
-.nav-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
-.nav-online {
-  display: flex; align-items: center; gap: 6px;
-  font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted);
-}
-.nav-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--green); box-shadow: 0 0 6px var(--green);
-  animation: blink 2s ease infinite;
-}
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
-.nav-claim-btn {
-  padding: 6px 14px; border-radius: 8px;
-  background: var(--teal-dim); border: 1px solid rgba(13,242,200,0.3);
-  color: var(--teal); font-family: 'JetBrains Mono', monospace;
-  font-size: 10px; cursor: pointer; transition: all 0.2s;
-}
-.nav-claim-btn:hover { background: rgba(13,242,200,0.18); }
-
-/* ════════ GUEST BANNER ════════ */
-.guest-banner {
-  position: fixed; top: var(--nav-h); left: 0; right: var(--chat-w); z-index: 200;
-  padding: 9px 20px;
-  background: linear-gradient(90deg, rgba(123,97,255,0.12), rgba(13,242,200,0.08), rgba(123,97,255,0.12));
-  border-bottom: 1px solid rgba(123,97,255,0.2);
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-  font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(242,242,255,0.65);
-}
-.guest-banner a { color: var(--teal); text-decoration: none; font-weight: 700; }
-.guest-banner-close {
-  position: absolute; right: 16px; background: none; border: none;
-  color: var(--muted); cursor: pointer; font-size: 15px;
-}
-.guest-banner-close:hover { color: var(--white); }
-
-/* ════════ CHAT SIDEBAR ════════ */
-.chat-sidebar {
-  position: fixed; top: 0; right: 0; bottom: 0;
-  width: var(--chat-w); z-index: 250;
-  background: var(--bg2); border-left: 1px solid var(--border);
-  display: flex; flex-direction: column;
-}
-.chat-head {
-  height: var(--nav-h); padding: 0 14px;
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between;
-  background: rgba(8,8,16,0.98); flex-shrink: 0;
-}
-.chat-head-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: 15px; letter-spacing: 1px; color: var(--white);
-}
-.chat-head-right {
-  display: flex; align-items: center; gap: 5px;
-  font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted);
-}
-.chat-head-dot {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: var(--green); box-shadow: 0 0 5px var(--green);
-  animation: blink 2s infinite;
-}
-.chat-msgs {
-  flex: 1; overflow-y: auto; padding: 10px 8px;
-  display: flex; flex-direction: column; gap: 6px;
-  scrollbar-width: thin; scrollbar-color: var(--surface3) transparent;
-}
-.chat-msgs::-webkit-scrollbar { width: 3px; }
-.chat-msgs::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 999px; }
-.chat-msg { display: flex; flex-direction: column; gap: 3px; animation: msgIn 0.2s ease; }
-@keyframes msgIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
-.chat-msg-top { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-.chat-msg-name { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: var(--white); }
-.rank-pill { font-family: 'JetBrains Mono', monospace; font-size: 8px; padding: 1px 6px; border-radius: 4px; }
-.rank-pill.molecule { background:rgba(100,100,120,0.2); color:#888aaa; border:1px solid rgba(100,100,120,0.3); }
-.rank-pill.sub3     { background:rgba(255,61,107,0.12); color:#ff3d6b; border:1px solid rgba(255,61,107,0.25); }
-.rank-pill.ltn      { background:rgba(100,130,200,0.12);color:#7090d0; border:1px solid rgba(100,130,200,0.2); }
-.rank-pill.mtn      { background:rgba(245,166,35,0.12); color:#f5a623; border:1px solid rgba(245,166,35,0.2); }
-.rank-pill.htn      { background:rgba(13,242,200,0.1);  color:#0df2c8; border:1px solid rgba(13,242,200,0.2); }
-.rank-pill.chadlite { background:rgba(123,97,255,0.12); color:#7b61ff; border:1px solid rgba(123,97,255,0.2); }
-.rank-pill.chad     { background:rgba(245,166,35,0.15); color:#f5a623; border:1px solid rgba(245,166,35,0.3); }
-.rank-pill.slayer   { background:rgba(255,61,107,0.15); color:#ff3d6b; border:1px solid rgba(255,61,107,0.35); }
-.chat-msg-text {
-  font-size: 12px; color: rgba(242,242,255,0.8); line-height: 1.5;
-  padding: 6px 10px; background: var(--surface); border: 1px solid var(--border);
-  border-radius: 2px 8px 8px 8px; word-break: break-word;
-}
-.chat-msg-time { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--muted2); padding-left: 3px; }
-.chat-sys { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted2); text-align: center; padding: 3px 0; }
-.chat-foot { padding: 8px; border-top: 1px solid var(--border); flex-shrink: 0; }
-.chat-name-row { margin-bottom: 6px; }
-.chat-name-in {
-  width: 100%; background: var(--surface); border: 1px solid var(--border2);
-  border-radius: 7px; padding: 6px 10px;
-  font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--white); outline: none;
-}
-.chat-name-in::placeholder { color: var(--muted2); }
-.chat-name-in:focus { border-color: rgba(13,242,200,0.3); }
-.chat-input-row { display: flex; gap: 6px; }
-.chat-in {
-  flex: 1; background: var(--surface); border: 1px solid var(--border2);
-  border-radius: 8px; padding: 8px 10px;
-  font-size: 12px; color: var(--white); outline: none;
-}
-.chat-in::placeholder { color: var(--muted2); }
-.chat-in:focus { border-color: rgba(13,242,200,0.3); }
-.chat-send {
-  width: 34px; height: 34px; flex-shrink: 0;
-  background: var(--teal); border: none; border-radius: 8px;
-  color: #080810; font-size: 14px; cursor: pointer; transition: all 0.2s;
-  display: flex; align-items: center; justify-content: center;
-}
-.chat-send:hover { background: #2fffd8; transform: scale(1.05); }
-
-/* ════════ PAGE WRAP ════════ */
-.page-wrap {
-  max-width: 1100px; margin: 0 auto;
-  padding: 28px 22px 60px;
-  position: relative; z-index: 1;
+function handleShared(msg) {
+  switch(msg.type) {
+    case 'welcome':
+      mySocketId = msg.socketId;
+      updateOnlineUI(msg.onlineCount);
+      if (msg.chatHistory) msg.chatHistory.forEach(m => renderChatMsg(m));
+      break;
+    case 'chat': renderChatMsg(msg.message); break;
+    case 'online_count': updateOnlineUI(msg.count); break;
+    case 'match_result':
+      if (msg.newElo !== undefined) myElo = msg.newElo;
+      if (msg.won) myWins++; else myLosses++;
+      saveStats();
+      break;
+  }
 }
 
-/* ════════ BUTTONS ════════ */
-.btn-teal {
-  padding: 13px 26px; border: none; border-radius: 10px;
-  background: var(--teal); color: #080810;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 16px; font-weight: 700; letter-spacing: 1px;
-  cursor: pointer; transition: all 0.2s;
+function updateOnlineUI(count) {
+  if (count == null) return;
+  document.querySelectorAll('.online-count-val').forEach(el => {
+    el.textContent = Number(count).toLocaleString() + ' online';
+  });
 }
-.btn-teal:hover { background: #2fffd8; transform: translateY(-2px); box-shadow: 0 8px 24px var(--teal-glow); }
-.btn-teal:disabled { background: var(--surface2); color: var(--muted); cursor: not-allowed; transform: none; box-shadow: none; }
 
-.btn-amber {
-  padding: 13px 26px; border: none; border-radius: 10px;
-  background: var(--amber); color: #080810;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 16px; font-weight: 700; letter-spacing: 1px;
-  cursor: pointer; transition: all 0.2s;
+/* ── CHAT ── */
+function chatSys(text) {
+  const el = document.getElementById('chatMsgs');
+  if (!el) return;
+  const div = document.createElement('div');
+  div.className = 'chat-sys';
+  div.textContent = '— ' + text + ' —';
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
 }
-.btn-amber:hover { background: #ffc04a; transform: translateY(-2px); box-shadow: 0 8px 24px var(--amber-glow); }
-.btn-amber:disabled { background: var(--surface2); color: var(--muted); cursor: not-allowed; transform: none; }
 
-.btn-outline {
-  padding: 12px 22px; border-radius: 10px;
-  border: 1px solid var(--border2); background: transparent; color: var(--muted);
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 15px; font-weight: 600; letter-spacing: 1px;
-  cursor: pointer; transition: all 0.2s;
+function renderChatMsg(msg) {
+  const el = document.getElementById('chatMsgs');
+  if (!el || !msg) return;
+  const tierName = msg.tier || 'Sub3';
+  const cls = rankClass(tierName);
+  const emoji = msg.tierEmoji || getTierEmoji(msg.elo || 400);
+  const time = msg.timestamp
+    ? new Date(msg.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})
+    : getTime();
+  const div = document.createElement('div');
+  div.className = 'chat-msg';
+  div.innerHTML = `
+    <div class="chat-msg-top">
+      <span class="chat-msg-name">${escapeHtml(msg.name)}</span>
+      <span class="rank-pill ${cls}">${emoji} ${tierName}</span>
+    </div>
+    <div class="chat-msg-text">${escapeHtml(msg.text)}</div>
+    <div class="chat-msg-time">${time}</div>`;
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
 }
-.btn-outline:hover { color: var(--white); border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); }
 
-/* ════════ MODALS ════════ */
-.modal-overlay {
-  position: fixed; inset: 0; z-index: 900;
-  background: rgba(0,0,0,0.82); backdrop-filter: blur(10px);
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; pointer-events: none; transition: opacity 0.25s;
+function sendChat() {
+  const nameEl = document.getElementById('chatNameIn');
+  const msgEl  = document.getElementById('chatMsgIn');
+  if (!nameEl || !msgEl) return;
+  const name = nameEl.value.trim();
+  const text = msgEl.value.trim();
+  if (!text) return;
+  if (name && name !== myName) { myName = name; saveStats(); }
+  wsSend({ type: 'set_user', name: myName });
+  if (!wsSend({ type: 'chat', text })) {
+    chatSys('Reconnecting...');
+    connectWS(pageOnMsg);
+    return;
+  }
+  msgEl.value = '';
 }
-.modal-overlay.open { opacity: 1; pointer-events: all; }
-.modal-box {
-  background: var(--surface); border: 1px solid var(--border2);
-  border-radius: 20px; padding: 32px; max-width: 560px; width: 92%;
-  position: relative; animation: modalIn 0.3s ease;
-}
-@keyframes modalIn { from{opacity:0;transform:scale(0.95) translateY(10px)} to{opacity:1;transform:none} }
-.modal-close {
-  position: absolute; top: 16px; right: 16px;
-  background: none; border: none; color: var(--muted);
-  font-size: 18px; cursor: pointer; transition: color 0.2s;
-}
-.modal-close:hover { color: var(--white); }
 
-/* ════════ LEADERBOARD ROWS ════════ */
-.lb-row { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03); transition: background 0.15s; }
-.lb-row:last-child { border-bottom: none; }
-.lb-row:hover { background: rgba(255,255,255,0.02); }
-.lb-rank { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; color: var(--muted2); text-align: center; }
-.lb-info { display: flex; align-items: center; gap: 10px; }
-.lb-av { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 800; }
-.lb-av.chad,.lb-av.slayer { background: var(--amber-dim); color: var(--amber); }
-.lb-av.chadlite { background: var(--violet-dim); color: var(--violet); }
-.lb-av.htn { background: var(--teal-dim); color: var(--teal); }
-.lb-av.mtn,.lb-av.ltn,.lb-av.sub3,.lb-av.molecule { background: var(--surface2); color: var(--muted); }
-.lb-name { font-weight: 600; font-size: 13px; color: var(--white); }
-.lb-sub { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); margin-top: 2px; }
-.lb-elo { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--teal); }
-
-/* ════════ RESPONSIVE ════════ */
-@media(max-width: 900px) {
-  :root { --chat-w: 0px; }
-  .chat-sidebar { display: none; }
-  body { padding-right: 0; }
-  .top-nav, .guest-banner { right: 0; }
+/* ── ACTIVITY FEED ── */
+const _actNames = ['ApexK','NordicG','ZeusMode','IronWill','PhiRatio','AthensKing','SilentMax','CanthalK','JawPilled','MewingPro','LooksGod','SymBro'];
+function startActivityFeed() {
+  const el = document.getElementById('activityFeed');
+  if (!el) return;
+  function add() {
+    const n1 = _actNames[Math.floor(Math.random()*_actNames.length)];
+    let n2 = _actNames[Math.floor(Math.random()*_actNames.length)];
+    while (n2 === n1) n2 = _actNames[Math.floor(Math.random()*_actNames.length)];
+    const elo = Math.floor(Math.random() * 28 + 10);
+    const div = document.createElement('div');
+    div.className = 'activity-item';
+    div.innerHTML = `<span class="activity-name">${n1}</span> beat <span class="activity-name">${n2}</span> <span class="activity-elo">+${elo} ELO</span>`;
+    el.prepend(div);
+    while(el.children.length > 6) el.removeChild(el.lastChild);
+    setTimeout(add, 3500 + Math.random() * 5000);
+  }
+  for(let i=0;i<4;i++) setTimeout(() => {
+    const n1=_actNames[Math.floor(Math.random()*_actNames.length)];
+    const n2=_actNames[Math.floor(Math.random()*_actNames.length)];
+    const elo=Math.floor(Math.random()*28+10);
+    const div=document.createElement('div');
+    div.className='activity-item';
+    div.innerHTML=`<span class="activity-name">${n1}</span> beat <span class="activity-name">${n2}</span> <span class="activity-elo">+${elo} ELO</span>`;
+    el.appendChild(div);
+  }, i * 500);
+  setTimeout(add, 4000);
 }
-@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-@keyframes shimmer { to { left: 200%; } }
+
+/* ── LEADERBOARD ── */
+async function loadLeaderboard(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  try {
+    const res = await fetch(SERVER_HTTP + '/leaderboard');
+    const data = await res.json();
+    if (!data || !data.length) {
+      el.innerHTML = '<div style="padding:24px;text-align:center;font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--muted2);">No players yet — be the first!</div>';
+      return;
+    }
+    const medals = ['🥇','🥈','🥉'];
+    el.innerHTML = data.slice(0,20).map((u,i) => {
+      const t = u.tier || {name:'Sub3',emoji:'🔴'};
+      const cls = rankClass(t.name);
+      return `<div class="lb-row">
+        <div class="lb-rank">${medals[i] || ('#'+(i+1))}</div>
+        <div class="lb-info">
+          <div class="lb-av ${cls}">${escapeHtml((u.name||'?')[0].toUpperCase())}</div>
+          <div>
+            <div class="lb-name">${escapeHtml(u.name||'Unknown')}</div>
+            <div class="lb-sub">${t.emoji} ${t.name} · ${u.wins||0}W ${u.losses||0}L</div>
+          </div>
+        </div>
+        <div class="lb-elo">${u.elo||400} ELO</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="padding:24px;text-align:center;font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--muted2);">Could not load — server may be starting up</div>';
+  }
+}
+
+/* ── INJECT UI ── */
+function injectSharedUI() {
+  const path = window.location.pathname.split('/').pop() || 'index.html';
+
+  // NAV
+  const nav = document.createElement('nav');
+  nav.className = 'top-nav';
+  nav.innerHTML = `
+    <a class="nav-logo" href="index.html">MOGME.TV</a>
+    <div class="nav-links">
+      <a class="nav-link" href="index.html">HOME</a>
+      <a class="nav-link" href="arena.html">⚔ ARENA</a>
+      <a class="nav-link" href="lab.html">🧬 LAB</a>
+      <a class="nav-link" href="rank.html">🏆 RANK</a>
+      <a class="nav-link" href="private.html">🔒 PRIVATE</a>
+    </div>
+    <div class="nav-right">
+      <div class="nav-online">
+        <div class="nav-dot"></div>
+        <span class="online-count-val">— online</span>
+      </div>
+      <button class="nav-claim-btn" onclick="openClaimModal()">CLAIM RANK</button>
+    </div>`;
+  document.body.prepend(nav);
+
+  // Set active link
+  nav.querySelectorAll('.nav-link').forEach(a => {
+    const href = (a.getAttribute('href') || '').split('/').pop();
+    if (href === path || (path === '' && href === 'index.html')) a.classList.add('active');
+  });
+
+  // GUEST BANNER
+  const banner = document.createElement('div');
+  banner.className = 'guest-banner';
+  banner.id = 'guestBanner';
+  banner.innerHTML = `
+    You're playing as a Guest.
+    <a href="#" onclick="openClaimModal();return false;">Click here to claim your rank</a>
+    and save your ELO permanently.
+    <button class="guest-banner-close" onclick="document.getElementById('guestBanner').style.display='none'">✕</button>`;
+  nav.after(banner);
+
+  // CHAT SIDEBAR
+  const chat = document.createElement('div');
+  chat.className = 'chat-sidebar';
+  chat.innerHTML = `
+    <div class="chat-head">
+      <div class="chat-head-title">💬 LIVE CHAT</div>
+      <div class="chat-head-right">
+        <div class="chat-head-dot"></div>
+        <span class="online-count-val">—</span>
+      </div>
+    </div>
+    <div class="chat-msgs" id="chatMsgs"></div>
+    <div class="chat-foot">
+      <div class="chat-name-row">
+        <input class="chat-name-in" id="chatNameIn" type="text" placeholder="Your name..." maxlength="18" value="${escapeHtml(myName)}">
+      </div>
+      <div class="chat-input-row">
+        <input class="chat-in" id="chatMsgIn" type="text" placeholder="Say something..." maxlength="200" onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="chat-send" onclick="sendChat()">➤</button>
+      </div>
+    </div>`;
+  document.body.appendChild(chat);
+
+  // HOW TO MOG MODAL
+  const howModal = document.createElement('div');
+  howModal.className = 'modal-overlay';
+  howModal.id = 'howModal';
+  howModal.onclick = (e) => { if(e.target===howModal) closeModal('howModal'); };
+  const howItems = [
+    {icon:'👁',title:'EYES FORWARD',desc:'Keep your face centered and chin level. One face per frame only.'},
+    {icon:'📈',title:'WIN TO RISE',desc:'Beat higher-ranked opponents for bigger ELO gains.'},
+    {icon:'🚫',title:'NO BAILING',desc:'Leaving an active match forfeits and costs you 7 ELO.'},
+    {icon:'🔐',title:'STAYS PRIVATE',desc:'Your camera runs in your browser only. Nothing is recorded.'},
+    {icon:'🔒',title:'LOCK YOUR RANK',desc:'Sign in to save your ELO, history and leaderboard identity.'},
+    {icon:'💡',title:'FACE THE LIGHT',desc:'Front lighting gives the clearest scan. Clean your lens.'},
+  ];
+  howModal.innerHTML = `<div class="modal-box" style="max-width:580px;">
+    <button class="modal-close" onclick="closeModal('howModal')">✕</button>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;padding:16px;background:var(--surface2);border-radius:12px;border:1px solid var(--border);">
+      <div style="width:44px;height:44px;border-radius:10px;background:var(--teal-dim);border:1px solid rgba(13,242,200,0.2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">❓</div>
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;letter-spacing:1px;">HOW TO MOG</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:2px;">QUICK RULES FOR CLEANER SCANS AND FAIRER MATCHES</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      ${howItems.map(p=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;">
+        <div style="font-size:24px;margin-bottom:10px;">${p.icon}</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:1px;margin-bottom:5px;">${p.title}</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5;">${p.desc}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+  document.body.appendChild(howModal);
+
+  // CLAIM MODAL
+  const claimModal = document.createElement('div');
+  claimModal.className = 'modal-overlay';
+  claimModal.id = 'claimModal';
+  claimModal.onclick = (e) => { if(e.target===claimModal) closeModal('claimModal'); };
+  claimModal.innerHTML = `<div class="modal-box" style="max-width:420px;text-align:center;background:linear-gradient(135deg,#1a1030,#13131f);">
+    <button class="modal-close" onclick="closeModal('claimModal')">✕</button>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:42px;letter-spacing:2px;line-height:1;margin-bottom:14px;">LOCK IN YOUR<br>RANK</div>
+    <p style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:18px;">Sign in to permanently save your ELO,<br>match history and leaderboard identity.</p>
+    <div style="display:inline-flex;align-items:center;gap:8px;background:var(--violet-dim);border:1px solid rgba(123,97,255,0.25);border-radius:999px;padding:6px 16px;margin-bottom:22px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#7b61ff;">✓ ELO, history and identity preserved</div>
+    <button onclick="alert('Google Sign-In coming soon!')" style="width:100%;padding:15px;border-radius:12px;border:none;background:#fff;color:#080810;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
+      <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continue with Google
+    </button>
+    <p style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);">By continuing, you agree to our <a href="#" style="color:var(--teal);">Terms</a> and <a href="#" style="color:var(--teal);">Privacy Policy</a></p>
+  </div>`;
+  document.body.appendChild(claimModal);
+}
+
+function openModal(id)  { const el=document.getElementById(id); if(el) el.classList.add('open'); }
+function closeModal(id) { const el=document.getElementById(id); if(el) el.classList.remove('open'); }
+function openClaimModal() { openModal('claimModal'); }
+function openHowModal()   { openModal('howModal'); }
+
+setInterval(() => wsSend({ type: 'ping' }), 25000);
