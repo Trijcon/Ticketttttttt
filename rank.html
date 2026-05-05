@@ -4,209 +4,173 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MogMe.TV — Global Rank</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 <style>
-.page-title{font-family:'Syne',sans-serif;font-weight:800;font-size:36px;margin-bottom:4px;}
-.page-sub{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--gold);margin-bottom:28px;}
+.rank-layout { display:grid; grid-template-columns:1fr 260px; gap:14px; align-items:start; }
 
-.my-rank-card {
-  background:linear-gradient(135deg,#1c1535,#15112a);
-  border:1px solid rgba(201,168,76,0.3); border-radius:18px;
-  padding:28px; display:flex; align-items:center; gap:24px; margin-bottom:16px;
+/* MY RANK CARD */
+.my-card {
+  background:linear-gradient(135deg,#141228,#0f0d20);
+  border:1px solid rgba(13,242,200,0.15); border-radius:16px;
+  padding:24px; display:flex; align-items:center; gap:20px; margin-bottom:14px;
 }
 .my-avatar {
-  width:68px;height:68px;border-radius:50%;
-  background:linear-gradient(135deg,var(--purple),#3a2070);
-  border:2px solid rgba(124,92,191,0.4);
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Syne',sans-serif;font-size:26px;font-weight:800;flex-shrink:0;
+  width:60px; height:60px; border-radius:12px;
+  background:var(--violet-dim); border:1px solid rgba(123,97,255,0.3);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Barlow Condensed',sans-serif; font-size:24px; font-weight:800; flex-shrink:0; color:var(--white);
 }
-.my-info{flex:1;}
-.my-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px;}
-.my-tier{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--gold);margin-bottom:10px;}
-.my-stats{display:flex;gap:20px;}
-.my-stat-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;}
-.my-stat-label{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted2);letter-spacing:1px;}
-.my-elo-big{font-family:'Syne',sans-serif;font-size:40px;font-weight:800;color:var(--cyan);text-shadow:0 0 30px rgba(0,229,255,0.3);}
+.my-name { font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:800; margin-bottom:4px; color:var(--white); }
+.my-tier { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--teal); margin-bottom:10px; }
+.my-stats { display:flex; gap:20px; }
+.my-stat-val { font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:800; color:var(--white); }
+.my-stat-label { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:1px; color:var(--muted2); }
+.my-elo { font-family:'Barlow Condensed',sans-serif; font-size:42px; font-weight:900; color:var(--teal); line-height:1; text-shadow:0 0 24px var(--teal-glow); margin-left:auto; }
 
-.section-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;padding:18px 22px;border-bottom:1px solid var(--border);}
+/* SEASON CARD */
+.season-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:22px; text-align:center; margin-bottom:14px; }
+.season-ends { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:2px; color:var(--muted); margin-bottom:12px; }
+.s-timer { display:inline-flex; align-items:center; gap:0; }
+.stb { text-align:center; padding:0 10px; }
+.stb-num { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:34px; line-height:1; color:var(--white); }
+.stb-label { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:2px; color:var(--muted); margin-top:3px; }
+.stb-sep { font-family:'Barlow Condensed',sans-serif; font-size:26px; color:var(--muted2); font-weight:700; align-self:center; margin-bottom:5px; }
+.season-note { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:2px; color:var(--muted2); margin-top:10px; }
+.rewards-btn { margin-top:14px; padding:9px 22px; border-radius:8px; border:1px solid rgba(245,166,35,0.3); background:var(--amber-dim); color:var(--amber); font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:1px; cursor:pointer; transition:all 0.2s; }
+.rewards-btn:hover { background:rgba(245,166,35,0.2); }
 
-/* Tier ladder */
-.tier-ladder{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px;}
-.tier-row{
-  display:grid;grid-template-columns:40px 1fr auto auto;
-  align-items:center;gap:14px;padding:14px 20px;
-  border-bottom:1px solid rgba(255,255,255,0.03);transition:background 0.15s;
+/* TABS */
+.lb-tabs { display:flex; gap:8px; margin-bottom:14px; }
+.lb-tab { padding:8px 18px; border-radius:8px; border:1px solid var(--border); background:transparent; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:1px; cursor:pointer; transition:all 0.2s; }
+.lb-tab.active { background:var(--teal-dim); border-color:rgba(13,242,200,0.25); color:var(--teal); }
+
+.lb-title-big {
+  font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:56px; letter-spacing:2px;
+  text-align:center; margin-bottom:6px; color:var(--white);
 }
-.tier-row:last-child{border-bottom:none;}
-.tier-row:hover{background:rgba(255,255,255,0.02);}
-.tier-row.current{background:rgba(201,168,76,0.06);border-left:3px solid var(--gold);}
-.tier-num{font-family:'Space Mono',monospace;font-size:12px;color:var(--muted2);text-align:center;}
-.tier-info{display:flex;align-items:center;gap:10px;}
-.tier-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;}
-.tier-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;}
-.tier-range{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px;}
-.tier-elo{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);}
-.tier-players{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted2);}
+.lb-desc { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); text-align:center; margin-bottom:4px; }
+.lb-rule { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--teal); text-align:center; margin-bottom:20px; }
 
-/* Leaderboard */
-.lb{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
-.lb-row{
-  display:grid;grid-template-columns:48px 1fr auto auto;
-  align-items:center;gap:14px;padding:14px 20px;
-  border-bottom:1px solid rgba(255,255,255,0.03);transition:background 0.15s;
-}
-.lb-row:last-child{border-bottom:none;}
-.lb-row:hover{background:rgba(255,255,255,0.02);}
-.lb-rank{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--muted2);text-align:center;}
-.lb-rank.gold{color:var(--gold)} .lb-rank.silver{color:#aaa} .lb-rank.bronze{color:#c87941}
-.lb-info{display:flex;align-items:center;gap:10px;}
-.lb-av{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;}
-.lb-name{font-weight:600;font-size:14px;}
-.lb-tag{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px;}
-.lb-elo-val{font-family:'Space Mono',monospace;font-size:12px;color:var(--cyan);}
-.lb-tier-tag{font-family:'Space Mono',monospace;font-size:9px;padding:3px 8px;border-radius:999px;background:rgba(201,168,76,0.1);color:var(--gold);}
-.refresh-btn{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);background:none;border:none;cursor:pointer;padding:4px 8px;transition:color 0.2s;}
-.refresh-btn:hover{color:var(--white);}
+.lb-container { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+
+/* RIGHT PANEL */
+.tier-panel { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; position:sticky; top:calc(var(--nav-h) + 50px); }
+.tier-panel-head { padding:14px 18px; border-bottom:1px solid var(--border); font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; letter-spacing:2px; color:var(--muted); }
+.tier-item { display:flex; align-items:center; gap:12px; padding:13px 18px; border-bottom:1px solid rgba(255,255,255,0.03); transition:background 0.15s; }
+.tier-item:last-child { border-bottom:none; }
+.tier-item:hover { background:rgba(255,255,255,0.02); }
+.tier-item.current { background:var(--teal-dim); border-left:2px solid var(--teal); }
+.tier-icon { font-size:20px; width:28px; text-align:center; flex-shrink:0; }
+.tier-name { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:16px; letter-spacing:1px; color:var(--white); }
+.tier-range { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); margin-top:1px; }
+
+.refresh-btn { background:none; border:none; color:var(--muted); cursor:pointer; font-family:'JetBrains Mono',monospace; font-size:10px; transition:color 0.2s; }
+.refresh-btn:hover { color:var(--white); }
+
+@media(max-width:800px){.rank-layout{grid-template-columns:1fr;}.tier-panel{position:static;}}
 </style>
 </head>
 <body>
 <div class="page-wrap">
+<div class="rank-layout">
 
-  <div class="page-title">🏆 GLOBAL RANK</div>
-  <div class="page-sub">SEASON 1 LEADERBOARD</div>
-
-  <!-- My rank card -->
-  <div class="my-rank-card">
-    <div class="my-avatar" id="myAvatar">?</div>
-    <div class="my-info">
-      <div class="my-name" id="myNameEl">YOU</div>
-      <div class="my-tier" id="myTierEl">🔴 SUB3 — UNRANKED</div>
-      <div class="my-stats">
-        <div><div class="my-stat-val" id="myWinsEl">0</div><div class="my-stat-label">WINS</div></div>
-        <div><div class="my-stat-val" id="myLossesEl">0</div><div class="my-stat-label">LOSSES</div></div>
-        <div><div class="my-stat-val" id="myWREl">—</div><div class="my-stat-label">WIN RATE</div></div>
+  <!-- LEFT -->
+  <div>
+    <div class="my-card">
+      <div class="my-avatar" id="myAv">?</div>
+      <div>
+        <div class="my-name" id="myNameEl">YOU</div>
+        <div class="my-tier" id="myTierEl">🔴 SUB3</div>
+        <div class="my-stats">
+          <div><div class="my-stat-val" id="myW">0</div><div class="my-stat-label">WINS</div></div>
+          <div><div class="my-stat-val" id="myL">0</div><div class="my-stat-label">LOSSES</div></div>
+          <div><div class="my-stat-val" id="myWR">—</div><div class="my-stat-label">WIN RATE</div></div>
+        </div>
       </div>
+      <div class="my-elo" id="myEloEl">400</div>
     </div>
-    <div style="text-align:right;">
-      <div class="my-elo-big" id="myEloEl">400</div>
-      <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;">ELO RATING</div>
+
+    <div class="season-card">
+      <div class="season-ends">SEASON ENDS IN</div>
+      <div class="s-timer">
+        <div class="stb"><div class="stb-num" id="rD">26</div><div class="stb-label">DAYS</div></div>
+        <div class="stb-sep">:</div>
+        <div class="stb"><div class="stb-num" id="rH">08</div><div class="stb-label">HOURS</div></div>
+        <div class="stb-sep">:</div>
+        <div class="stb"><div class="stb-num" id="rM">57</div><div class="stb-label">MINUTES</div></div>
+        <div class="stb-sep">:</div>
+        <div class="stb"><div class="stb-num" id="rS">53</div><div class="stb-label">SECONDS</div></div>
+      </div>
+      <div class="season-note">RANKS RESET EVERY MONTH</div>
+      <button class="rewards-btn">🎁 VIEW REWARDS</button>
+    </div>
+
+    <div class="lb-tabs">
+      <button class="lb-tab active">🌐 GLOBAL ARENA</button>
+      <button class="lb-tab">🏆 SEASON 1</button>
+    </div>
+
+    <div class="lb-title-big">LEADERBOARD</div>
+    <div class="lb-desc">Top 100 ranked players by ELO. Only active accounts appear.</div>
+    <div class="lb-rule">ELO changes depend on opponent rating. Beating lower-rated players gives less, and losing to them costs more.</div>
+
+    <div class="lb-container">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:1px;color:var(--white);">TOP MOGGERS</span>
+        <button class="refresh-btn" onclick="loadLeaderboard('lbMain')">↺ REFRESH</button>
+      </div>
+      <div id="lbMain"><div style="padding:32px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted2);">Loading leaderboard...</div></div>
     </div>
   </div>
 
-  <!-- Tier ladder -->
-  <div class="tier-ladder">
-    <div class="section-title">🏅 TIER SYSTEM</div>
-    <div class="tier-row" id="tierSub3">
-      <div class="tier-num">6</div>
-      <div class="tier-info"><div class="tier-icon" style="background:rgba(255,77,109,0.1);">🔴</div><div><div class="tier-name" style="color:var(--red);">SUB3</div><div class="tier-range">Starting tier</div></div></div>
-      <div class="tier-elo">0 – 499</div>
-      <div class="tier-players">— players</div>
-    </div>
-    <div class="tier-row" id="tierLTN">
-      <div class="tier-num">5</div>
-      <div class="tier-info"><div class="tier-icon" style="background:rgba(100,130,200,0.1);">🌙</div><div><div class="tier-name" style="color:#7090d0;">LTN</div><div class="tier-range">Low Tier Normal</div></div></div>
-      <div class="tier-elo">500 – 999</div>
-      <div class="tier-players">— players</div>
-    </div>
-    <div class="tier-row" id="tierMTN">
-      <div class="tier-num">4</div>
-      <div class="tier-info"><div class="tier-icon" style="background:rgba(96,200,144,0.1);">⚡</div><div><div class="tier-name" style="color:#60c890;">MTN</div><div class="tier-range">Mid Tier Normal</div></div></div>
-      <div class="tier-elo">1000 – 1499</div>
-      <div class="tier-players">— players</div>
-    </div>
-    <div class="tier-row" id="tierHTN">
-      <div class="tier-num">3</div>
-      <div class="tier-info"><div class="tier-icon" style="background:rgba(0,229,255,0.1);">💎</div><div><div class="tier-name" style="color:var(--cyan);">HTN</div><div class="tier-range">High Tier Normal</div></div></div>
-      <div class="tier-elo">1500 – 1999</div>
-      <div class="tier-players">— players</div>
-    </div>
-    <div class="tier-row" id="tierChadlite">
-      <div class="tier-num">2</div>
-      <div class="tier-info"><div class="tier-icon" style="background:rgba(155,125,224,0.1);">👑</div><div><div class="tier-name" style="color:var(--purple-light);">CHADLITE</div><div class="tier-range">Elite tier</div></div></div>
-      <div class="tier-elo">2000 – 2999</div>
-      <div class="tier-players">— players</div>
-    </div>
-    <div class="tier-row" id="tierChad">
-      <div class="tier-num">1</div>
-      <div class="tier-info"><div class="tier-icon" style="background:rgba(201,168,76,0.1);">🔱</div><div><div class="tier-name" style="color:var(--gold);">CHAD</div><div class="tier-range">Top of the ladder</div></div></div>
-      <div class="tier-elo">3000+ ELO</div>
-      <div class="tier-players">— players</div>
-    </div>
+  <!-- RIGHT: TIER PANEL -->
+  <div class="tier-panel">
+    <div class="tier-panel-head">RANK TIERS</div>
+    <div class="tier-item" id="ti-Slayer"><div class="tier-icon">💀</div><div><div class="tier-name" style="color:var(--crimson);">SLAYER</div><div class="tier-range">5,001+ ELO</div></div></div>
+    <div class="tier-item" id="ti-Chad"><div class="tier-icon">👑</div><div><div class="tier-name" style="color:var(--amber);">CHAD</div><div class="tier-range">3,501–5,000 ELO</div></div></div>
+    <div class="tier-item" id="ti-Chadlite"><div class="tier-icon">🔥</div><div><div class="tier-name" style="color:var(--violet);">CHADLITE</div><div class="tier-range">2,001–3,500 ELO</div></div></div>
+    <div class="tier-item" id="ti-HTN"><div class="tier-icon">⭐</div><div><div class="tier-name" style="color:var(--teal);">HTN</div><div class="tier-range">1,501–2,000 ELO</div></div></div>
+    <div class="tier-item" id="ti-MTN"><div class="tier-icon">⚡</div><div><div class="tier-name" style="color:var(--amber);">MTN</div><div class="tier-range">1,001–1,500 ELO</div></div></div>
+    <div class="tier-item" id="ti-LTN"><div class="tier-icon">🌙</div><div><div class="tier-name" style="color:#7090d0;">LTN</div><div class="tier-range">501–1,000 ELO</div></div></div>
+    <div class="tier-item" id="ti-Sub3"><div class="tier-icon">🔴</div><div><div class="tier-name" style="color:var(--crimson);">SUB3</div><div class="tier-range">1–500 ELO</div></div></div>
+    <div class="tier-item" id="ti-Molecule"><div class="tier-icon">🧪</div><div><div class="tier-name" style="color:var(--muted);">MOLECULE</div><div class="tier-range">≤0 ELO</div></div></div>
   </div>
 
-  <!-- Leaderboard -->
-  <div class="lb">
-    <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;">
-      <span>🔱 TOP MOGGERS — SEASON 1</span>
-      <button class="refresh-btn" onclick="loadLB()">↺ REFRESH</button>
-    </div>
-    <div id="lbBody">
-      <div style="padding:32px;text-align:center;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted2);">Loading leaderboard...</div>
-    </div>
-  </div>
-
+</div>
 </div>
 <script src="shared.js"></script>
 <script>
 injectSharedUI();
 connectWS();
 
-// Load my stats
-const name = localStorage.getItem('mogme_name')||'YOU';
-const elo  = parseInt(localStorage.getItem('mogme_elo')||'400');
-const wins = parseInt(localStorage.getItem('mogme_wins')||'0');
-const losses=parseInt(localStorage.getItem('mogme_losses')||'0');
+const name=localStorage.getItem('mgm_name')||'YOU';
+const elo=parseInt(localStorage.getItem('mgm_elo')||'400');
+const wins=parseInt(localStorage.getItem('mgm_wins')||'0');
+const losses=parseInt(localStorage.getItem('mgm_losses')||'0');
 document.getElementById('myNameEl').textContent=name;
-document.getElementById('myAvatar').textContent=name[0]||'?';
+document.getElementById('myAv').textContent=(name[0]||'?').toUpperCase();
 document.getElementById('myEloEl').textContent=elo;
-document.getElementById('myWinsEl').textContent=wins;
-document.getElementById('myLossesEl').textContent=losses;
-document.getElementById('myWREl').textContent=(wins+losses)?Math.round(wins/(wins+losses)*100)+'%':'—';
-const tierName=getTierName(elo);
-const tierEmoji=getTierEmoji(elo);
-document.getElementById('myTierEl').textContent=`${tierEmoji} ${tierName}`;
+document.getElementById('myW').textContent=wins;
+document.getElementById('myL').textContent=losses;
+document.getElementById('myWR').textContent=(wins+losses)?Math.round(wins/(wins+losses)*100)+'%':'—';
+const tn=getTierName(elo),te=getTierEmoji(elo);
+document.getElementById('myTierEl').textContent=te+' '+tn;
+const cur=document.getElementById('ti-'+tn);
+if(cur)cur.classList.add('current');
 
-// Highlight current tier row
-const tierIds={Sub3:'tierSub3',LTN:'tierLTN',MTN:'tierMTN',HTN:'tierHTN',Chadlite:'tierChadlite',Chad:'tierChad'};
-const currentTierEl=document.getElementById(tierIds[tierName]);
-if(currentTierEl)currentTierEl.classList.add('current');
-
-// Load leaderboard
-async function loadLB(){
-  try{
-    const res=await fetch(SERVER_HTTP+'/leaderboard');
-    const data=await res.json();
-    if(!data.length){
-      document.getElementById('lbBody').innerHTML='<div style="padding:32px;text-align:center;font-family:\'Space Mono\',monospace;font-size:11px;color:var(--muted2);">No players yet — be the first!</div>';
-      return;
-    }
-    const rankCls=['gold','silver','bronze'];
-    const colors={Chad:'rgba(201,168,76,0.15)',Chadlite:'rgba(155,125,224,0.15)',HTN:'rgba(0,229,255,0.1)',MTN:'rgba(96,200,144,0.1)',LTN:'rgba(100,130,200,0.1)',Sub3:'rgba(255,77,109,0.1)'};
-    const textColors={Chad:'var(--gold)',Chadlite:'var(--purple-light)',HTN:'var(--cyan)',MTN:'#60c890',LTN:'#7090d0',Sub3:'var(--red)'};
-    document.getElementById('lbBody').innerHTML=data.map((u,i)=>{
-      const t=u.tier||{name:'Sub3',emoji:'🔴'};
-      const rc=rankCls[i]||'';
-      const bg=colors[t.name]||colors.Sub3;
-      const tc=textColors[t.name]||textColors.Sub3;
-      return `<div class="lb-row">
-        <div class="lb-rank ${rc}">${i+1}</div>
-        <div class="lb-info">
-          <div class="lb-av" style="background:${bg};color:${tc};">${escapeHtml((u.name||'?')[0])}</div>
-          <div><div class="lb-name">${escapeHtml(u.name||'Unknown')}</div>
-          <div class="lb-tag">${t.emoji} ${t.name} · ${u.wins||0}W ${u.losses||0}L</div></div>
-        </div>
-        <div class="lb-elo-val">${u.elo||400} ELO</div>
-        <div class="lb-tier-tag">${t.emoji} ${t.name}</div>
-      </div>`;
-    }).join('');
-  }catch(e){
-    document.getElementById('lbBody').innerHTML='<div style="padding:32px;text-align:center;font-family:\'Space Mono\',monospace;font-size:11px;color:var(--muted2);">Could not load — server may be waking up</div>';
-  }
+const endDate=new Date(Date.now()+26*24*60*60*1000);
+function tick(){
+  const d=endDate-Date.now();if(d<=0)return;
+  document.getElementById('rD').textContent=String(Math.floor(d/864e5)).padStart(2,'0');
+  document.getElementById('rH').textContent=String(Math.floor((d%864e5)/36e5)).padStart(2,'0');
+  document.getElementById('rM').textContent=String(Math.floor((d%36e5)/6e4)).padStart(2,'0');
+  document.getElementById('rS').textContent=String(Math.floor((d%6e4)/1e3)).padStart(2,'0');
 }
-loadLB();
-setInterval(loadLB,30000);
+tick();setInterval(tick,1000);
+loadLeaderboard('lbMain');
+setInterval(()=>loadLeaderboard('lbMain'),30000);
 </script>
 </body>
 </html>
