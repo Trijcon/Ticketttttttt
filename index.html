@@ -110,7 +110,7 @@
   <div class="cards-grid">
     <a class="card arena" href="arena.html">
       <div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:18px;">
-        <div class="card-badge" onclick="event.preventDefault();openHowModal()">? HOW TO MOG</div>
+        <div class="card-badge" onclick="event.preventDefault();event.stopPropagation();openHowModal()">? HOW TO MOG</div>
         <div class="online-badge"><div class="online-badge-dot"></div><span class="online-count-val">—</span></div>
       </div>
       <div class="card-icon">⚔️</div>
@@ -206,8 +206,8 @@
 injectSharedUI();
 connectWS();
 
-// Season countdown
-const endDate = new Date(Date.now() + 26*24*60*60*1000);
+// Season countdown — ends June 6, 2026 midnight UTC
+var endDate = new Date('2026-06-06T00:00:00Z');
 function tick(){
   const d=endDate-Date.now(); if(d<=0)return;
   document.getElementById('tD').textContent=String(Math.floor(d/864e5)).padStart(2,'0');
