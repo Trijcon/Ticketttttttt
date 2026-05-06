@@ -5,7 +5,7 @@
 ═══════════════════════════════════ */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
+import { getAuth, GoogleAuthProvider, signInWithRedirect,
          getRedirectResult, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, collection,
@@ -49,32 +49,14 @@ function getTierFromElo(elo) {
 ══════════════════════════════════ */
 window.signInWithGoogle = async function() {
   const btn = document.getElementById('googleSignInBtn');
-  if (btn) { btn.textContent = 'Signing in...'; btn.disabled = true; }
+  if (btn) { btn.textContent = 'Redirecting to Google...'; btn.disabled = true; }
   try {
-    // Try popup first
-    const result = await signInWithPopup(auth, gProvider);
-    return result.user;
+    sessionStorage.setItem('mgm_redirect_login', '1');
+    await signInWithRedirect(auth, gProvider);
   } catch(e) {
-    // If popup blocked or failed, fall back to redirect
-    if (e.code === 'auth/popup-blocked' ||
-        e.code === 'auth/popup-closed-by-user' ||
-        e.code === 'auth/cancelled-popup-request') {
-      try {
-        // Store that we're doing a redirect login
-        sessionStorage.setItem('mgm_redirect_login', '1');
-        const { signInWithRedirect } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js");
-        await signInWithRedirect(auth, gProvider);
-        return; // Page will redirect
-      } catch(e2) {
-        if (btn) { btn.innerHTML = googleBtnHTML(); btn.disabled = false; }
-        alert('Sign in failed. Please try again.');
-      }
-    } else {
-      if (btn) { btn.innerHTML = googleBtnHTML(); btn.disabled = false; }
-      if (e.code !== 'auth/popup-closed-by-user') {
-        console.error('Sign in error:', e.code, e.message);
-      }
-    }
+    if (btn) { btn.innerHTML = googleBtnHTML(); btn.disabled = false; }
+    console.error('Sign in error:', e);
+    alert('Sign in failed: ' + e.message);
   }
 };
 
@@ -252,12 +234,18 @@ function googleBtnHTML() {
 }
 
 /* ══════════════════════════════════
-   HANDLE REDIRECT RESULT (called on page load after redirect)
+   HANDLE REDIRECT RESULT
 ══════════════════════════════════ */
-if (sessionStorage.getItem('mgm_redirect_login')) {
-  sessionStorage.removeItem('mgm_redirect_login');
-  getRedirectResult(auth).catch(e => console.error('Redirect result error:', e));
-}
+getRedirectResult(auth).then(async (result) => {
+  if (result && result.user) {
+    console.log('Redirect sign-in successful:', result.user.email);
+    sessionStorage.removeItem('mgm_redirect_login');
+  }
+}).catch(e => {
+  if (e.code !== 'auth/no-auth-event') {
+    console.error('Redirect result error:', e);
+  }
+});
 
 /* ══════════════════════════════════
    AUTH STATE LISTENER
