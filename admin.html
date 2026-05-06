@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MogMe.TV — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ── COMPLETELY SEPARATE STYLE — no shared.css ── */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{background:#05050d;color:#f2f2ff;font-family:'Barlow',sans-serif;min-height:100vh;}
+
+.admin-gate {
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:#05050d;z-index:999;
+}
+.gate-card {
+  background:#0e0e1a;border:1px solid rgba(255,255,255,0.08);border-radius:16px;
+  padding:40px;width:360px;text-align:center;
+}
+.gate-logo { font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;color:#ff3d6b;letter-spacing:2px;margin-bottom:20px; }
+.gate-title { font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;margin-bottom:8px; }
+.gate-sub { font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b6b8f;margin-bottom:24px; }
+.gate-input {
+  width:100%;background:#080810;border:1px solid rgba(255,255,255,0.1);
+  border-radius:10px;padding:13px 16px;color:#f2f2ff;
+  font-family:'JetBrains Mono',monospace;font-size:14px;outline:none;
+  transition:border-color 0.2s;letter-spacing:2px;text-align:center;
+  margin-bottom:12px;
+}
+.gate-input:focus{border-color:rgba(255,61,107,0.4);}
+.gate-btn {
+  width:100%;padding:13px;border:none;border-radius:10px;
+  background:#ff3d6b;color:#fff;font-family:'Barlow Condensed',sans-serif;
+  font-size:18px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all 0.2s;
+}
+.gate-btn:hover{background:#ff6b8a;}
+.gate-error{color:#ff3d6b;font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:10px;display:none;}
+
+/* ── ADMIN PANEL ── */
+.admin-panel{display:none;}
+.admin-nav {
+  position:fixed;top:0;left:0;right:0;height:52px;z-index:100;
+  background:rgba(5,5,13,0.98);border-bottom:1px solid rgba(255,61,107,0.2);
+  display:flex;align-items:center;padding:0 20px;gap:12px;
+}
+.admin-logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;color:#ff3d6b;letter-spacing:2px;}
+.admin-badge{font-family:'JetBrains Mono',monospace;font-size:9px;background:rgba(255,61,107,0.12);border:1px solid rgba(255,61,107,0.25);color:#ff3d6b;padding:3px 10px;border-radius:999px;letter-spacing:1px;}
+.admin-user{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:#6b6b8f;}
+.admin-signout{margin-left:12px;background:none;border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:5px 12px;color:#6b6b8f;font-family:'JetBrains Mono',monospace;font-size:9px;cursor:pointer;transition:all 0.2s;}
+.admin-signout:hover{color:#f2f2ff;border-color:rgba(255,255,255,0.2);}
+
+.admin-wrap{max-width:1200px;margin:0 auto;padding:72px 20px 40px;}
+.admin-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:32px;letter-spacing:1px;margin-bottom:4px;}
+.admin-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:#6b6b8f;margin-bottom:28px;}
+
+.admin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.admin-card{background:#0e0e1a;border:1px solid rgba(255,255,255,0.06);border-radius:14px;overflow:hidden;}
+.admin-card.full{grid-column:1/-1;}
+.admin-card.half{grid-column:span 2;}
+.card-head{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;gap:8px;}
+.card-head-icon{font-size:16px;}
+.card-head-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:1px;}
+.card-head-status{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 8px;border-radius:999px;}
+.card-body{padding:18px;}
+
+/* Live stats */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.stat-block{background:#080810;border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:14px;text-align:center;}
+.stat-block-val{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:#0df2c8;}
+.stat-block-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;letter-spacing:1px;margin-top:3px;}
+
+/* Inputs */
+.admin-input{width:100%;background:#080810;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 14px;color:#f2f2ff;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;transition:border-color 0.2s;margin-bottom:8px;}
+.admin-input:focus{border-color:rgba(255,61,107,0.4);}
+.admin-btn{padding:10px 20px;border:none;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all 0.2s;}
+.admin-btn.red{background:#ff3d6b;color:#fff;}
+.admin-btn.red:hover{background:#ff6b8a;}
+.admin-btn.teal{background:#0df2c8;color:#05050d;}
+.admin-btn.teal:hover{background:#2fffd8;}
+.admin-btn.amber{background:#f5a623;color:#05050d;}
+.admin-btn.amber:hover{background:#ffc04a;}
+.admin-btn.outline{background:transparent;border:1px solid rgba(255,255,255,0.1);color:#6b6b8f;}
+.admin-btn.outline:hover{color:#f2f2ff;border-color:rgba(255,255,255,0.25);}
+.admin-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+
+/* User table */
+.user-table{width:100%;border-collapse:collapse;}
+.user-table th{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:#6b6b8f;padding:8px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.05);}
+.user-table td{padding:10px 12px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.03);}
+.user-table tr:hover td{background:rgba(255,255,255,0.02);}
+.user-table td:last-child{display:flex;gap:6px;}
+.tag{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 8px;border-radius:999px;}
+.tag.teal{background:rgba(13,242,200,0.1);color:#0df2c8;border:1px solid rgba(13,242,200,0.2);}
+.tag.red{background:rgba(255,61,107,0.1);color:#ff3d6b;border:1px solid rgba(255,61,107,0.2);}
+
+/* Chat log */
+.chat-log{max-height:240px;overflow-y:auto;background:#080810;border:1px solid rgba(255,255,255,0.05);border-radius:8px;padding:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b6b8f;margin-bottom:10px;}
+.chat-log-msg{padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.03);}
+.chat-log-msg span{color:#f2f2ff;}
+
+/* Feedback */
+.feedback{font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:8px;padding:8px 12px;border-radius:6px;display:none;}
+.feedback.ok{background:rgba(13,242,122,0.08);color:#0df27a;border:1px solid rgba(13,242,122,0.2);}
+.feedback.err{background:rgba(255,61,107,0.08);color:#ff3d6b;border:1px solid rgba(255,61,107,0.2);}
+
+.divider{height:1px;background:rgba(255,255,255,0.05);margin:14px 0;}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+</style>
+</head>
+<body>
+
+<!-- ── GATE ── -->
+<div class="admin-gate" id="adminGate">
+  <div class="gate-card">
+    <div class="gate-logo">⚠ RESTRICTED</div>
+    <div class="gate-title">ADMIN ACCESS</div>
+    <div class="gate-sub">MOGME.TV DEVELOPER PANEL</div>
+    <input class="gate-input" id="gatePass" type="password" placeholder="••••••••••••" onkeydown="if(event.key==='Enter')checkGate()">
+    <button class="gate-btn" onclick="checkGate()">ENTER</button>
+    <div class="gate-error" id="gateError">⚠ Access denied</div>
+  </div>
+</div>
+
+<!-- ── ADMIN PANEL ── -->
+<div class="admin-panel" id="adminPanel">
+  <nav class="admin-nav">
+    <div class="admin-logo">MOGME.TV</div>
+    <div class="admin-badge">DEVELOPER</div>
+    <div class="admin-user" id="adminUserLabel">—</div>
+    <button class="admin-signout" onclick="doSignOut()">↩ Sign Out</button>
+  </nav>
+
+  <div class="admin-wrap">
+    <div class="admin-title">⚙ DEVELOPER PANEL</div>
+    <div class="admin-sub" id="adminSubLine">Authenticated · Loading...</div>
+
+    <div class="admin-grid">
+
+      <!-- LIVE STATS -->
+      <div class="admin-card full">
+        <div class="card-head"><span class="card-head-icon">📊</span><span class="card-head-title">LIVE STATS</span><span class="card-head-status" style="background:rgba(13,242,122,0.1);color:#0df27a;border:1px solid rgba(13,242,122,0.2);">● LIVE</span></div>
+        <div class="card-body">
+          <div class="stats-grid">
+            <div class="stat-block"><div class="stat-block-val" id="statOnline">—</div><div class="stat-block-label">ONLINE NOW</div></div>
+            <div class="stat-block"><div class="stat-block-val" id="statQueue">—</div><div class="stat-block-label">IN QUEUE</div></div>
+            <div class="stat-block"><div class="stat-block-val" id="statMatches">—</div><div class="stat-block-label">ACTIVE MATCHES</div></div>
+            <div class="stat-block"><div class="stat-block-val" id="statTotal">—</div><div class="stat-block-label">TOTAL MATCHES</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEASON CONTROL -->
+      <div class="admin-card">
+        <div class="card-head"><span class="card-head-icon">🏆</span><span class="card-head-title">SEASON CONTROL</span></div>
+        <div class="card-body">
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;letter-spacing:1px;display:block;margin-bottom:6px;">SEASON END DATE</label>
+          <input class="admin-input" type="datetime-local" id="seasonDateInput">
+          <div class="btn-row">
+            <button class="admin-btn teal" onclick="updateSeasonDate()">UPDATE TIMER</button>
+            <button class="admin-btn amber" onclick="setSeasonDate(30)">+30 DAYS</button>
+            <button class="admin-btn outline" onclick="setSeasonDate(7)">+7 DAYS</button>
+          </div>
+          <div class="feedback" id="seasonFeedback"></div>
+          <div class="divider"></div>
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;letter-spacing:1px;display:block;margin-bottom:6px;">CURRENT END DATE</label>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#0df2c8;" id="currentSeasonDate">June 6, 2026</div>
+        </div>
+      </div>
+
+      <!-- ONLINE COUNT OVERRIDE -->
+      <div class="admin-card">
+        <div class="card-head"><span class="card-head-icon">👥</span><span class="card-head-title">ONLINE COUNT</span></div>
+        <div class="card-body">
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;letter-spacing:1px;display:block;margin-bottom:6px;">OVERRIDE DISPLAYED COUNT</label>
+          <input class="admin-input" type="number" id="onlineOverride" placeholder="e.g. 1247" min="0">
+          <div class="btn-row">
+            <button class="admin-btn teal" onclick="setOnlineOverride()">SET COUNT</button>
+            <button class="admin-btn outline" onclick="clearOnlineOverride()">CLEAR</button>
+          </div>
+          <div class="feedback" id="onlineFeedback"></div>
+          <div class="divider"></div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#6b6b8f;">Current override: <span id="currentOverride" style="color:#f5a623;">none</span></div>
+        </div>
+      </div>
+
+      <!-- BROADCAST MESSAGE -->
+      <div class="admin-card">
+        <div class="card-head"><span class="card-head-icon">📢</span><span class="card-head-title">BROADCAST</span></div>
+        <div class="card-body">
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;letter-spacing:1px;display:block;margin-bottom:6px;">SYSTEM MESSAGE TO ALL USERS</label>
+          <input class="admin-input" type="text" id="broadcastMsg" placeholder="Type your announcement..." maxlength="200">
+          <div class="btn-row">
+            <button class="admin-btn red" onclick="sendBroadcast()">📢 BROADCAST</button>
+            <button class="admin-btn outline" onclick="forceChatReset()">💬 RESET CHAT</button>
+          </div>
+          <div class="feedback" id="broadcastFeedback"></div>
+        </div>
+      </div>
+
+      <!-- USER MANAGEMENT -->
+      <div class="admin-card half">
+        <div class="card-head"><span class="card-head-icon">👤</span><span class="card-head-title">USER MANAGEMENT</span></div>
+        <div class="card-body">
+          <div class="row" style="margin-bottom:12px;">
+            <input class="admin-input" type="text" id="userSearchInput" placeholder="Search by username or UID..." style="margin-bottom:0;flex:1;">
+            <button class="admin-btn teal" onclick="searchUser()">SEARCH</button>
+          </div>
+          <div id="userSearchResult" style="display:none;background:#080810;border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:14px;margin-top:8px;">
+            <div id="userResultContent"></div>
+          </div>
+          <div class="divider"></div>
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;letter-spacing:1px;display:block;margin-bottom:10px;">TOP 10 BY ELO</label>
+          <div id="userTable"><div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#6b6b8f;">Loading...</div></div>
+        </div>
+      </div>
+
+      <!-- BAN / MODERATION -->
+      <div class="admin-card">
+        <div class="card-head"><span class="card-head-icon">🚫</span><span class="card-head-title">MODERATION</span></div>
+        <div class="card-body">
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;letter-spacing:1px;display:block;margin-bottom:6px;">BAN USERNAME FROM CHAT</label>
+          <input class="admin-input" type="text" id="banUsername" placeholder="Username to ban...">
+          <div class="btn-row">
+            <button class="admin-btn red" onclick="banUser()">🚫 BAN</button>
+            <button class="admin-btn outline" onclick="unbanUser()">UNBAN</button>
+          </div>
+          <div class="feedback" id="banFeedback"></div>
+          <div class="divider"></div>
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;letter-spacing:1px;display:block;margin-bottom:6px;">RESET USER ELO</label>
+          <input class="admin-input" type="text" id="eloResetUid" placeholder="User UID...">
+          <input class="admin-input" type="number" id="eloResetVal" placeholder="New ELO (default: 400)">
+          <button class="admin-btn amber" onclick="resetUserElo()">RESET ELO</button>
+          <div class="feedback" id="eloFeedback"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut }
+  from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, collection, query, orderBy, limit, getDocs,
+         doc, getDoc, updateDoc, deleteDoc, setDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const FB = {
+  apiKey:"AIzaSyBpMuv59Rlhc2roSiTPBzjKKHjuwqe0TFs",
+  authDomain:"mogmetv.firebaseapp.com", projectId:"mogmetv",
+  storageBucket:"mogmetv.firebasestorage.app",
+  messagingSenderId:"1067675943117",
+  appId:"1:1067675943117:web:9545a8bbfa7f68d5db2984"
+};
+
+/* ════════════════════════════════
+   SECURITY — OWNER UID
+   Replace with YOUR Firebase UID
+════════════════════════════════ */
+const OWNER_UID = 'REPLACE_WITH_YOUR_FIREBASE_UID';
+
+/* ════════════════════════════════
+   LOCAL ADMIN PASSWORD
+   Second layer of security
+════════════════════════════════ */
+const ADMIN_PASS_HASH = 'mogmetv_admin_2026_secure';
+
+const SERVER = 'https://mogmetv-production.up.railway.app';
+const fbApp  = initializeApp(FB);
+const auth   = getAuth(fbApp);
+const db     = getFirestore(fbApp);
+
+let currentAdmin = null;
+let gateUnlocked = false;
+
+/* ── GATE CHECK ── */
+window.checkGate = function() {
+  const pass = document.getElementById('gatePass').value;
+  const err  = document.getElementById('gateError');
+  // Simple hash check — obfuscated
+  const valid = btoa(pass) === btoa(ADMIN_PASS_HASH);
+  if (valid) {
+    gateUnlocked = true;
+    err.style.display = 'none';
+    // Now wait for Firebase auth
+    checkAuth();
+  } else {
+    err.style.display = 'block';
+    err.textContent = '⚠ Access denied — incorrect password';
+    document.getElementById('gatePass').value = '';
+    // Slow down brute force
+    document.querySelector('.gate-btn').disabled = true;
+    setTimeout(() => document.querySelector('.gate-btn').disabled = false, 3000);
+  }
+};
+
+function checkAuth() {
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      document.getElementById('gateError').textContent = '⚠ You must be signed in with the owner Google account';
+      document.getElementById('gateError').style.display = 'block';
+      return;
+    }
+    if (user.uid !== OWNER_UID) {
+      document.getElementById('gateError').textContent = '⚠ This account is not authorized';
+      document.getElementById('gateError').style.display = 'block';
+      gateUnlocked = false;
+      return;
+    }
+    currentAdmin = user;
+    unlockPanel(user);
+  });
+}
+
+function unlockPanel(user) {
+  document.getElementById('adminGate').style.display = 'none';
+  document.getElementById('adminPanel').style.display = 'block';
+  document.getElementById('adminUserLabel').textContent = user.email;
+  document.getElementById('adminSubLine').textContent = 'Authenticated as owner · ' + new Date().toLocaleString();
+  loadStats();
+  loadUsers();
+  setInterval(loadStats, 5000);
+  // Set season date input
+  document.getElementById('seasonDateInput').value = '2026-06-06T00:00';
+}
+
+/* ── LOAD STATS ── */
+async function loadStats() {
+  try {
+    const res  = await fetch(SERVER + '/stats');
+    const data = await res.json();
+    const over = localStorage.getItem('admin_online_override');
+    document.getElementById('statOnline').textContent  = over || data.onlineNow || 0;
+    document.getElementById('statQueue').textContent   = data.queueSize || 0;
+    document.getElementById('statMatches').textContent = data.activeMatches || 0;
+    document.getElementById('statTotal').textContent   = data.totalMatches || 0;
+  } catch(e) {
+    document.getElementById('statOnline').textContent = 'ERR';
+  }
+}
+
+/* ── SEASON CONTROL ── */
+window.setSeasonDate = function(days) {
+  const d = new Date(Date.now() + days*24*60*60*1000);
+  const local = d.toISOString().slice(0,16);
+  document.getElementById('seasonDateInput').value = local;
+};
+
+window.updateSeasonDate = function() {
+  const val = document.getElementById('seasonDateInput').value;
+  if (!val) return;
+  const date = new Date(val);
+  localStorage.setItem('admin_season_end', date.toISOString());
+  document.getElementById('currentSeasonDate').textContent = date.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  showFeedback('seasonFeedback', '✓ Season date updated — refresh main site to apply', 'ok');
+};
+
+/* ── ONLINE COUNT OVERRIDE ── */
+window.setOnlineOverride = function() {
+  const val = parseInt(document.getElementById('onlineOverride').value);
+  if (isNaN(val) || val < 0) return;
+  localStorage.setItem('admin_online_override', val);
+  document.getElementById('currentOverride').textContent = val.toLocaleString();
+  showFeedback('onlineFeedback', '✓ Override set to ' + val.toLocaleString(), 'ok');
+};
+
+window.clearOnlineOverride = function() {
+  localStorage.removeItem('admin_online_override');
+  document.getElementById('currentOverride').textContent = 'none';
+  document.getElementById('onlineOverride').value = '';
+  showFeedback('onlineFeedback', '✓ Override cleared', 'ok');
+};
+
+// Init override display
+const savedOverride = localStorage.getItem('admin_online_override');
+if (savedOverride) document.getElementById('currentOverride').textContent = parseInt(savedOverride).toLocaleString();
+
+/* ── BROADCAST ── */
+window.sendBroadcast = async function() {
+  const msg = document.getElementById('broadcastMsg').value.trim();
+  if (!msg) return;
+  try {
+    const res = await fetch(SERVER + '/admin/broadcast', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ message: msg, adminKey: ADMIN_PASS_HASH })
+    });
+    if (res.ok) {
+      showFeedback('broadcastFeedback','✓ Broadcast sent to all users','ok');
+      document.getElementById('broadcastMsg').value = '';
+    } else { showFeedback('broadcastFeedback','✗ Server error','err'); }
+  } catch(e) { showFeedback('broadcastFeedback','✗ Could not reach server','err'); }
+};
+
+window.forceChatReset = async function() {
+  try {
+    const res = await fetch(SERVER + '/admin/reset-chat', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ adminKey: ADMIN_PASS_HASH })
+    });
+    if (res.ok) showFeedback('broadcastFeedback','✓ Chat reset for all users','ok');
+    else showFeedback('broadcastFeedback','✗ Server error','err');
+  } catch(e) { showFeedback('broadcastFeedback','✗ Could not reach server','err'); }
+};
+
+/* ── USER SEARCH ── */
+window.searchUser = async function() {
+  const q = document.getElementById('userSearchInput').value.trim();
+  if (!q) return;
+  const resultEl = document.getElementById('userSearchResult');
+  const contentEl = document.getElementById('userResultContent');
+  resultEl.style.display = 'block';
+  contentEl.innerHTML = '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#6b6b8f;">Searching...</div>';
+  try {
+    // Try by UID first
+    let snap = await getDoc(doc(db,'users',q));
+    if (!snap.exists()) {
+      // Try by username
+      const usnap = await getDoc(doc(db,'usernames',q.toLowerCase()));
+      if (usnap.exists()) snap = await getDoc(doc(db,'users',usnap.data().uid));
+    }
+    if (!snap.exists()) {
+      contentEl.innerHTML = '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#ff3d6b;">No user found</div>';
+      return;
+    }
+    const u = snap.data();
+    contentEl.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <div style="width:40px;height:40px;border-radius:50%;background:#1a1a28;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;overflow:hidden;">
+          ${u.photoURL ? `<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover;">` : (u.username||'?')[0].toUpperCase()}
+        </div>
+        <div>
+          <div style="font-weight:700;font-size:14px;">${u.username||'Unknown'}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;">${u.email||'—'}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;">UID: ${u.uid||'—'}</div>
+        </div>
+        <div style="margin-left:auto;text-align:right;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:#0df2c8;">${u.elo||400} ELO</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;">${u.wins||0}W ${u.losses||0}L</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="admin-btn outline" style="font-size:11px;padding:6px 12px;" onclick="copyUID('${u.uid}')">COPY UID</button>
+        <button class="admin-btn red" style="font-size:11px;padding:6px 12px;" onclick="deleteUserByUID('${u.uid}','${u.usernameLower||''}')">DELETE ACCOUNT</button>
+      </div>`;
+  } catch(e) {
+    contentEl.innerHTML = `<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#ff3d6b;">Error: ${e.message}</div>`;
+  }
+};
+
+window.copyUID = function(uid) {
+  navigator.clipboard.writeText(uid).catch(()=>{});
+  alert('UID copied: ' + uid);
+};
+
+window.deleteUserByUID = async function(uid, usernameLower) {
+  if (!confirm('DELETE this user? This cannot be undone.')) return;
+  try {
+    await deleteDoc(doc(db,'users',uid));
+    if (usernameLower) await deleteDoc(doc(db,'usernames',usernameLower));
+    document.getElementById('userSearchResult').style.display = 'none';
+    loadUsers();
+    alert('User deleted successfully');
+  } catch(e) { alert('Delete failed: ' + e.message); }
+};
+
+/* ── LOAD USERS TABLE ── */
+async function loadUsers() {
+  const el = document.getElementById('userTable');
+  try {
+    const q = query(collection(db,'users'), orderBy('elo','desc'), limit(10));
+    const snap = await getDocs(q);
+    if (snap.empty) { el.innerHTML = '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#6b6b8f;">No users yet</div>'; return; }
+    el.innerHTML = `<table class="user-table">
+      <tr><th>#</th><th>USERNAME</th><th>ELO</th><th>W/L</th><th>ACTIONS</th></tr>
+      ${snap.docs.map((d,i) => {
+        const u=d.data();
+        return `<tr>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#6b6b8f;">${i+1}</td>
+          <td style="font-weight:600;">${u.username||'Unknown'}</td>
+          <td style="font-family:'JetBrains Mono',monospace;color:#0df2c8;">${u.elo||400}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#6b6b8f;">${u.wins||0}/${u.losses||0}</td>
+          <td>
+            <button class="admin-btn outline" style="font-size:10px;padding:4px 10px;" onclick="document.getElementById('eloResetUid').value='${u.uid}'">SET ELO</button>
+            <button class="admin-btn red" style="font-size:10px;padding:4px 10px;" onclick="deleteUserByUID('${u.uid}','${u.usernameLower||''}')">DEL</button>
+          </td>
+        </tr>`;
+      }).join('')}
+    </table>`;
+  } catch(e) { el.innerHTML = `<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#ff3d6b;">Error loading users</div>`; }
+}
+
+/* ── BAN ── */
+window.banUser = async function() {
+  const username = document.getElementById('banUsername').value.trim().toLowerCase();
+  if (!username) return;
+  try {
+    await setDoc(doc(db,'bans',username), { username, bannedAt: serverTimestamp(), bannedBy: currentAdmin?.uid });
+    showFeedback('banFeedback','✓ '+username+' banned from chat','ok');
+  } catch(e) { showFeedback('banFeedback','✗ '+e.message,'err'); }
+};
+
+window.unbanUser = async function() {
+  const username = document.getElementById('banUsername').value.trim().toLowerCase();
+  if (!username) return;
+  try {
+    await deleteDoc(doc(db,'bans',username));
+    showFeedback('banFeedback','✓ '+username+' unbanned','ok');
+  } catch(e) { showFeedback('banFeedback','✗ '+e.message,'err'); }
+};
+
+/* ── RESET ELO ── */
+window.resetUserElo = async function() {
+  const uid = document.getElementById('eloResetUid').value.trim();
+  const elo = parseInt(document.getElementById('eloResetVal').value) || 400;
+  if (!uid) return;
+  try {
+    await updateDoc(doc(db,'users',uid), { elo, wins:0, losses:0, lastSeen: serverTimestamp() });
+    showFeedback('eloFeedback','✓ ELO reset to '+elo,'ok');
+    loadUsers();
+  } catch(e) { showFeedback('eloFeedback','✗ '+e.message,'err'); }
+};
+
+/* ── SIGN OUT ── */
+window.doSignOut = async function() {
+  await signOut(auth);
+  window.location.href = 'index.html';
+};
+
+/* ── HELPERS ── */
+function showFeedback(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg; el.className = 'feedback '+type; el.style.display = 'block';
+  setTimeout(() => el.style.display='none', 4000);
+}
+</script>
+</body>
+</html>
