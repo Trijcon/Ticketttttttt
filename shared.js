@@ -272,7 +272,7 @@ function injectSharedUI() {
     <div class="nav-links">
       <a class="nav-link" href="index.html">HOME</a>
       <a class="nav-link" href="arena.html">⚔ ARENA</a>
-      <a class="nav-link" href="lab.html">🧬 LAB</a>
+      <span class="nav-link nav-link-disabled" onclick="openLabSoonModal ? openLabSoonModal() : openModal('labSoonModal')" style="cursor:pointer;">🧬 LAB</span>
       <a class="nav-link" href="rank.html">🏆 RANK</a>
       <a class="nav-link" href="private.html">🔒 PRIVATE</a>
     </div>
@@ -348,17 +348,17 @@ function injectSharedUI() {
   howModal.className='modal-overlay'; howModal.id='howModal';
   howModal.onclick=e=>{if(e.target===howModal)closeModal('howModal');};
   const howItems=[
-    {icon:'👁',title:'EYES FORWARD',desc:'Keep your face centered and chin level. One face per frame.'},
-    {icon:'📈',title:'WIN TO RISE',desc:'Beat higher-ranked opponents for bigger ELO gains.'},
-    {icon:'🚫',title:'NO BAILING',desc:'Leaving mid-match forfeits and costs 7 ELO.'},
-    {icon:'🔐',title:'STAYS PRIVATE',desc:'Your camera runs in your browser only. Nothing recorded.'},
-    {icon:'🔒',title:'LOCK YOUR RANK',desc:'Sign in to save your ELO, history and identity.'},
-    {icon:'💡',title:'FACE THE LIGHT',desc:'Front lighting gives the clearest scan. Clean your lens.'},
+    {icon:'👁',title:'EYES ON SCREEN',desc:'Keep your face centered and chin level. One face per frame only.'},
+    {icon:'📈',title:'WIN TO RISE',desc:'Beat higher-ranked opponents for bigger ELO gains. Every match counts.'},
+    {icon:'🚫',title:'NO BAILING',desc:'Leaving an active match forfeits the round and costs you ELO.'},
+    {icon:'🔐',title:'100% PRIVATE',desc:'Your camera never leaves your browser. Nothing is recorded or stored.'},
+    {icon:'🔒',title:'LOCK IN YOUR RANK',desc:'Sign in to save your ELO, match history and leaderboard identity.'},
+    {icon:'💡',title:'GOOD LIGHTING',desc:'Face the light source. Clean your lens for the most accurate scan.'},
   ];
   howModal.innerHTML=`<div class="modal-box" style="max-width:580px;">
     <button class="modal-close" onclick="closeModal('howModal')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;padding:16px;background:var(--surface2);border-radius:12px;border:1px solid var(--border);">
-      <div style="width:44px;height:44px;border-radius:10px;background:var(--teal-dim);border:1px solid rgba(13,242,200,0.2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">❓</div>
+      <div style="width:44px;height:44px;border-radius:10px;background:var(--teal-dim);border:1px solid rgba(13,242,200,0.2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">⚔️</div>
       <div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;letter-spacing:1px;">HOW TO MOG</div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:2px;">QUICK RULES FOR CLEANER SCANS AND FAIRER MATCHES</div>
@@ -373,6 +373,22 @@ function injectSharedUI() {
     </div>
   </div>`;
   document.body.appendChild(howModal);
+
+  /* ── LAB COMING SOON MODAL (shared so nav can trigger it) ── */
+  if (!document.getElementById('labSoonModal')) {
+    const labModal = document.createElement('div');
+    labModal.className='modal-overlay'; labModal.id='labSoonModal';
+    labModal.onclick=e=>{if(e.target===labModal)closeModal('labSoonModal');};
+    labModal.innerHTML=`<div class="modal-box" style="max-width:400px;text-align:center;">
+      <button class="modal-close" onclick="closeModal('labSoonModal')">✕</button>
+      <div style="font-size:52px;margin-bottom:16px;">🧬</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;letter-spacing:1px;margin-bottom:10px;">COMING SOON</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:20px;">We're fine-tuning our facial detection algorithm to make it the most accurate attractiveness scan on the internet.<br><br>Our team is working hard to get it right. Stay tuned.</div>
+      <div style="display:inline-flex;align-items:center;gap:6px;background:var(--teal-dim);border:1px solid rgba(13,242,200,0.2);border-radius:999px;padding:6px 16px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--teal);">⚗️ Algorithm in development</div>
+    </div>`;
+    document.body.appendChild(labModal);
+  }
+  window.openLabSoonModal = function(){ openModal('labSoonModal'); };
 
   /* ── CLAIM MODAL ── */
   const claimModal = document.createElement('div');
@@ -399,10 +415,26 @@ function openClaimModal() { openModal('claimModal'); }
 function openHowModal()   { openModal('howModal'); }
 
 async function handleGoogleSignIn() {
-  if (window.signInWithGoogle) {
+  const btn = document.getElementById('googleSignInBtn');
+  if (btn) { btn.textContent = 'Signing in...'; btn.disabled = true; }
+
+  // Wait up to 5 seconds for auth.js to load
+  let attempts = 0;
+  while (!window.signInWithGoogle && attempts < 50) {
+    await new Promise(r => setTimeout(r, 100));
+    attempts++;
+  }
+
+  if (!window.signInWithGoogle) {
+    if (btn) { btn.innerHTML = 'Continue with Google'; btn.disabled = false; }
+    alert('Authentication failed to load. Please refresh the page and try again.');
+    return;
+  }
+
+  try {
     await window.signInWithGoogle();
-  } else {
-    alert('Auth loading — try again in a moment');
+  } catch(e) {
+    if (btn) { btn.innerHTML = 'Continue with Google'; btn.disabled = false; }
   }
 }
 
