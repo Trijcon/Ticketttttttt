@@ -237,20 +237,20 @@ function googleBtnHTML() {
    HANDLE REDIRECT RESULT
 ══════════════════════════════════ */
 getRedirectResult(auth).then(async (result) => {
+  console.log('Redirect result:', result ? result.user?.email : 'none');
   if (result && result.user) {
     console.log('Redirect sign-in successful:', result.user.email);
     sessionStorage.removeItem('mgm_redirect_login');
   }
 }).catch(e => {
-  if (e.code !== 'auth/no-auth-event') {
-    console.error('Redirect result error:', e);
-  }
+  console.error('Redirect result error:', e.code, e.message);
 });
 
 /* ══════════════════════════════════
    AUTH STATE LISTENER
 ══════════════════════════════════ */
 onAuthStateChanged(auth, async (user) => {
+  console.log('Auth state changed:', user ? user.email : 'no user');
   if (user) {
     _currentUser = user;
     try {
