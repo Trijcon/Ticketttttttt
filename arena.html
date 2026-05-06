@@ -298,101 +298,188 @@ function drawMesh(canvas,lm,dotColor){
   for(var j=0;j<c.length;j++){var a=c[j][0],b=c[j][1];if(lm[a]&&lm[b]){ctx.beginPath();ctx.moveTo(lm[a].x*w,lm[a].y*h);ctx.lineTo(lm[b].x*w,lm[b].y*h);ctx.stroke();}}
 }
 
-/* ═══════════════════════
-   DETAILED ALGORITHM
-═══════════════════════ */
+/* ═══════════════════════════════════════
+   MOGME.TV — IMPROVED FACE ALGORITHM v2
+   Pure landmark math. Zero randomness.
+   10 metrics, temporal smoothing,
+   multi-sample averaging for stability.
+═══════════════════════════════════════ */
+
+// Rolling buffer for temporal smoothing — prevents score flickering
+var _scoreBuffer=[], _BUFFER_SIZE=8;
+
 function calcDetailedScore(lm){
-  if(!lm) return {score:5,dom:'—',flaw:'—',metrics:{}};
-  function dist(a,b){return Math.sqrt(Math.pow(lm[a].x-lm[b].x,2)+Math.pow(lm[a].y-lm[b].y,2));}
+  if(!lm||lm.length<468) return {score:5,dom:'—',flaw:'—',metrics:{}};
 
-  // 1. FACIAL SYMMETRY — landmark mirroring around nose
-  var nose=lm[1];
-  var symPairs=[[33,263],[130,359],[159,386],[145,374],[61,291],[234,454],[58,288],[172,397]];
-  var symDiff=0,symCount=0;
-  for(var i=0;i<symPairs.length;i++){
-    var l=symPairs[i][0],r=symPairs[i][1];
-    if(lm[l]&&lm[r]){symDiff+=Math.abs(Math.abs(nose.x-lm[l].x)-Math.abs(lm[r].x-nose.x));symCount++;}
+  // Distance between two landmark indices
+  function d(a,b){
+    return Math.sqrt(Math.pow((lm[a].x-lm[b].x),2)+Math.pow((lm[a].y-lm[b].y),2));
   }
-  var symmetry=Math.max(0,Math.min(1,1-(symDiff/symCount)*16));
+  // Clamp to 0–1
+  function clamp(v){return Math.max(0,Math.min(1,v));}
 
-  // 2. JAW WIDTH RATIO — wider jaw = more masculine/defined
-  var jawWidth=dist(234,454);
-  var faceHeight=dist(10,152);
-  var jawRatio=jawWidth/faceHeight;
-  var jawScore=Math.max(0,Math.min(1,1-Math.abs(jawRatio-0.75)*4));
+  var faceW  = d(234,454);  // total face width
+  var faceH  = d(10,152);   // total face height
+  if(faceW<0.01||faceH<0.01) return {score:5,dom:'—',flaw:'—',metrics:{}};
 
-  // 3. CANTHAL TILT — positive = attractive (outer corner higher than inner)
-  var leftInner=lm[133],leftOuter=lm[33];
-  var rightInner=lm[362],rightOuter=lm[263];
-  var leftTilt=(leftInner&&leftOuter)?(leftInner.y-leftOuter.y):0;
-  var rightTilt=(rightInner&&rightOuter)?(rightInner.y-rightOuter.y):0;
-  var avgTilt=(leftTilt+rightTilt)/2;
-  var canthalScore=Math.max(0,Math.min(1,0.5+avgTilt*18));
+  /* ── 1. FACIAL SYMMETRY (weight: 2.5)
+     Compare horizontal distances of 12 symmetric pairs from nose midline.
+     More pairs = more robust against head tilt. ── */
+  var nose=lm[1];
+  var symPairs=[
+    [33,263],[130,359],[159,386],[145,374],
+    [61,291],[234,454],[58,288],[172,397],
+    [70,300],[105,334],[107,336],[46,276]
+  ];
+  var symTotal=0,symCount=0;
+  for(var i=0;i<symPairs.length;i++){
+    var li=symPairs[i][0],ri=symPairs[i][1];
+    if(lm[li]&&lm[ri]){
+      var lDist=Math.abs(nose.x-lm[li].x);
+      var rDist=Math.abs(lm[ri].x-nose.x);
+      var avg=(lDist+rDist)/2;
+      if(avg>0.005){ // ignore near-zero distances
+        symTotal+=Math.abs(lDist-rDist)/avg;
+        symCount++;
+      }
+    }
+  }
+  var symmetry = symCount>0 ? clamp(1-(symTotal/symCount)*3.5) : 0.5;
 
-  // 4. CHEEKBONE PROMINENCE — cheek width vs mid-face
-  var cheekWidth=dist(234,454);
-  var midFaceWidth=dist(130,359);
-  var cheekRatio=midFaceWidth>0?cheekWidth/midFaceWidth:1;
-  var cheekScore=Math.max(0,Math.min(1,1-Math.abs(cheekRatio-1.08)*5));
+  /* ── 2. JAW DEFINITION (weight: 2.0)
+     Jaw-to-face ratio + jaw angularity (chin point vs jaw corners) ── */
+  var jawW=d(172,397); // jaw corner to jaw corner
+  var jawRatio=jawW/faceW;
+  var jawRatioScore=clamp(1-Math.abs(jawRatio-0.78)*5);
+  // Chin sharpness: how pointed the chin is relative to jaw width
+  var chinDepth=d(152,172)+d(152,397);
+  var chinRatio=chinDepth>0?jawW/chinDepth:0;
+  var chinScore=clamp(1-Math.abs(chinRatio-0.88)*6);
+  var jawScore=(jawRatioScore*0.6+chinScore*0.4);
 
-  // 5. EYE SPACING — intercanthal distance relative to face width
-  var eyeDist=dist(133,362);
-  var faceWidth=dist(234,454);
-  var eyeRatio=faceWidth>0?eyeDist/faceWidth:0.3;
-  var eyeScore=Math.max(0,Math.min(1,1-Math.abs(eyeRatio-0.32)*12));
+  /* ── 3. CANTHAL TILT (weight: 2.0)
+     Positive tilt (hunter eyes) = outer corner higher than inner.
+     Measured on both eyes, averaged. ── */
+  var lTilt=(lm[133]&&lm[33])?(lm[133].y-lm[33].y):0;
+  var rTilt=(lm[362]&&lm[263])?(lm[362].y-lm[263].y):0;
+  var avgTilt=(lTilt+rTilt)/2;
+  // Normalize: +0.015 tilt = very positive, −0.015 = very negative
+  var canthalScore=clamp(0.5+avgTilt*22);
 
-  // 6. FOREHEAD RATIO — upper third
-  var foreheadH=dist(10,168);
-  var fhRatio=faceHeight>0?foreheadH/faceHeight:0.35;
-  var foreheadScore=Math.max(0,Math.min(1,1-Math.abs(fhRatio-0.33)*10));
+  /* ── 4. CHEEKBONE PROMINENCE (weight: 1.5)
+     Cheekbone width vs jaw width ratio. High cheekbones = cheekW > jawW. ── */
+  var cheekW=d(234,454);   // zygomatic width
+  var midW=d(130,359);     // mid-face width
+  var cheekRatio=midW>0?cheekW/midW:1;
+  // Ideal: cheekbones ~10% wider than mid-face
+  var cheekScore=clamp(1-Math.abs(cheekRatio-1.10)*6);
 
-  // 7. NOSE-TO-FACE RATIO
-  var noseW=dist(48,278);
-  var noseRatio=faceWidth>0?noseW/faceWidth:0.25;
-  var noseScore=Math.max(0,Math.min(1,1-Math.abs(noseRatio-0.22)*12));
+  /* ── 5. EYE QUALITY (weight: 1.5)
+     Combines: inter-eye spacing + eye openness (vertical aperture) ── */
+  var eyeDist=d(133,362);
+  var eyeRatio=eyeDist/faceW;
+  var eyeSpacingScore=clamp(1-Math.abs(eyeRatio-0.31)*14);
+  // Eye openness: vertical height of eye aperture
+  var lEyeH=d(159,145); // left eye top to bottom
+  var rEyeH=d(386,374);
+  var avgEyeH=(lEyeH+rEyeH)/2;
+  var eyeOpenRatio=avgEyeH/faceH;
+  var eyeOpenScore=clamp(1-Math.abs(eyeOpenRatio-0.055)*40);
+  var eyeScore=(eyeSpacingScore*0.55+eyeOpenScore*0.45);
 
-  // WEIGHTED TOTAL
-  var total=(
-    symmetry*2.8+
-    jawScore*2.0+
-    canthalScore*1.8+
-    cheekScore*1.2+
-    eyeScore*0.8+
-    foreheadScore*0.6+
-    noseScore*0.4
-  )/9.6;
+  /* ── 6. NOSE PROPORTIONS (weight: 1.0)
+     Width ratio + tip definition (how sharp the nose tip is) ── */
+  var noseW=d(48,278);
+  var noseRatio=noseW/faceW;
+  var noseWidthScore=clamp(1-Math.abs(noseRatio-0.21)*14);
+  // Nose length relative to face height (rule of thirds = ~0.33)
+  var noseH=d(168,2);
+  var noseLenRatio=noseH/faceH;
+  var noseLenScore=clamp(1-Math.abs(noseLenRatio-0.32)*10);
+  var noseScore=(noseWidthScore*0.6+noseLenScore*0.4);
 
-  // Add small noise for naturalness
-  var noise=(Math.random()-0.5)*0.3;
-  var finalScore=Math.min(10,Math.max(1,total*9+noise));
+  /* ── 7. LIP RATIO (weight: 0.8)
+     Upper-to-lower lip ratio (ideal ~0.7) + lip width ratio ── */
+  var upperLipH=d(0,13);   // philtrum to upper lip edge
+  var lowerLipH=d(14,152); // lower lip to chin
+  var lipRatio=lowerLipH>0?upperLipH/lowerLipH:0.7;
+  var lipScore=clamp(1-Math.abs(lipRatio-0.7)*5);
 
-  // Determine DOM and FLAW
+  /* ── 8. FACIAL THIRDS (weight: 0.7)
+     Top third (forehead), mid third (nose zone), lower third (mouth/chin)
+     should be roughly equal ── */
+  var topThird=d(10,168);
+  var midThird=d(168,2);
+  var botThird=d(2,152);
+  var thirdsTotal=topThird+midThird+botThird;
+  var t1=thirdsTotal>0?topThird/thirdsTotal:0.33;
+  var t2=thirdsTotal>0?midThird/thirdsTotal:0.33;
+  var t3=thirdsTotal>0?botThird/thirdsTotal:0.33;
+  var thirdsScore=clamp(1-(Math.abs(t1-0.33)+Math.abs(t2-0.33)+Math.abs(t3-0.33))*3.5);
+
+  /* ── 9. FACE SHAPE RATIO (weight: 0.6)
+     Width-to-height ratio. Oval/oblong = most attractive (0.62–0.75) ── */
+  var faceRatio=faceW/faceH;
+  var faceShapeScore=clamp(1-Math.abs(faceRatio-0.68)*6);
+
+  /* ── 10. BROW RIDGE (weight: 0.5)
+     Brow-to-eye vertical distance. Strong brow = closer to eye ── */
+  var lBrowDist=d(105,159);
+  var rBrowDist=d(334,386);
+  var avgBrowDist=((lBrowDist+rBrowDist)/2)/faceH;
+  var browScore=clamp(1-Math.abs(avgBrowDist-0.04)*30);
+
+  /* ── WEIGHTED TOTAL ── */
+  var weights={
+    symmetry:2.5, jaw:2.0, canthal:2.0, cheek:1.5,
+    eye:1.5, nose:1.0, lip:0.8, thirds:0.7, shape:0.6, brow:0.5
+  };
+  var wSum=Object.values(weights).reduce(function(a,b){return a+b;},0);
+  var rawScore=(
+    symmetry    * weights.symmetry +
+    jawScore    * weights.jaw      +
+    canthalScore* weights.canthal  +
+    cheekScore  * weights.cheek    +
+    eyeScore    * weights.eye      +
+    noseScore   * weights.nose     +
+    lipScore    * weights.lip      +
+    thirdsScore * weights.thirds   +
+    faceShapeScore*weights.shape   +
+    browScore   * weights.brow
+  ) / wSum;
+
+  // Scale to 1–10 with NO random noise
+  var scaledScore = Math.min(10, Math.max(1, rawScore * 9.2 + 0.4));
+
+  // Temporal smoothing — average last N frames for stability
+  _scoreBuffer.push(scaledScore);
+  if(_scoreBuffer.length>_BUFFER_SIZE) _scoreBuffer.shift();
+  var finalScore=_scoreBuffer.reduce(function(a,b){return a+b;},0)/_scoreBuffer.length;
+  finalScore=Math.round(finalScore*10)/10;
+
+  /* ── DOM + FLAW DETECTION ── */
   var metrics=[
-    {name:'Symmetry',val:symmetry},
-    {name:'Jawline',val:jawScore},
-    {name:'Canthal Tilt',val:canthalScore},
-    {name:'Cheekbones',val:cheekScore},
-    {name:'Eye Spacing',val:eyeScore},
-    {name:'Forehead',val:foreheadScore},
-    {name:'Nose Ratio',val:noseScore},
+    {name:'Symmetry',    val:symmetry,       dom:'Strong Symmetry',    flaw:'Facial Asymmetry'},
+    {name:'Jawline',     val:jawScore,        dom:'Sharp Jawline',      flaw:'Soft Jawline'},
+    {name:'Canthal Tilt',val:canthalScore,    dom:'Hunter Eyes',        flaw:'Downturned Eyes'},
+    {name:'Cheekbones',  val:cheekScore,      dom:'High Cheekbones',    flaw:'Flat Midface'},
+    {name:'Eye Quality', val:eyeScore,        dom:'Deep-Set Eyes',      flaw:'Eye Proportion'},
+    {name:'Nose',        val:noseScore,       dom:'Refined Nose',       flaw:'Nose Proportion'},
+    {name:'Lips',        val:lipScore,        dom:'Defined Lips',       flaw:'Lip Ratio'},
+    {name:'Facial Thirds',val:thirdsScore,    dom:'Balanced Thirds',    flaw:'Uneven Thirds'},
+    {name:'Face Shape',  val:faceShapeScore,  dom:'Oval Face Shape',    flaw:'Face Ratio'},
+    {name:'Brow Ridge',  val:browScore,       dom:'Strong Brow Ridge',  flaw:'Weak Brow'},
   ];
   metrics.sort(function(a,b){return b.val-a.val;});
-  var dom=metrics[0].name;
-  var flaw=metrics[metrics.length-1].name;
-
-  // Describe them nicely
-  var domNames={Symmetry:'Strong Symmetry',Jawline:'Strong Jawline',
-    'Canthal Tilt':'Positive Canthal','Cheekbones':'High Cheekbones',
-    'Eye Spacing':'Ideal Eye Set','Forehead':'Balanced Forehead','Nose Ratio':'Proportional Nose'};
-  var flawNames={Symmetry:'Asymmetry',Jawline:'Weak Jaw',
-    'Canthal Tilt':'Negative Canthal','Cheekbones':'Flat Cheeks',
-    'Eye Spacing':'Wide/Narrow Set','Forehead':'Forehead Ratio','Nose Ratio':'Nose Ratio'};
 
   return {
-    score:finalScore,
-    dom:domNames[dom]||dom,
-    flaw:flawNames[flaw]||flaw,
-    metrics:{symmetry,jawScore,canthalScore,cheekScore,eyeScore,foreheadScore,noseScore}
+    score: finalScore,
+    dom:   metrics[0].dom,
+    flaw:  metrics[metrics.length-1].flaw,
+    metrics: {
+      symmetry,jawScore,canthalScore,cheekScore,
+      eyeScore,noseScore,lipScore,thirdsScore,faceShapeScore,browScore
+    }
   };
 }
 
