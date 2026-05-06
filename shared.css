@@ -185,5 +185,5 @@ body::before {
   body{padding-right:0;}
   .top-nav,.guest-banner{right:0;}
 }
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-@keyframes shimmer{to{left:200%}}
+.nav-link-disabled { color:var(--muted2) !important; cursor:pointer; opacity:0.6; }
+.nav-link-disabled:hover { color:var(--muted) !important; background:rgba(255,255,255,0.03) !important; }
