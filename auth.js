@@ -1,242 +1,269 @@
 /* ═══════════════════════════════════
-   MOGME.TV — FIREBASE AUTH
-   Handles Google Sign-In + user persistence
+   MOGME.TV — AUTH.JS
+   Firebase Auth + Firestore profile system
+   Loaded as type="module" on every page
 ═══════════════════════════════════ */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection,
+         query, orderBy, limit, getDocs, serverTimestamp, increment }
+  from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-const firebaseConfig = {
+const FIREBASE_CONFIG = {
   apiKey: "AIzaSyBpMuv59Rlhc2roSiTPBzjKKHjuwqe0TFs",
   authDomain: "mogmetv.firebaseapp.com",
   projectId: "mogmetv",
   storageBucket: "mogmetv.firebasestorage.app",
   messagingSenderId: "1067675943117",
   appId: "1:1067675943117:web:9545a8bbfa7f68d5db2984",
-  measurementId: "G-KNSED137FQ"
 };
 
-const app    = initializeApp(firebaseConfig);
-const auth   = getAuth(app);
-const db     = getFirestore(app);
-const provider = new GoogleAuthProvider();
+const fbApp  = initializeApp(FIREBASE_CONFIG);
+const auth   = getAuth(fbApp);
+const db     = getFirestore(fbApp);
+const gProvider = new GoogleAuthProvider();
 
-/* ── CURRENT USER STATE ── */
-let currentUser  = null;
-let currentProfile = null;
+window._auth = auth;
+window._db   = db;
 
-/* ═══════════════════════════════════
-   SIGN IN WITH GOOGLE
-═══════════════════════════════════ */
-async function signInWithGoogle() {
+let _currentUser    = null;
+let _currentProfile = null;
+
+/* ── TIER HELPER ── */
+function getTierFromElo(elo) {
+  if (elo >= 5001) return { name:'Slayer',   emoji:'💀', color:'#ff3d6b' };
+  if (elo >= 3501) return { name:'Chad',     emoji:'👑', color:'#f5a623' };
+  if (elo >= 2001) return { name:'Chadlite', emoji:'🔥', color:'#7b61ff' };
+  if (elo >= 1501) return { name:'HTN',      emoji:'⭐', color:'#0df2c8' };
+  if (elo >= 1001) return { name:'MTN',      emoji:'⚡', color:'#f5a623' };
+  if (elo >= 501)  return { name:'LTN',      emoji:'🌙', color:'#7090d0' };
+  if (elo >= 1)    return { name:'Sub3',     emoji:'🔴', color:'#ff3d6b' };
+  return                   { name:'Molecule',emoji:'🧪', color:'#888aaa' };
+}
+
+/* ══════════════════════════════════
+   SIGN IN / OUT
+══════════════════════════════════ */
+window.signInWithGoogle = async function() {
+  const btn = document.getElementById('googleSignInBtn');
+  if (btn) { btn.textContent = 'Signing in...'; btn.disabled = true; }
   try {
-    const result = await signInWithPopup(auth, provider);
+    const result = await signInWithPopup(auth, gProvider);
     return result.user;
   } catch(e) {
-    console.error('Sign in error:', e.message);
-    throw e;
+    if (btn) { btn.innerHTML = googleBtnHTML(); btn.disabled = false; }
+    if (e.code !== 'auth/popup-closed-by-user') alert('Sign in failed: ' + e.message);
   }
-}
+};
 
-/* ═══════════════════════════════════
-   SIGN OUT
-═══════════════════════════════════ */
-async function signOutUser() {
+window.signOutUser = async function() {
   try {
     await signOut(auth);
-    currentUser = null;
-    currentProfile = null;
-    localStorage.removeItem('mgm_name');
-    localStorage.removeItem('mgm_elo');
-    localStorage.removeItem('mgm_wins');
-    localStorage.removeItem('mgm_losses');
-    localStorage.removeItem('mgm_uid');
-    updateAuthUI(null);
-  } catch(e) {
-    console.error('Sign out error:', e.message);
-  }
-}
+    _currentUser = null; _currentProfile = null;
+    ['mgm_name','mgm_elo','mgm_wins','mgm_losses','mgm_uid','mgm_photo','mgm_username']
+      .forEach(k => localStorage.removeItem(k));
+    window.location.href = 'index.html';
+  } catch(e) { console.error(e); }
+};
 
-/* ═══════════════════════════════════
-   GET OR CREATE USER PROFILE
-═══════════════════════════════════ */
-async function getOrCreateProfile(user) {
-  const ref = doc(db, 'users', user.uid);
+/* ══════════════════════════════════
+   FIRESTORE PROFILE
+══════════════════════════════════ */
+async function loadOrCreateProfile(user) {
+  const ref  = doc(db, 'users', user.uid);
   const snap = await getDoc(ref);
 
   if (snap.exists()) {
-    // User exists — load their data
     const data = snap.data();
     // Sync to localStorage
-    localStorage.setItem('mgm_name',   data.displayName || user.displayName);
-    localStorage.setItem('mgm_elo',    data.elo   || 400);
-    localStorage.setItem('mgm_wins',   data.wins  || 0);
-    localStorage.setItem('mgm_losses', data.losses|| 0);
-    localStorage.setItem('mgm_uid',    user.uid);
-    // Update last seen
+    localStorage.setItem('mgm_uid',      user.uid);
+    localStorage.setItem('mgm_name',     data.username || user.displayName);
+    localStorage.setItem('mgm_username', data.username || '');
+    localStorage.setItem('mgm_elo',      data.elo      || 400);
+    localStorage.setItem('mgm_wins',     data.wins     || 0);
+    localStorage.setItem('mgm_losses',   data.losses   || 0);
+    localStorage.setItem('mgm_photo',    data.photoURL || user.photoURL || '');
     await updateDoc(ref, { lastSeen: serverTimestamp() });
     return data;
-  } else {
-    // New user — create profile
-    const profile = {
-      uid:         user.uid,
-      displayName: user.displayName,
-      email:       user.email,
-      photoURL:    user.photoURL,
-      elo:         400,
-      wins:        0,
-      losses:      0,
-      labScore:    null,
-      createdAt:   serverTimestamp(),
-      lastSeen:    serverTimestamp(),
-    };
-    await setDoc(ref, profile);
-    localStorage.setItem('mgm_name',   user.displayName);
-    localStorage.setItem('mgm_elo',    400);
-    localStorage.setItem('mgm_wins',   0);
-    localStorage.setItem('mgm_losses', 0);
-    localStorage.setItem('mgm_uid',    user.uid);
-    return profile;
   }
+  // New user — redirect to setup
+  return null;
 }
 
-/* ═══════════════════════════════════
-   SAVE STATS TO FIRESTORE
-   Called after match result
-═══════════════════════════════════ */
-async function saveStatsToFirestore(elo, wins, losses) {
-  if (!currentUser) return;
+window.saveEloToFirestore = async function(elo, wins, losses) {
+  const uid = localStorage.getItem('mgm_uid');
+  if (!uid) return;
   try {
-    const ref = doc(db, 'users', currentUser.uid);
-    await updateDoc(ref, { elo, wins, losses, lastSeen: serverTimestamp() });
-  } catch(e) {
-    console.error('Save stats error:', e.message);
-  }
-}
+    await updateDoc(doc(db, 'users', uid), {
+      elo, wins, losses, lastSeen: serverTimestamp()
+    });
+    localStorage.setItem('mgm_elo',    elo);
+    localStorage.setItem('mgm_wins',   wins);
+    localStorage.setItem('mgm_losses', losses);
+  } catch(e) { console.error('Save ELO error:', e); }
+};
 
-/* ═══════════════════════════════════
-   SAVE LAB SCORE
-═══════════════════════════════════ */
-async function saveLabScore(score) {
-  if (!currentUser) return;
+window.getFirestoreLeaderboard = async function(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
   try {
-    const ref = doc(db, 'users', currentUser.uid);
-    await updateDoc(ref, { labScore: score, lastSeen: serverTimestamp() });
-  } catch(e) {
-    console.error('Save lab score error:', e.message);
-  }
-}
-
-/* ═══════════════════════════════════
-   UPDATE AUTH UI
-   Called whenever auth state changes
-═══════════════════════════════════ */
-function updateAuthUI(user) {
-  const claimBtn    = document.querySelector('.nav-claim-btn');
-  const guestBanner = document.getElementById('guestBanner');
-  const userMenu    = document.getElementById('userMenu');
-
-  if (user && currentProfile) {
-    // LOGGED IN
-    if (claimBtn) {
-      claimBtn.textContent = user.displayName?.split(' ')[0] || 'Account';
-      claimBtn.onclick = toggleUserMenu;
+    const q = query(collection(db,'users'), orderBy('elo','desc'), limit(20));
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      el.innerHTML = '<div style="padding:24px;text-align:center;font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--muted2);">No ranked players yet — be the first!</div>';
+      return;
     }
-    if (guestBanner) guestBanner.style.display = 'none';
-    // Adjust body padding since banner is gone
+    const medals = ['🥇','🥈','🥉'];
+    el.innerHTML = snap.docs.map((d,i) => {
+      const u = d.data();
+      const t = getTierFromElo(u.elo || 400);
+      const cls = t.name.toLowerCase().replace(' ','');
+      const photo = u.photoURL
+        ? `<img src="${u.photoURL}" style="width:32px;height:32px;border-radius:8px;object-fit:cover;">`
+        : `<div class="lb-av ${cls}">${(u.username||'?')[0].toUpperCase()}</div>`;
+      return `<div class="lb-row">
+        <div class="lb-rank">${medals[i]||('#'+(i+1))}</div>
+        <div class="lb-info">
+          ${photo}
+          <div>
+            <div class="lb-name">${escHtml(u.username||'Unknown')}</div>
+            <div class="lb-sub">${t.emoji} ${t.name} · ${u.wins||0}W ${u.losses||0}L</div>
+          </div>
+        </div>
+        <div class="lb-elo">${u.elo||400} ELO</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="padding:24px;text-align:center;font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--muted2);">Could not load leaderboard</div>';
+  }
+};
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ══════════════════════════════════
+   UI UPDATES
+══════════════════════════════════ */
+function updateNavForUser(user, profile) {
+  const btn    = document.querySelector('.nav-claim-btn');
+  const banner = document.getElementById('guestBanner');
+  const chatInput = document.getElementById('chatMsgIn');
+  const chatName  = document.getElementById('chatNameIn');
+
+  if (user && profile) {
+    // Logged in
+    if (btn) {
+      btn.style.cssText = 'display:flex;align-items:center;gap:7px;padding:5px 12px 5px 6px;border-radius:999px;background:rgba(13,242,200,0.08);border:1px solid rgba(13,242,200,0.2);cursor:pointer;';
+      const photo = profile.photoURL || user.photoURL;
+      btn.innerHTML = photo
+        ? `<img src="${photo}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;"> <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#0df2c8;">${profile.username||user.displayName?.split(' ')[0]}</span>`
+        : `<span style="width:24px;height:24px;border-radius:50%;background:var(--teal-dim);display:flex;align-items:center;justify-content:center;font-size:12px;">${(profile.username||'?')[0]}</span> <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#0df2c8;">${profile.username||user.displayName?.split(' ')[0]}</span>`;
+      btn.onclick = toggleUserMenu;
+    }
+    if (banner) banner.style.display = 'none';
     document.body.style.paddingTop = 'var(--nav-h)';
+
+    // Enable chat
+    if (chatInput) { chatInput.disabled = false; chatInput.placeholder = 'Say something...'; }
+    if (chatName)  { chatName.value = profile.username||user.displayName; chatName.disabled = true; }
   } else {
-    // GUEST
-    if (claimBtn) {
-      claimBtn.textContent = 'CLAIM RANK';
-      claimBtn.onclick = openClaimModal;
+    // Guest
+    if (btn) {
+      btn.style.cssText = '';
+      btn.textContent = 'CLAIM RANK';
+      btn.onclick = () => window.openClaimModal && window.openClaimModal();
     }
-    if (guestBanner) guestBanner.style.display = 'flex';
+    if (banner) banner.style.display = 'flex';
     document.body.style.paddingTop = 'calc(var(--nav-h) + 36px)';
+
+    // Disable chat for guests
+    if (chatInput) { chatInput.disabled = true; chatInput.placeholder = 'Sign in to chat'; }
   }
 }
 
-/* ═══════════════════════════════════
-   USER MENU (dropdown when logged in)
-═══════════════════════════════════ */
 function injectUserMenu() {
   if (document.getElementById('userMenu')) return;
   const menu = document.createElement('div');
   menu.id = 'userMenu';
-  menu.style.cssText = `
-    position:fixed; top:calc(var(--nav-h) + 8px); right:calc(var(--chat-w) + 8px);
-    background:#1a1a28; border:1px solid rgba(255,255,255,0.1); border-radius:12px;
-    padding:8px; min-width:200px; z-index:400; display:none;
-    box-shadow:0 8px 32px rgba(0,0,0,0.5);
-  `;
+  menu.style.cssText = 'position:fixed;top:calc(var(--nav-h)+8px);right:calc(var(--chat-w)+8px);background:#1a1a28;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:8px;min-width:210px;z-index:500;display:none;box-shadow:0 12px 40px rgba(0,0,0,0.6);';
   menu.innerHTML = `
-    <div id="userMenuHeader" style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:6px;">
-      <div id="userMenuName" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:#f2f2ff;"></div>
-      <div id="userMenuElo" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#0df2c8;margin-top:2px;"></div>
+    <div id="uMenuHead" style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:6px;display:flex;align-items:center;gap:10px;">
+      <div id="uMenuPhoto" style="width:38px;height:38px;border-radius:50%;background:var(--teal-dim);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;overflow:hidden;"></div>
+      <div>
+        <div id="uMenuName" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:#f2f2ff;"></div>
+        <div id="uMenuElo" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#0df2c8;margin-top:1px;"></div>
+      </div>
     </div>
-    <a href="index.html" style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;color:#6b6b8f;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:11px;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.04)';this.style.color='#f2f2ff'" onmouseout="this.style.background='';this.style.color='#6b6b8f'">🏠 Dashboard</a>
-    <a href="rank.html" style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;color:#6b6b8f;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:11px;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.04)';this.style.color='#f2f2ff'" onmouseout="this.style.background='';this.style.color='#6b6b8f'">🏆 My Rank</a>
+    <a href="profile.html" style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;color:#6b6b8f;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:11px;transition:all 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.05)';this.style.color='#f2f2ff'" onmouseout="this.style.background='';this.style.color='#6b6b8f'">👤 My Profile</a>
+    <a href="rank.html" style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;color:#6b6b8f;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:11px;transition:all 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.05)';this.style.color='#f2f2ff'" onmouseout="this.style.background='';this.style.color='#6b6b8f'">🏆 Global Rank</a>
     <div style="height:1px;background:rgba(255,255,255,0.06);margin:6px 0;"></div>
-    <button onclick="signOutUser()" style="width:100%;display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;color:#ff3d6b;background:none;border:none;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;text-align:left;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,61,107,0.08)'" onmouseout="this.style.background=''">↩ Sign Out</button>
-  `;
+    <button onclick="signOutUser()" style="width:100%;display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;color:#ff3d6b;background:none;border:none;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;text-align:left;" onmouseover="this.style.background='rgba(255,61,107,0.08)'" onmouseout="this.style.background=''">↩ Sign Out</button>`;
   document.body.appendChild(menu);
-
-  // Close on outside click
-  document.addEventListener('click', (e) => {
-    const claimBtn = document.querySelector('.nav-claim-btn');
-    if (menu.style.display === 'block' && !menu.contains(e.target) && e.target !== claimBtn) {
+  document.addEventListener('click', e => {
+    const btn = document.querySelector('.nav-claim-btn');
+    if (menu.style.display==='block' && !menu.contains(e.target) && e.target!==btn && !btn?.contains(e.target)) {
       menu.style.display = 'none';
     }
   });
 }
 
-function toggleUserMenu() {
+window.toggleUserMenu = function() {
   const menu = document.getElementById('userMenu');
   if (!menu) return;
-  if (menu.style.display === 'block') {
-    menu.style.display = 'none';
-  } else {
-    // Update menu content
-    const elo  = parseInt(localStorage.getItem('mgm_elo') || '400');
-    const name = localStorage.getItem('mgm_name') || 'User';
-    document.getElementById('userMenuName').textContent = name;
-    document.getElementById('userMenuElo').textContent  = elo + ' ELO · ' + getTierName(elo);
-    menu.style.display = 'block';
-  }
+  if (menu.style.display === 'block') { menu.style.display = 'none'; return; }
+  const elo  = parseInt(localStorage.getItem('mgm_elo')||'400');
+  const name = localStorage.getItem('mgm_username') || localStorage.getItem('mgm_name') || 'User';
+  const photo = localStorage.getItem('mgm_photo') || '';
+  const t = getTierFromElo(elo);
+  const nameEl  = document.getElementById('uMenuName');
+  const eloEl   = document.getElementById('uMenuElo');
+  const photoEl = document.getElementById('uMenuPhoto');
+  if (nameEl)  nameEl.textContent  = name;
+  if (eloEl)   eloEl.textContent   = elo+' ELO · '+t.name;
+  if (photoEl) photoEl.innerHTML   = photo ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;">` : name[0]||'?';
+  menu.style.display = 'block';
+};
+
+function googleBtnHTML() {
+  return `<svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Continue with Google`;
 }
 
-/* ═══════════════════════════════════
+/* ══════════════════════════════════
    AUTH STATE LISTENER
-   Runs on every page load
-═══════════════════════════════════ */
+══════════════════════════════════ */
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    currentUser = user;
+    _currentUser = user;
     try {
-      currentProfile = await getOrCreateProfile(user);
-      injectUserMenu();
-      updateAuthUI(user);
-      // Update claim modal to show signed-in state
-      const claimModal = document.getElementById('claimModal');
-      if (claimModal) claimModal.classList.remove('open');
+      const profile = await loadOrCreateProfile(user);
+      if (!profile) {
+        // New user — go to setup unless already there
+        if (!window.location.pathname.includes('setup.html')) {
+          window.location.href = 'setup.html';
+          return;
+        }
+      } else {
+        _currentProfile = profile;
+        injectUserMenu();
+        updateNavForUser(user, profile);
+        // Close claim modal if open
+        const cm = document.getElementById('claimModal');
+        if (cm) cm.classList.remove('open');
+      }
     } catch(e) {
-      console.error('Profile load error:', e.message);
+      console.error('Auth state error:', e);
+      updateNavForUser(null, null);
     }
   } else {
-    currentUser = null;
-    currentProfile = null;
-    updateAuthUI(null);
+    _currentUser    = null;
+    _currentProfile = null;
+    updateNavForUser(null, null);
   }
 });
 
-/* ═══════════════════════════════════
-   EXPORTS — available globally
-═══════════════════════════════════ */
-window.signInWithGoogle   = signInWithGoogle;
-window.signOutUser        = signOutUser;
-window.saveStatsToFirestore = saveStatsToFirestore;
-window.saveLabScore       = saveLabScore;
-window.getCurrentUser     = () => currentUser;
-window.getCurrentProfile  = () => currentProfile;
-window.isLoggedIn         = () => !!currentUser;
+window.getCurrentUser    = () => _currentUser;
+window.getCurrentProfile = () => _currentProfile;
+window.isLoggedIn        = () => !!_currentUser && !!_currentProfile;
