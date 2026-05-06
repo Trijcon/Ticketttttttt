@@ -225,9 +225,7 @@
 
 </div>
 <script src="shared.js"></script>
-<script>
-injectSharedUI();
-connectWS();
+<script type="module" src="auth.js"></script>
 
 const endDate = new Date(Date.now() + 26*24*60*60*1000);
 function tick(){
@@ -252,5 +250,6 @@ startActivityFeed();
 loadLeaderboard('lbPreview');
 setInterval(()=>loadLeaderboard('lbPreview'),30000);
 </script>
+<script type="module" src="auth.js"></script>
 </body>
 </html>
