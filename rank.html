@@ -136,7 +136,7 @@ else{avEl.textContent=(name[0]||'?').toUpperCase();}
 var cur=document.getElementById('ti-'+tn);
 if(cur)cur.classList.add('current');
 
-var endDate=new Date(Date.now()+26*24*60*60*1000);
+var endDate=new Date('2026-06-06T00:00:00Z');
 function tick(){
   var d=endDate-Date.now();if(d<=0)return;
   document.getElementById('rD').textContent=String(Math.floor(d/864e5)).padStart(2,'0');
