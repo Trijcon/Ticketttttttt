@@ -256,7 +256,6 @@ onAuthStateChanged(auth, async (user) => {
     try {
       const profile = await loadOrCreateProfile(user);
       if (!profile) {
-        // New user — go to setup unless already there
         if (!window.location.pathname.includes('setup.html')) {
           window.location.href = 'setup.html';
           return;
@@ -265,9 +264,25 @@ onAuthStateChanged(auth, async (user) => {
         _currentProfile = profile;
         injectUserMenu();
         updateNavForUser(user, profile);
-        // Close claim modal if open
         const cm = document.getElementById('claimModal');
         if (cm) cm.classList.remove('open');
+
+        // ── Send Firebase ID Token to WebSocket server for JWT verification ──
+        try {
+          const idToken = await user.getIdToken(false); // false = use cached token
+          if (window.wsSend) {
+            window.wsSend({
+              type:     'set_user',
+              idToken,  // Server verifies this via admin.auth().verifyIdToken()
+              name:     profile.username || user.displayName,
+              username: profile.username || '',
+              uid:      user.uid,
+              photoURL: profile.photoURL || user.photoURL || '',
+            });
+          }
+        } catch(tokenErr) {
+          console.warn('Could not get ID token:', tokenErr.message);
+        }
       }
     } catch(e) {
       console.error('Auth state error:', e);
