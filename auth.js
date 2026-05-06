@@ -153,7 +153,7 @@ function escHtml(s) {
    UI UPDATES
 ══════════════════════════════════ */
 function updateNavForUser(user, profile) {
-  const btn    = document.querySelector('.nav-claim-btn');
+  const btn    = document.getElementById('navClaimBtn');
   const banner = document.getElementById('guestBanner');
   const chatInput = document.getElementById('chatMsgIn');
   const chatName  = document.getElementById('chatNameIn');
@@ -161,12 +161,13 @@ function updateNavForUser(user, profile) {
   if (user && profile) {
     // Logged in
     if (btn) {
-      btn.style.cssText = 'display:flex;align-items:center;gap:7px;padding:5px 12px 5px 6px;border-radius:999px;background:rgba(13,242,200,0.08);border:1px solid rgba(13,242,200,0.2);cursor:pointer;';
       const photo = profile.photoURL || user.photoURL;
+      const uname = profile.username || user.displayName?.split(' ')[0] || 'Profile';
+      btn.style.cssText = 'display:flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;border-radius:999px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);cursor:pointer;';
       btn.innerHTML = photo
-        ? `<img src="${photo}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;"> <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#0df2c8;">${profile.username||user.displayName?.split(' ')[0]}</span>`
-        : `<span style="width:24px;height:24px;border-radius:50%;background:var(--teal-dim);display:flex;align-items:center;justify-content:center;font-size:12px;">${(profile.username||'?')[0]}</span> <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#0df2c8;">${profile.username||user.displayName?.split(' ')[0]}</span>`;
-      btn.onclick = toggleUserMenu;
+        ? `<img src="${photo}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`
+        : `<div style="width:24px;height:24px;border-radius:50%;background:rgba(74,158,255,0.1);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#4A9EFF;">${(uname[0]||'?').toUpperCase()}</div><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`;
+      btn.onclick = () => window.toggleUserMenu && window.toggleUserMenu();
     }
     if (banner) banner.style.display = 'none';
     document.body.style.paddingTop = 'var(--nav-h)';
