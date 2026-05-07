@@ -126,7 +126,7 @@
           <div><div class="res-score" id="resOpp">—</div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted2);margin-top:3px;">Opponent</div></div>
         </div>
         <div class="res-actions">
-          <button class="btn-primary" onclick="resetMatch()">Play Again</button>
+          <button class="btn-primary" onclick="requestRematch()">Play Again</button>
           <button class="btn-ghost" onclick="window.location.href='index.html'">Home</button>
         </div>
       </div>
@@ -232,14 +232,18 @@ function cancelWait(){document.getElementById('waitingCard').classList.remove('s
 
 function onMatchStart(msg){oppId=msg.opponent&&msg.opponent.id;myRole=msg.role;document.getElementById('setupPanel').style.display='none';document.getElementById('arenaPanel').classList.add('show');document.getElementById('waitingCard').classList.remove('show');document.getElementById('oppPHText').textContent=(msg.opponent&&msg.opponent.name)||'Opponent';setAS('searching','Connecting peer cameras...');startRTC();}
 
-function startRTC(){resetRTC();peerConn=new RTCPeerConnection(ICE);if(myStream)myStream.getTracks().forEach(function(t){peerConn.addTrack(t,myStream);});peerConn.ontrack=function(e){var v=document.getElementById('oppVid');v.srcObject=e.streams[0];v.style.display='block';document.getElementById('oppPH').style.display='none';setAS('on','Cameras connected — run your scan');document.getElementById('scanBtn').disabled=false;wsSend({type:'webrtc_connected'});};peerConn.onicecandidate=function(e){if(e.candidate)wsSend({type:'webrtc_ice',targetId:oppId,candidate:e.candidate});};if(myRole==='offerer'){peerConn.createOffer({offerToReceiveVideo:true,offerToReceiveAudio:false}).then(function(o){return peerConn.setLocalDescription(o);}).then(function(){wsSend({type:'webrtc_offer',targetId:oppId,offer:peerConn.localDescription});});}}
+function startRTC(){resetRTC();peerConn=new RTCPeerConnection(ICE);if(myStream)myStream.getTracks().forEach(function(t){peerConn.addTrack(t,myStream);});peerConn.ontrack=function(e){var v=document.getElementById('oppVid');v.srcObject=e.streams[0];v.style.display='block';document.getElementById('oppPH').style.display='none';setAS('on','Cameras connected — run your scan');scanDone=false;document.getElementById('scanBtn').disabled=false;wsSend({type:'webrtc_connected'});};peerConn.onicecandidate=function(e){if(e.candidate)wsSend({type:'webrtc_ice',targetId:oppId,candidate:e.candidate});};if(myRole==='offerer'){peerConn.createOffer({offerToReceiveVideo:true,offerToReceiveAudio:false}).then(function(o){return peerConn.setLocalDescription(o);}).then(function(){wsSend({type:'webrtc_offer',targetId:oppId,offer:peerConn.localDescription});});}}
 function handleOffer(msg){if(!peerConn)return;peerConn.setRemoteDescription(new RTCSessionDescription(msg.offer)).then(function(){return peerConn.createAnswer();}).then(function(a){return peerConn.setLocalDescription(a);}).then(function(){wsSend({type:'webrtc_answer',targetId:msg.fromId,answer:peerConn.localDescription});});}
 function handleAnswer(msg){if(!peerConn)return;peerConn.setRemoteDescription(new RTCSessionDescription(msg.answer));}
 function handleIce(msg){if(!peerConn||!msg.candidate)return;peerConn.addIceCandidate(new RTCIceCandidate(msg.candidate)).catch(function(){});}
 function resetRTC(){if(peerConn){peerConn.close();peerConn=null;}}
 
+var scanDone=false;
+
 function runScan(){
+  if(scanDone){setAS('searching','⚠ Already scanned — wait for result');return;}
   if(!myLandmarks){setAS('searching','⚠ Center your face');return;}
+  scanDone=true;
   document.getElementById('scanBtn').disabled=true;document.getElementById('scanBtn').textContent='Scanning...';setAS('searching','Analyzing...');
   setTimeout(function(){
     var score=calcScore(myLandmarks);
@@ -258,16 +262,48 @@ function showResult(msg){
   if(msg.won) playVictorySound(); else playDefeatSound();
 }
 
-function resetMatch(){
+function requestRematch(){
+  // Reset everything
   document.getElementById('resultBar').classList.remove('show');
   document.getElementById('myScore').style.display='none';
   document.getElementById('oppScore').style.display='none';
   document.getElementById('scanBtn').disabled=true;
   document.getElementById('scanBtn').textContent='Run Scan';
-  setAS('','Ready — waiting for next opponent');
+  document.getElementById('oppVid').style.display='none';
+  document.getElementById('oppPH').style.display='flex';
+  document.getElementById('oppPHText').textContent='Waiting...';
+  scanDone=false; _buf=[]; myLandmarks=null;
+  resetRTC();
+  // Go back to setup and auto-generate a new code
+  document.getElementById('arenaPanel').classList.remove('show');
+  document.getElementById('setupPanel').style.display='block';
+  document.getElementById('mainCard').style.display='block';
+  document.getElementById('waitingCard').classList.remove('show');
+  // Restart face mesh
+  fmReady=false;
+  if(faceMesh&&myStream){
+    var v=document.getElementById('myVid'),c=document.getElementById('myCanvas');
+    faceMesh.onResults(function(r){var ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);if(r.multiFaceLandmarks&&r.multiFaceLandmarks.length>0){myLandmarks=r.multiFaceLandmarks[0];drawMesh(c,myLandmarks);}else{myLandmarks=null;}});
+    fmReady=true;
+    (function loop(){if(!fmReady||!myStream)return;faceMesh.send({image:v}).then(function(){requestAnimationFrame(loop);});})();
+  }
+  // Auto generate new code so they can share it again
+  generateCode();
+}
+  document.getElementById('resultBar').classList.remove('show');
+  document.getElementById('myScore').style.display='none';
+  document.getElementById('oppScore').style.display='none';
+  document.getElementById('oppVid').style.display='none';
+  document.getElementById('oppPH').style.display='flex';
+  document.getElementById('oppPHText').textContent='Waiting for opponent...';
+  document.getElementById('scanBtn').disabled=true;
+  document.getElementById('scanBtn').textContent='Run Scan';
+  scanDone=false;
   _buf=[];
   myLandmarks=null;
-  // Restart face mesh loop
+  resetRTC();
+  setAS('searching','Waiting for opponent to reconnect...');
+  // Restart face mesh loop cleanly
   fmReady=false;
   if(faceMesh&&myStream){
     var v=document.getElementById('myVid');
