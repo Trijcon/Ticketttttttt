@@ -6,418 +6,227 @@
 <title>MogMe.TV</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 <style>
 
-/* ══════════════════════════════
-   DASHBOARD GRID
-══════════════════════════════ */
-.dash-grid {
-  display: grid;
-  grid-template-columns: 1fr 320px 280px;
-  grid-template-rows: auto auto auto;
-  gap: 8px;
-  padding-bottom: 24px;
+/* ── HERO SECTION ── */
+.home-wrap {
+  max-width: 780px;
+  margin: 0 auto;
+  padding-bottom: 60px;
 }
 
-/* ══════════════════════════════
-   BASE PANEL
-══════════════════════════════ */
-.panel {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  overflow: hidden;
-  position: relative;
-}
-
-.panel-header {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between;
-  background: rgba(255,255,255,0.02);
-}
-
-.panel-tag {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 8px; letter-spacing: 2px;
-  color: var(--muted); text-transform: uppercase;
-}
-
-.panel-val {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9px; color: var(--blue);
-}
-
-/* ══════════════════════════════
-   ARENA HERO — spans full width
-══════════════════════════════ */
-.arena-hero {
-  grid-column: 1 / -1;
-  min-height: 200px;
-  background: #000;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  position: relative;
-  overflow: hidden;
+.hero-section {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: 28px 32px;
+  text-align: center;
+  padding: 32px 0 40px;
+}
+
+.live-pill {
+  display: flex; align-items: center; gap: 7px;
+  padding: 5px 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border2);
+  border-radius: 999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 2px;
+  color: var(--silver); margin-bottom: 24px;
+}
+
+.live-pip {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: pippulse 1.5s ease infinite;
+}
+@keyframes pippulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+.hero-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: clamp(72px, 12vw, 120px);
+  letter-spacing: -2px;
+  line-height: 0.9;
+  color: var(--white);
+  margin-bottom: 28px;
+}
+
+.online-badge {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 18px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border2);
+  border-radius: 999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 1px;
+  color: var(--blue); margin-bottom: 32px;
+}
+
+.online-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--blue);
+  animation: pippulse 1.5s ease infinite;
+}
+
+/* ── ENTER CARD ── */
+.enter-card {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
   cursor: pointer;
   text-decoration: none;
   color: inherit;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
 }
 
-/* Animated scan grid */
-.arena-hero::before {
+.enter-card::before {
   content: '';
   position: absolute; inset: 0;
-  background:
-    linear-gradient(rgba(74,158,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(74,158,255,0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
-  animation: gridscroll 20s linear infinite;
-}
-@keyframes gridscroll { 0%{background-position:0 0} 100%{background-position:40px 40px} }
-
-/* Scan beam */
-.arena-hero::after {
-  content: '';
-  position: absolute; left: 0; right: 0; top: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(74,158,255,0.6), transparent);
-  animation: herobeam 3s ease-in-out infinite;
-}
-@keyframes herobeam { 0%{top:0%;opacity:1} 100%{top:100%;opacity:0} }
-
-.arena-hero-left {
-  position: relative; z-index: 2;
-  display: flex; flex-direction: column; gap: 8px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(74,158,255,0.06), transparent 70%);
+  pointer-events: none;
 }
 
-.arena-status {
-  display: flex; align-items: center; gap: 8px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9px; letter-spacing: 2px; color: var(--blue);
+.enter-card:hover {
+  border-color: rgba(74,158,255,0.2);
+  background: rgba(255,255,255,0.06);
 }
 
-.arena-status-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--blue);
-  box-shadow: 0 0 8px var(--blue);
-  animation: statusblink 1.5s ease infinite;
+.enter-icon {
+  font-size: 36px; opacity: 0.6;
+  margin-bottom: 4px;
 }
-@keyframes statusblink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-.arena-hero-title {
+.enter-title {
   font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 900; font-size: 72px;
-  line-height: 0.9; letter-spacing: 2px;
-  color: var(--white);
-  text-shadow: 0 0 60px rgba(74,158,255,0.15);
+  font-weight: 900; font-size: 36px;
+  letter-spacing: 3px; color: var(--white);
 }
 
-.arena-hero-title span { color: var(--blue); }
-
-.arena-hero-sub {
+.enter-cta {
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px; letter-spacing: 3px;
-  color: var(--muted); margin-top: 4px;
-}
-
-.arena-hero-metrics {
-  display: flex; gap: 24px; margin-top: 12px;
-}
-
-.ahm-item {
-  display: flex; flex-direction: column; gap: 2px;
-}
-
-.ahm-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 7px; letter-spacing: 2px;
-  color: var(--muted2); text-transform: uppercase;
-}
-
-.ahm-val {
-  font-family: 'Barlow Condensed', monospace;
-  font-weight: 700; font-size: 20px;
-  color: var(--white); line-height: 1;
-}
-
-.ahm-val.blue { color: var(--blue); }
-.ahm-val.green { color: var(--green); }
-
-.arena-hero-right {
-  position: relative; z-index: 2;
-  display: flex; flex-direction: column;
-  align-items: flex-end; gap: 12px;
-}
-
-.arena-enter-btn {
-  padding: 14px 32px;
-  background: rgba(74,158,255,0.08);
-  border: 1px solid rgba(74,158,255,0.3);
-  border-radius: 3px;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: 18px;
-  letter-spacing: 4px; color: var(--blue);
-  cursor: pointer; transition: all 0.2s;
-  text-decoration: none;
-}
-
-.arena-enter-btn:hover {
-  background: rgba(74,158,255,0.15);
-  box-shadow: 0 0 30px rgba(74,158,255,0.15);
-}
-
-.how-btn {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9px; letter-spacing: 1px;
-  color: var(--muted); border: 1px solid var(--border2);
-  border-radius: 3px; padding: 5px 12px;
-  background: none; cursor: pointer; transition: all 0.2s;
-}
-.how-btn:hover { color: var(--silver); border-color: var(--border3); }
-
-/* ELO display in hero */
-.hero-elo-block {
-  text-align: right;
-}
-.hero-elo-num {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 900; font-size: 48px;
-  color: var(--blue); line-height: 1;
-  text-shadow: 0 0 30px rgba(74,158,255,0.3);
-}
-.hero-elo-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 8px; letter-spacing: 2px;
-  color: var(--muted);
-}
-
-/* ══════════════════════════════
-   PLAYER PANEL
-══════════════════════════════ */
-.player-panel {
-  padding: 14px;
-}
-
-.player-id-row {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 14px; padding-bottom: 12px;
-  border-bottom: 1px solid var(--border);
-}
-
-.player-avatar {
-  width: 36px; height: 36px; border-radius: 50%;
-  background: var(--bg4); border: 1px solid var(--border2);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px; overflow: hidden; flex-shrink: 0;
-}
-.player-avatar img { width: 100%; height: 100%; object-fit: cover; }
-
-.player-name {
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 600; font-size: 14px; color: var(--white);
-}
-.player-tier-badge {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 8px; letter-spacing: 1px;
-  color: var(--blue); padding: 2px 6px;
-  border: 1px solid rgba(74,158,255,0.2);
-  border-radius: 2px; background: var(--blue-dim);
-}
-
-.stat-grid {
-  display: grid; grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px; margin-bottom: 12px;
-}
-
-.stat-item {
-  display: flex; flex-direction: column; gap: 2px;
-}
-
-.stat-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 7px; letter-spacing: 1.5px;
-  color: var(--muted2); text-transform: uppercase;
-}
-
-.stat-val {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: 18px;
-  color: var(--silver); line-height: 1;
-}
-
-.stat-val.blue { color: var(--blue); }
-.stat-val.green { color: var(--green); }
-
-.elo-bar {
-  height: 2px; background: var(--bg4);
-  border-radius: 999px; overflow: hidden; margin-bottom: 4px;
-}
-.elo-bar-fill {
-  height: 100%; width: 0%;
-  background: linear-gradient(90deg, rgba(74,158,255,0.3), var(--blue));
-  border-radius: 999px;
-  transition: width 1.2s cubic-bezier(0.34,1.56,0.64,1);
-}
-.elo-bar-labels {
-  display: flex; justify-content: space-between;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 7px; color: var(--muted2);
-}
-
-/* ══════════════════════════════
-   LAB PANEL
-══════════════════════════════ */
-.lab-panel {
-  padding: 16px;
-  display: flex; flex-direction: column; gap: 10px;
-}
-
-.lab-scan-preview {
-  background: #000; border: 1px solid var(--border);
-  border-radius: 3px; padding: 20px;
-  text-align: center; position: relative; overflow: hidden;
-}
-
-.lab-scan-preview::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse at center, rgba(74,158,255,0.05) 0%, transparent 70%);
-}
-
-.lab-face-icon {
-  font-size: 40px; opacity: 0.15;
-  font-family: 'JetBrains Mono', monospace;
   color: var(--blue);
-  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: 6px;
 }
 
-.lab-face-grid {
-  position: relative; z-index: 1;
-  width: 60px; height: 80px; margin: 0 auto 8px;
-}
-
-.lab-face-grid svg { width: 100%; height: 100%; opacity: 0.3; }
-
-.lab-coming {
+.enter-disclaimer {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px; letter-spacing: 2px;
-  color: var(--blue); position: relative; z-index: 1;
-  animation: labpulse 2s ease infinite;
-}
-@keyframes labpulse { 0%,100%{opacity:0.6} 50%{opacity:1} }
-
-.lab-metrics {
-  display: flex; flex-direction: column; gap: 5px;
+  font-size: 8px; letter-spacing: 0.5px;
+  color: var(--muted2); text-align: center;
 }
 
-.lab-metric-row {
-  display: flex; align-items: center; gap: 8px;
+/* ── STEPS ── */
+.steps-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
-.lab-metric-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 8px; letter-spacing: 1px;
-  color: var(--muted2); width: 80px; flex-shrink: 0;
+.step-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.lab-metric-bar {
-  flex: 1; height: 2px; background: var(--bg4);
-  border-radius: 999px; overflow: hidden;
+.step-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--blue);
+  width: 20px; height: 20px;
+  border: 1px solid rgba(74,158,255,0.3);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--blue-dim);
 }
 
-.lab-metric-fill {
-  height: 100%; border-radius: 999px;
-  background: var(--blue); opacity: 0.4;
+.step-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700; font-size: 13px;
+  color: var(--white); letter-spacing: 0.5px;
 }
 
-.lab-metric-val {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 8px; color: var(--muted);
-  width: 32px; text-align: right; flex-shrink: 0;
+.step-desc {
+  font-size: 11px; color: var(--muted); line-height: 1.5;
 }
 
-/* ══════════════════════════════
-   RANK PANEL
-══════════════════════════════ */
-.rank-panel { padding: 14px; }
-
-.tier-list { display: flex; flex-direction: column; gap: 0; }
-
-.tier-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 6px 8px; border-radius: 3px;
-  transition: background 0.15s;
-  cursor: pointer; text-decoration: none; color: inherit;
+/* ── ACTION CARDS ── */
+.action-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 32px;
 }
 
-.tier-row:hover { background: var(--glass2); }
-.tier-row.current { background: var(--blue-dim); border: 1px solid rgba(74,158,255,0.15); }
-
-.tier-left { display: flex; align-items: center; gap: 7px; }
-.tier-emoji { font-size: 12px; width: 16px; text-align: center; }
-.tier-name {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9px; letter-spacing: 0.5px; color: var(--muted);
-}
-.tier-row.current .tier-name { color: var(--blue); }
-.tier-elo {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 8px; color: var(--muted2);
-}
-.tier-row.current .tier-elo { color: rgba(74,158,255,0.6); }
-
-/* ══════════════════════════════
-   PRIVATE ROOM PANEL
-══════════════════════════════ */
-.private-panel { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-
-.code-input-display {
-  background: #000; border: 1px solid var(--border2);
-  border-radius: 3px; padding: 12px 16px;
-  font-family: 'Barlow Condensed', monospace;
-  font-size: 28px; font-weight: 700;
-  color: var(--blue); letter-spacing: 8px;
-  text-align: center; opacity: 0.4;
+.action-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex; align-items: center; gap: 14px;
+  text-decoration: none; color: inherit;
+  transition: all 0.2s;
+  cursor: pointer;
 }
 
-/* ══════════════════════════════
-   ACTIVITY + LEADERBOARD
-══════════════════════════════ */
-.activity-panel { padding: 12px; }
-#activityFeed { display: flex; flex-direction: column; gap: 5px; }
-.activity-item {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9px; color: var(--muted2);
-  padding: 5px 8px; background: var(--bg3);
-  border-radius: 2px; letter-spacing: 0.3px;
+.action-card:hover {
+  border-color: var(--border2);
+  background: rgba(255,255,255,0.05);
 }
-.activity-name { color: var(--silver); }
-.activity-elo { color: var(--green); }
 
-.lb-panel { padding: 0; }
+.action-icon { font-size: 22px; flex-shrink: 0; }
 
-/* ══════════════════════════════
-   SEASON BAR
-══════════════════════════════ */
+.action-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700; font-size: 12px;
+  letter-spacing: 1.5px; color: var(--white);
+  text-transform: uppercase; margin-bottom: 2px;
+}
+
+.action-sub {
+  font-size: 11px; color: var(--muted);
+}
+
+.action-arrow {
+  margin-left: auto;
+  font-size: 14px; color: var(--muted2);
+  transition: all 0.2s;
+}
+.action-card:hover .action-arrow { color: var(--blue); transform: translateX(3px); }
+
+/* ── SEASON BAR ── */
 .season-bar {
-  grid-column: 1 / -1;
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 16px;
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 4px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
 }
 
 .season-badge {
   font-family: 'JetBrains Mono', monospace;
   font-size: 9px; letter-spacing: 1px; color: var(--blue);
-  border: 1px solid rgba(74,158,255,0.2); border-radius: 2px;
-  padding: 3px 8px; background: var(--blue-dim);
+  border: 1px solid rgba(74,158,255,0.2);
+  border-radius: 3px; padding: 3px 8px;
+  background: var(--blue-dim);
 }
 
 .season-timer {
@@ -437,7 +246,7 @@
 .t-sep {
   font-family: 'JetBrains Mono', monospace;
   font-size: 14px; color: var(--muted2);
-  padding: 0 1px; margin-bottom: 6px;
+  padding: 0 2px; margin-bottom: 6px;
 }
 
 .season-right {
@@ -445,279 +254,191 @@
   font-size: 8px; color: var(--muted2); letter-spacing: 0.5px;
 }
 
-/* ══════════════════════════════
-   SOCIAL
-══════════════════════════════ */
-.social-grid {
-  grid-column: 1 / -1;
-  display: grid; grid-template-columns: repeat(6,1fr); gap: 6px;
+/* ── PLAYER BAR ── */
+.player-bar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 16px;
 }
 
-.social-card {
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 4px; padding: 10px 12px;
-  display: flex; align-items: center; justify-content: space-between;
-  text-decoration: none; color: inherit; transition: all 0.2s;
+.player-bar-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--bg4); border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; overflow: hidden; flex-shrink: 0;
 }
-.social-card:hover { border-color: var(--border2); background: var(--glass2); }
-.social-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 7px; letter-spacing: 2px; color: var(--muted2); margin-bottom: 2px;
-}
-.social-name {
+.player-bar-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.player-bar-name {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 11px; font-weight: 500; color: var(--silver);
+  font-weight: 600; font-size: 13px; color: var(--white);
 }
-.social-arrow { font-size: 10px; color: var(--muted2); transition: all 0.2s; }
-.social-card:hover .social-arrow { color: var(--blue); transform: translateX(2px); }
 
-/* ══════════════════════════════
-   RESPONSIVE
-══════════════════════════════ */
-@media(max-width:1000px){
-  .dash-grid { grid-template-columns: 1fr 1fr; }
-  .arena-hero { grid-column: 1 / -1; }
-  .season-bar { grid-column: 1 / -1; }
-  .social-grid { grid-template-columns: repeat(3,1fr); }
+.player-bar-tier {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px; letter-spacing: 1px; color: var(--blue);
+  border: 1px solid rgba(74,158,255,0.2); border-radius: 2px;
+  padding: 2px 6px; background: var(--blue-dim);
 }
-@keyframes livepulse { 0%,100%{opacity:0.8}50%{opacity:0.3} }
+
+.player-bar-elo {
+  margin-left: auto;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 18px; color: var(--blue);
+}
+
+.player-bar-record {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; color: var(--muted);
+}
+
+.elo-bar {
+  height: 2px; background: var(--bg4);
+  border-radius: 999px; overflow: hidden;
+  margin-top: 6px; width: 100%;
+}
+.elo-bar-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, rgba(74,158,255,0.3), var(--blue));
+  border-radius: 999px;
+  transition: width 1.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* ── SOCIAL ── */
+.social-footer {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px; letter-spacing: 2px;
+  color: var(--muted2); text-align: center;
+  text-transform: uppercase;
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  .steps-row { grid-template-columns: 1fr; }
+  .action-row { grid-template-columns: 1fr; }
+  .hero-title { font-size: 72px; }
+  .season-bar { flex-direction: column; gap: 8px; }
+}
 </style>
 </head>
 <body>
 <div class="page-wrap">
-<div class="dash-grid">
+<div class="home-wrap">
 
   <!-- SEASON BAR -->
   <div class="season-bar">
     <div class="season-badge">🏆 SEASON 1</div>
     <div class="season-timer">
-      <div class="t-block"><div class="t-num" id="tD">30</div><div class="t-label">DAYS</div></div>
+      <div class="t-block"><div class="t-num" id="tD">30</div><div class="t-label">D</div></div>
       <div class="t-sep">:</div>
-      <div class="t-block"><div class="t-num" id="tH">00</div><div class="t-label">HRS</div></div>
+      <div class="t-block"><div class="t-num" id="tH">00</div><div class="t-label">H</div></div>
       <div class="t-sep">:</div>
-      <div class="t-block"><div class="t-num" id="tM">00</div><div class="t-label">MIN</div></div>
+      <div class="t-block"><div class="t-num" id="tM">00</div><div class="t-label">M</div></div>
       <div class="t-sep">:</div>
-      <div class="t-block"><div class="t-num" id="tS">00</div><div class="t-label">SEC</div></div>
+      <div class="t-block"><div class="t-num" id="tS">00</div><div class="t-label">S</div></div>
     </div>
-    <div class="season-right">RANKS RESET MONTHLY · TOP 3 GET PERMANENT BADGES</div>
+    <div class="season-right">RANKS RESET MONTHLY</div>
   </div>
 
-  <!-- ARENA HERO -->
-  <a class="arena-hero" href="arena.html">
-    <div class="arena-hero-left">
-      <div class="arena-status">
-        <div class="arena-status-dot"></div>
-        <span>SYSTEM: MATCHMAKING ACTIVE</span>
-        <span style="color:var(--muted);margin-left:8px;" class="online-count-val">— ONLINE</span>
-      </div>
-      <div class="arena-hero-title">1V1<br>ARENA<span>.</span></div>
-      <div class="arena-hero-sub">RANKED · PEER TO PEER · AI FACE SCAN · LIVE ELO</div>
-      <div class="arena-hero-metrics">
-        <div class="ahm-item">
-          <div class="ahm-label">Your ELO</div>
-          <div class="ahm-val blue" id="heroElo">400</div>
-        </div>
-        <div class="ahm-item">
-          <div class="ahm-label">Record</div>
-          <div class="ahm-val" id="heroRecord">0W — 0L</div>
-        </div>
-        <div class="ahm-item">
-          <div class="ahm-label">Rank</div>
-          <div class="ahm-val green" id="heroTier">SUB3</div>
-        </div>
-        <div class="ahm-item">
-          <div class="ahm-label">Queue</div>
-          <div class="ahm-val online-count-val">—</div>
-        </div>
-      </div>
+  <!-- PLAYER BAR (shown if logged in) -->
+  <div class="player-bar" id="playerBar" style="display:none;">
+    <div class="player-bar-avatar" id="pbAvatar">👤</div>
+    <div>
+      <div class="player-bar-name" id="pbName">—</div>
+      <div class="player-bar-record" id="pbRecord">0W — 0L</div>
     </div>
-    <div class="arena-hero-right">
-      <button class="how-btn" onclick="event.preventDefault();event.stopPropagation();openHowModal()">? HOW TO MOG</button>
-      <div class="arena-enter-btn">ENTER ARENA →</div>
-    </div>
-  </a>
-
-  <!-- PLAYER PANEL -->
-  <div class="panel">
-    <div class="panel-header">
-      <span class="panel-tag">// Your Profile</span>
-      <span class="panel-val" id="panelElo">400 ELO</span>
-    </div>
-    <div class="player-panel">
-      <div class="player-id-row">
-        <div class="player-avatar" id="dashAvatar">👤</div>
-        <div style="flex:1">
-          <div class="player-name" id="dashName">Anonymous</div>
-          <div class="player-tier-badge" id="dashTierBadge">SUB3</div>
-        </div>
-      </div>
-      <div class="stat-grid">
-        <div class="stat-item">
-          <div class="stat-label">Wins</div>
-          <div class="stat-val green" id="dashWins">0</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-label">Losses</div>
-          <div class="stat-val" id="dashLosses">0</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-label">Next</div>
-          <div class="stat-val blue" id="dashNext">LTN</div>
-        </div>
-      </div>
-      <div class="elo-bar"><div class="elo-bar-fill" id="eloBarFill"></div></div>
-      <div class="elo-bar-labels">
-        <span id="eloBarPct">0%</span>
-        <span id="eloBarNeeded">101 TO NEXT</span>
-      </div>
-    </div>
+    <div class="player-bar-tier" id="pbTier">SUB3</div>
+    <div class="player-bar-elo" id="pbElo">400</div>
   </div>
 
-  <!-- LAB PANEL -->
-  <div class="panel" style="cursor:pointer;" onclick="openLabSoonModal()">
-    <div class="panel-header">
-      <span class="panel-tag">// The Lab — Solo Calibration</span>
-      <span class="panel-val" style="color:#0df2c8;animation:labpulse 2s ease infinite;">⚗ IN DEV</span>
+  <!-- HERO -->
+  <div class="hero-section">
+    <div class="live-pill">
+      <div class="live-pip"></div>
+      LIVE 1V1 MOG ARENA
     </div>
-    <div class="lab-panel">
-      <div class="lab-scan-preview">
-        <svg width="80" height="100" viewBox="0 0 80 100" style="opacity:0.25;margin:0 auto;display:block;">
-          <ellipse cx="40" cy="45" rx="28" ry="36" stroke="#4A9EFF" stroke-width="0.8" fill="none"/>
-          <ellipse cx="40" cy="42" rx="18" ry="20" stroke="#4A9EFF" stroke-width="0.5" fill="none"/>
-          <line x1="40" y1="25" x2="40" y2="80" stroke="#4A9EFF" stroke-width="0.4" opacity="0.5"/>
-          <line x1="12" y1="45" x2="68" y2="45" stroke="#4A9EFF" stroke-width="0.4" opacity="0.5"/>
-          <circle cx="28" cy="38" r="3" stroke="#4A9EFF" stroke-width="0.8" fill="none"/>
-          <circle cx="52" cy="38" r="3" stroke="#4A9EFF" stroke-width="0.8" fill="none"/>
-          <path d="M33 55 Q40 60 47 55" stroke="#4A9EFF" stroke-width="0.8" fill="none"/>
-          <line x1="12" y1="45" x2="20" y2="50" stroke="#4A9EFF" stroke-width="0.4" opacity="0.3"/>
-          <line x1="68" y1="45" x2="60" y2="50" stroke="#4A9EFF" stroke-width="0.4" opacity="0.3"/>
-        </svg>
-        <div class="lab-coming">ALGORITHM CALIBRATING...</div>
-      </div>
-      <div class="lab-metrics">
-        <div class="lab-metric-row">
-          <div class="lab-metric-label">SYMMETRY</div>
-          <div class="lab-metric-bar"><div class="lab-metric-fill" style="width:72%"></div></div>
-          <div class="lab-metric-val">72%</div>
-        </div>
-        <div class="lab-metric-row">
-          <div class="lab-metric-label">JAWLINE</div>
-          <div class="lab-metric-bar"><div class="lab-metric-fill" style="width:58%"></div></div>
-          <div class="lab-metric-val">58%</div>
-        </div>
-        <div class="lab-metric-row">
-          <div class="lab-metric-label">CANTHAL TILT</div>
-          <div class="lab-metric-bar"><div class="lab-metric-fill" style="width:45%"></div></div>
-          <div class="lab-metric-val">45%</div>
-        </div>
-        <div class="lab-metric-row">
-          <div class="lab-metric-label">CHEEKBONES</div>
-          <div class="lab-metric-bar"><div class="lab-metric-fill" style="width:63%"></div></div>
-          <div class="lab-metric-val">63%</div>
-        </div>
-        <div class="lab-metric-row">
-          <div class="lab-metric-label">EYE RATIO</div>
-          <div class="lab-metric-bar"><div class="lab-metric-fill" style="width:81%"></div></div>
-          <div class="lab-metric-val">81%</div>
-        </div>
-      </div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted2);text-align:center;letter-spacing:1px;">
-        CLICK TO PREVIEW — FULL ANALYSIS COMING SOON
-      </div>
-    </div>
-  </div>
 
-  <!-- RANK PANEL -->
-  <div class="panel">
-    <div class="panel-header">
-      <span class="panel-tag">// Global Rank</span>
-      <a href="rank.html" style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted);text-decoration:none;letter-spacing:1px;" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--muted)'">VIEW ALL →</a>
-    </div>
-    <div class="rank-panel">
-      <a href="rank.html" style="text-decoration:none;">
-        <div class="tier-list">
-          <div class="tier-row" id="tier-Slayer"><div class="tier-left"><span class="tier-emoji">💀</span><span class="tier-name">SLAYER</span></div><span class="tier-elo">5001+</span></div>
-          <div class="tier-row" id="tier-Chad"><div class="tier-left"><span class="tier-emoji">👑</span><span class="tier-name">CHAD</span></div><span class="tier-elo">3501–5000</span></div>
-          <div class="tier-row" id="tier-Chadlite"><div class="tier-left"><span class="tier-emoji">🔥</span><span class="tier-name">CHADLITE</span></div><span class="tier-elo">2001–3500</span></div>
-          <div class="tier-row" id="tier-HTN"><div class="tier-left"><span class="tier-emoji">⭐</span><span class="tier-name">HTN</span></div><span class="tier-elo">1501–2000</span></div>
-          <div class="tier-row" id="tier-MTN"><div class="tier-left"><span class="tier-emoji">⚡</span><span class="tier-name">MTN</span></div><span class="tier-elo">1001–1500</span></div>
-          <div class="tier-row" id="tier-LTN"><div class="tier-left"><span class="tier-emoji">🌙</span><span class="tier-name">LTN</span></div><span class="tier-elo">501–1000</span></div>
-          <div class="tier-row" id="tier-Sub3"><div class="tier-left"><span class="tier-emoji">🔴</span><span class="tier-name">SUB3</span></div><span class="tier-elo">1–500</span></div>
-          <div class="tier-row" id="tier-Molecule"><div class="tier-left"><span class="tier-emoji">🧪</span><span class="tier-name">MOLECULE</span></div><span class="tier-elo">≤0</span></div>
-        </div>
-      </a>
-    </div>
-  </div>
+    <div class="hero-title">MOGME.TV</div>
 
-  <!-- PRIVATE ROOM PANEL -->
-  <div class="panel">
-    <div class="panel-header">
-      <span class="panel-tag">// Private Room — Invite Only</span>
+    <div class="online-badge">
+      <div class="online-dot"></div>
+      <span class="online-count-val">— ONLINE</span>
     </div>
-    <div class="private-panel">
-      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);line-height:1.7;letter-spacing:0.3px;">
-        Challenge a friend directly. Generate a 6-digit code and share it — cameras connect peer-to-peer.
-      </div>
-      <div class="code-input-display">——————</div>
-      <a href="private.html" class="btn-primary" style="text-align:center;font-size:13px;padding:12px;display:block;">
-        ENTER PRIVATE ROOM →
-      </a>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted2);text-align:center;letter-spacing:0.5px;">
-        Unranked · Room expires in 10 minutes
-      </div>
-    </div>
-  </div>
 
-  <!-- ACTIVITY -->
-  <div class="panel">
-    <div class="panel-header">
-      <span class="panel-tag" style="display:flex;align-items:center;gap:6px;">
-        <span style="width:4px;height:4px;border-radius:50%;background:var(--red);animation:livepulse 1.5s ease infinite;display:inline-block;"></span>
-        // Live Activity
-      </span>
-    </div>
-    <div class="activity-panel">
-      <div id="activityFeed"></div>
-    </div>
-  </div>
-
-  <!-- TOP MOGGERS -->
-  <div class="panel" style="grid-column:span 2;">
-    <div class="panel-header">
-      <span class="panel-tag">// Top Moggers</span>
-      <a href="rank.html" style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted);text-decoration:none;letter-spacing:1px;">VIEW ALL →</a>
-    </div>
-    <div id="lbPreview">
-      <div style="padding:16px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);">Loading...</div>
-    </div>
-  </div>
-
-  <!-- SOCIAL -->
-  <div class="social-grid">
-    <a href="#" class="social-card" target="_blank" rel="noopener">
-      <div><div class="social-label">DISCORD</div><div class="social-name">Join the server</div></div>
-      <div class="social-arrow">→</div>
+    <!-- ENTER CARD -->
+    <a class="enter-card" href="arena.html">
+      <div class="enter-icon">⚔️</div>
+      <div class="enter-title">ENTER THE ARENA</div>
+      <div class="enter-cta">START CAMERA CHECK →</div>
+      <div class="enter-disclaimer">By entering you agree to our Terms of Service and Privacy Policy</div>
     </a>
-    <a href="#" class="social-card" target="_blank" rel="noopener">
-      <div><div class="social-label">TIKTOK</div><div class="social-name">Follow MogMe.TV</div></div>
-      <div class="social-arrow">→</div>
+
+    <div class="enter-disclaimer" style="margin-top:8px;">
+      ANTI-ABUSE SESSION GATE · AI FACE SCAN · NOT LEGAL ID VERIFICATION
+    </div>
+  </div>
+
+  <!-- STEPS -->
+  <div class="steps-row">
+    <div class="step-card">
+      <div class="step-num">1</div>
+      <div class="step-title">Camera Check</div>
+      <div class="step-desc">Complete a quick camera check to enter the queue.</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">2</div>
+      <div class="step-title">AI Face Scan</div>
+      <div class="step-desc">Your face is scanned and scored using 10 facial metrics.</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">3</div>
+      <div class="step-title">Compete & Climb</div>
+      <div class="step-desc">Win matches, earn ELO, and climb the global leaderboard.</div>
+    </div>
+  </div>
+
+  <!-- ACTION CARDS -->
+  <div class="action-row">
+    <a class="action-card" href="rank.html">
+      <div class="action-icon">🏆</div>
+      <div>
+        <div class="action-title">View Leaderboard</div>
+        <div class="action-sub">See top players and rankings</div>
+      </div>
+      <div class="action-arrow">→</div>
     </a>
-    <a href="#" class="social-card" target="_blank" rel="noopener">
-      <div><div class="social-label">INSTAGRAM</div><div class="social-name">Follow MogMe.TV</div></div>
-      <div class="social-arrow">→</div>
+    <a class="action-card" href="private.html">
+      <div class="action-icon">🔒</div>
+      <div>
+        <div class="action-title">Private Room</div>
+        <div class="action-sub">Challenge a friend with a code</div>
+      </div>
+      <div class="action-arrow">→</div>
     </a>
-    <a href="#" class="social-card" target="_blank" rel="noopener">
-      <div><div class="social-label">REDDIT</div><div class="social-name">Follow MogMe.TV</div></div>
-      <div class="social-arrow">→</div>
+    <div class="action-card" onclick="openHowModal()">
+      <div class="action-icon">❓</div>
+      <div>
+        <div class="action-title">How to Mog</div>
+        <div class="action-sub">Rules and tips for better matches</div>
+      </div>
+      <div class="action-arrow">→</div>
+    </div>
+    <a class="action-card" href="#" target="_blank" rel="noopener">
+      <div class="action-icon" style="font-size:18px;">💬</div>
+      <div>
+        <div class="action-title">Join Discord</div>
+        <div class="action-sub">Chat, events & updates</div>
+      </div>
+      <div class="action-arrow">→</div>
     </a>
-    <a href="#" class="social-card" target="_blank" rel="noopener">
-      <div><div class="social-label">YOUTUBE</div><div class="social-name">Follow MogMe.TV</div></div>
-      <div class="social-arrow">→</div>
-    </a>
-    <a href="#" class="social-card" target="_blank" rel="noopener">
-      <div><div class="social-label">X / TWITTER</div><div class="social-name">Follow MogMe.TV</div></div>
-      <div class="social-arrow">→</div>
-    </a>
+  </div>
+
+  <!-- SOCIAL FOOTER -->
+  <div class="social-footer">
+    TIKTOK · INSTAGRAM · REDDIT · YOUTUBE · X / TWITTER
   </div>
 
 </div>
@@ -740,40 +461,21 @@ function tick(){
 }
 tick(); setInterval(tick,1000);
 
-// Load stats
+// Player bar
 var n=localStorage.getItem('mgm_username')||localStorage.getItem('mgm_name');
-if(n) document.getElementById('dashName').textContent=n;
-
-var photo=localStorage.getItem('mgm_photo');
-if(photo){ var av=document.getElementById('dashAvatar'); av.innerHTML='<img src="'+photo+'" alt="">'; }
-
 var e=parseInt(localStorage.getItem('mgm_elo')||'400');
 var w=parseInt(localStorage.getItem('mgm_wins')||'0');
 var l=parseInt(localStorage.getItem('mgm_losses')||'0');
-var tierName=getTierName(e);
 
-document.getElementById('heroElo').textContent=e;
-document.getElementById('heroRecord').textContent=w+'W — '+l+'L';
-document.getElementById('heroTier').textContent=tierName.toUpperCase();
-document.getElementById('panelElo').textContent=e+' ELO';
-document.getElementById('dashTierBadge').textContent=tierName.toUpperCase();
-document.getElementById('dashWins').textContent=w;
-document.getElementById('dashLosses').textContent=l;
-
-// Highlight current tier
-var tierRow=document.getElementById('tier-'+tierName);
-if(tierRow) tierRow.classList.add('current');
-
-// ELO progress
-var prog=calcEloProgress(e);
-document.getElementById('eloBarNeeded').textContent=prog.eloNeeded>0?prog.eloNeeded+' TO NEXT':'MAX TIER';
-document.getElementById('eloBarPct').textContent=prog.pct+'%';
-if(prog.nextTier) document.getElementById('dashNext').textContent=prog.nextTier.toUpperCase();
-setTimeout(function(){ var f=document.getElementById('eloBarFill'); if(f) f.style.width=prog.pct+'%'; },600);
-
-startActivityFeed();
-setTimeout(function(){loadLeaderboard('lbPreview');},1500);
-setInterval(function(){loadLeaderboard('lbPreview');},30000);
+if(n){
+  document.getElementById('playerBar').style.display='flex';
+  document.getElementById('pbName').textContent=n;
+  document.getElementById('pbRecord').textContent=w+'W — '+l+'L';
+  document.getElementById('pbTier').textContent=getTierName(e).toUpperCase();
+  document.getElementById('pbElo').textContent=e;
+  var photo=localStorage.getItem('mgm_photo');
+  if(photo){ document.getElementById('pbAvatar').innerHTML='<img src="'+photo+'" alt="">'; }
+}
 </script>
 </body>
 </html>
