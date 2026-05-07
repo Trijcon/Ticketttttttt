@@ -96,16 +96,7 @@
   <div class="status-top">
     <div style="display:flex;align-items:center;gap:8px;">
       <div class="status-dot" id="sDot"></div>
-      <div class="status-label" id="sText">Start your camera to enter the queue</div>
-    </div>
-    <div class="queue-label" id="qText"></div>
-  </div>
-
-  <!-- STATUS BAR -->
-  <div class="status-top">
-    <div class="status-label">
-      <div class="status-dot" id="sDot"></div>
-      <div id="sText">Complete camera check to enter queue</div>
+      <div class="status-label" id="sText">Complete camera check to enter queue</div>
     </div>
     <div class="queue-label" id="qText"></div>
   </div>
@@ -339,9 +330,20 @@ function completeCameraCheck(){
     v.srcObject=myStream;
     v.onloadedmetadata=function(){
       var c=document.getElementById('myCanvas');
+      // Set canvas resolution to match video
       c.width=v.videoWidth; c.height=v.videoHeight;
-      function syncCanvas(){var r=v.getBoundingClientRect();c.style.width=r.width+'px';c.style.height=r.height+'px';}
-      syncCanvas(); window.addEventListener('resize',syncCanvas);
+      // Sync canvas CSS size to actual displayed video size
+      function syncCanvas(){
+        var r=v.getBoundingClientRect();
+        c.style.width=r.width+'px';
+        c.style.height=r.height+'px';
+        c.style.top='0'; c.style.left='0';
+      }
+      syncCanvas();
+      window.addEventListener('resize',syncCanvas);
+      // Also sync after short delay for layout to settle
+      setTimeout(syncCanvas, 200);
+      setTimeout(syncCanvas, 500);
       document.getElementById('myPH').style.display='none';
       document.getElementById('myInfoTL').style.display='block';
       document.getElementById('myLabelTR').style.display='block';
