@@ -566,11 +566,143 @@ function runScan(){
   },2400);
 }
 
+/* ── SOUND ENGINE — MAXIMUM HYPE ── */
+function playVictorySound(){
+  try {
+    var ctx=new(window.AudioContext||window.webkitAudioContext)();
+    var master=ctx.createGain();
+    master.gain.value=0.7;
+    master.connect(ctx.destination);
+
+    // Bass kick drum hits
+    function kick(t){
+      var osc=ctx.createOscillator();
+      var g=ctx.createGain();
+      osc.connect(g); g.connect(master);
+      osc.type='sine';
+      osc.frequency.setValueAtTime(150,t);
+      osc.frequency.exponentialRampToValueAtTime(0.001,t+0.4);
+      g.gain.setValueAtTime(1,t);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.4);
+      osc.start(t); osc.stop(t+0.4);
+    }
+
+    // Snare hit
+    function snare(t){
+      var buf=ctx.createBuffer(1,ctx.sampleRate*0.15,ctx.sampleRate);
+      var data=buf.getChannelData(0);
+      for(var i=0;i<data.length;i++) data[i]=(Math.random()*2-1);
+      var src=ctx.createBufferSource();
+      src.buffer=buf;
+      var g=ctx.createGain();
+      var filt=ctx.createBiquadFilter();
+      filt.type='highpass'; filt.frequency.value=1000;
+      src.connect(filt); filt.connect(g); g.connect(master);
+      g.gain.setValueAtTime(0.4,t);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.15);
+      src.start(t); src.stop(t+0.15);
+    }
+
+    // Melody note
+    function note(freq,t,dur,type,vol){
+      var osc=ctx.createOscillator();
+      var g=ctx.createGain();
+      osc.connect(g); g.connect(master);
+      osc.type=type||'square';
+      osc.frequency.value=freq;
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(vol||0.3,t+0.02);
+      g.gain.setValueAtTime(vol||0.3,t+dur-0.05);
+      g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+      osc.start(t); osc.stop(t+dur);
+    }
+
+    var T=ctx.currentTime;
+
+    // Beat pattern — 2 bars
+    kick(T); kick(T+0.5); kick(T+0.75);
+    kick(T+1.0); kick(T+1.5); kick(T+1.75);
+    snare(T+0.25); snare(T+0.75);
+    snare(T+1.25); snare(T+1.75);
+
+    // Victory melody — ascending hype riff
+    // Bar 1
+    note(523,T+0.0,0.18,'square',0.25);   // C5
+    note(659,T+0.2,0.18,'square',0.25);   // E5
+    note(784,T+0.4,0.18,'square',0.25);   // G5
+    note(1047,T+0.6,0.35,'square',0.3);   // C6
+    note(988,T+1.0,0.18,'square',0.25);   // B5
+    note(1047,T+1.2,0.55,'square',0.35);  // C6 held
+
+    // Harmony layer (sawtooth underneath)
+    note(262,T+0.0,0.18,'sawtooth',0.1);
+    note(330,T+0.2,0.18,'sawtooth',0.1);
+    note(392,T+0.4,0.18,'sawtooth',0.1);
+    note(523,T+0.6,0.9,'sawtooth',0.12);
+
+    // Final big chord hit at end
+    [523,659,784,1047].forEach(function(f){
+      note(f,T+1.85,0.8,'sine',0.2);
+    });
+
+    // Reverb-style delay echoes on final chord
+    [523,659,784].forEach(function(f,i){
+      note(f,T+2.1+i*0.08,0.4,'sine',0.08);
+    });
+
+  } catch(e){}
+}
+
+function playDefeatSound(){
+  try {
+    var ctx=new(window.AudioContext||window.webkitAudioContext)();
+    var master=ctx.createGain();
+    master.gain.value=0.6;
+    master.connect(ctx.destination);
+
+    function note(freq,t,dur,type,vol){
+      var osc=ctx.createOscillator();
+      var g=ctx.createGain();
+      osc.connect(g); g.connect(master);
+      osc.type=type||'sine';
+      osc.frequency.value=freq;
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(vol||0.25,t+0.04);
+      g.gain.setValueAtTime(vol||0.25,t+dur-0.08);
+      g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+      osc.start(t); osc.stop(t+dur);
+    }
+
+    var T=ctx.currentTime;
+
+    // Slow descending sad melody
+    note(392,T+0.0,0.4,'sine',0.3);   // G4
+    note(370,T+0.4,0.4,'sine',0.28);  // F#4
+    note(330,T+0.8,0.4,'sine',0.26);  // E4
+    note(294,T+1.2,0.8,'sine',0.24);  // D4 — held
+
+    // Dark harmony underneath
+    note(196,T+0.0,0.4,'sawtooth',0.08);
+    note(185,T+0.4,0.4,'sawtooth',0.08);
+    note(165,T+0.8,0.4,'sawtooth',0.08);
+    note(147,T+1.2,0.8,'sawtooth',0.08);
+
+    // Final low thud
+    var osc=ctx.createOscillator();
+    var g=ctx.createGain();
+    osc.connect(g); g.connect(master);
+    osc.type='sine'; osc.frequency.value=60;
+    g.gain.setValueAtTime(0.5,T+2.1);
+    g.gain.exponentialRampToValueAtTime(0.001,T+2.8);
+    osc.start(T+2.1); osc.stop(T+2.8);
+
+  } catch(e){}
+}
+
 function onResult(msg){
   state='result';
   myLastScore=msg.myScore||0; oppLastScore=msg.opponentScore||0;
   updateMoggingBar(myLastScore,oppLastScore);
-  // Show opp score on overlay
   document.getElementById('oppScoreVal').textContent=oppLastScore.toFixed(1);
   var oppTierElo=scoreToElo(oppLastScore);
   document.getElementById('oppTierBadge').textContent=getTierEmoji(oppTierElo)+' '+getTierName(oppTierElo);
@@ -583,6 +715,8 @@ function onResult(msg){
   document.getElementById('rElo').innerHTML='ELO: <span class="'+(chg>=0?'elo-up':'elo-down')+'">'+(chg>=0?'+':'')+chg+' \u2192 '+(msg.newElo||_elo)+' total</span>';
   document.getElementById('resultCard').classList.add('show');
   document.getElementById('mainBtn').style.display='none'; document.getElementById('skipBtn').style.display='none';
+  // Play sound
+  if(msg.won) playVictorySound(); else playDefeatSound();
 }
 
 function rematch(){
