@@ -3,199 +3,195 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MogMe.TV — Arena</title>
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<title>MogMe.TV — 1V1 Arena</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 <style>
-.arena-wrap { max-width:900px; margin:0 auto; }
-.page-eyebrow { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:2px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; }
-.page-title { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:32px; color:var(--white); letter-spacing:-0.5px; margin-bottom:20px; }
-
-.status-bar {
-  background:var(--glass); border:1px solid var(--border);
-  border-radius:var(--radius); padding:12px 18px;
-  display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;
-}
-.status-left { display:flex; align-items:center; gap:8px; }
-.status-dot { width:6px; height:6px; border-radius:50%; background:var(--muted2); flex-shrink:0; transition:all 0.3s; }
-.status-dot.searching { background:var(--amber); animation:pulse 0.8s infinite; }
-.status-dot.connected { background:var(--green); }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-.status-text { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:0.3px; }
-.queue-text { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2); }
+.arena-wrap{max-width:900px;margin:0 auto;}
+.page-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:38px;letter-spacing:1px;margin-bottom:4px;color:var(--white);}
+.page-sub{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--muted);margin-bottom:20px;}
+.status-top{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--muted2);flex-shrink:0;transition:all 0.3s;}
+.status-dot.searching{background:var(--amber);box-shadow:0 0 8px var(--amber);animation:blink 0.8s infinite;}
+.status-dot.connected{background:var(--green);box-shadow:0 0 8px var(--green);}
+.status-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:8px;}
+.queue-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);}
 
 /* FEEDS */
-.feeds-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
-.feed-box {
-  position:relative; border-radius:var(--radius); overflow:hidden;
-  background:#000; border:1px solid var(--border); aspect-ratio:4/3;
-  transition:border-color 0.2s;
+.feeds-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px;}
+.feed-box{position:relative;border-radius:14px;overflow:hidden;background:#020208;border:1px solid var(--border);aspect-ratio:4/3;}
+.feed-video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1);}
+.feed-canvas{position:absolute;top:0;left:0;width:100%;height:100%;transform:scaleX(-1);pointer-events:none;}
+.feed-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+.feed-ph-icon{font-size:44px;opacity:0.25;}
+.feed-ph-text{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);letter-spacing:1px;}
+
+/* SCAN OVERLAY */
+.scan-overlay{position:absolute;inset:0;pointer-events:none;z-index:10;}
+
+/* Top-left info panel */
+.scan-info-tl{
+  position:absolute;top:10px;left:10px;
+  background:rgba(0,0,0,0.72);border:1px solid rgba(255,255,255,0.1);
+  border-radius:10px;padding:10px 12px;min-width:130px;
+  backdrop-filter:blur(4px);display:none;
 }
-.feed-box.active { border-color:rgba(74,158,255,0.25); }
-.feed-video { width:100%; height:100%; object-fit:cover; display:block; transform:scaleX(-1); }
-.feed-canvas { position:absolute; top:0; left:0; width:100%; height:100%; transform:scaleX(-1); pointer-events:none; }
+.scan-score-label{font-family:'JetBrains Mono',monospace;font-size:8px;color:rgba(255,255,255,0.5);letter-spacing:1px;margin-bottom:2px;}
+.scan-score-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:36px;line-height:1;color:#fff;margin-bottom:4px;}
+.scan-tier-badge{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:1px;}
+.scan-dom-row{margin-top:6px;border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;}
+.scan-feat-label{font-family:'JetBrains Mono',monospace;font-size:8px;color:rgba(255,255,255,0.4);letter-spacing:1px;}
+.scan-feat-val{font-family:'JetBrains Mono',monospace;font-size:10px;color:#0df2c8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px;}
+.scan-flaw-val{font-family:'JetBrains Mono',monospace;font-size:10px;color:#ff3d6b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px;}
 
-/* Scan overlay panels */
-.scan-tl {
-  position:absolute; top:10px; left:10px; z-index:10;
-  background:rgba(0,0,0,0.75); border:1px solid rgba(74,158,255,0.2);
-  border-radius:4px; padding:10px 12px; min-width:120px;
-  backdrop-filter:blur(8px); display:none;
+/* Top-right label */
+.scan-label-tr{
+  position:absolute;top:10px;right:10px;
+  background:rgba(0,0,0,0.72);border:1px solid rgba(255,255,255,0.1);
+  border-radius:10px;padding:8px 12px;text-align:right;
+  backdrop-filter:blur(4px);display:none;
 }
-.scan-score-label { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:1px; color:var(--muted2); margin-bottom:2px; }
-.scan-score { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:32px; line-height:1; color:var(--white); margin-bottom:4px; }
-.scan-tier { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1px; color:var(--blue); }
-.scan-metrics { margin-top:8px; border-top:1px solid rgba(255,255,255,0.06); padding-top:6px; }
-.scan-metric-row { display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:8px; margin-bottom:2px; }
-.scan-metric-label { color:var(--muted2); }
-.scan-metric-val { color:var(--blue); }
-.scan-flaw { color:var(--red) !important; }
+.scan-label-tag{font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:1px;margin-bottom:4px;}
+.scan-label-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:1px;color:#fff;margin-bottom:3px;}
+.scan-label-elo{font-family:'JetBrains Mono',monospace;font-size:11px;display:flex;align-items:center;gap:5px;justify-content:flex-end;}
 
-.scan-tr {
-  position:absolute; top:10px; right:10px; z-index:10;
-  background:rgba(0,0,0,0.75); border:1px solid rgba(255,255,255,0.08);
-  border-radius:4px; padding:8px 12px; text-align:right;
-  backdrop-filter:blur(8px); display:none;
-}
-.scan-tag { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:1px; color:var(--muted2); margin-bottom:3px; }
-.scan-name { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:14px; color:var(--white); margin-bottom:2px; }
-.scan-elo-row { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--blue); }
+/* Report button */
+.report-btn{position:absolute;bottom:10px;left:10px;background:rgba(255,61,107,0.15);border:1px solid rgba(255,61,107,0.3);border-radius:7px;padding:5px 12px;color:#ff3d6b;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;display:none;z-index:15;transition:all 0.2s;}
+.report-btn:hover{background:rgba(255,61,107,0.25);}
 
-.feed-ph { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; }
-.feed-ph-text { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2); letter-spacing:1px; }
+/* VS + MOGGING BAR */
+.vs-section{display:flex;align-items:center;gap:14px;margin-bottom:10px;padding:0 4px;}
+.mogging-wrap{flex:1;}
+.mogging-label{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted2);margin-bottom:4px;}
+.mogging-bar{height:8px;background:rgba(255,255,255,0.06);border-radius:999px;overflow:hidden;position:relative;}
+.mogging-fill{position:absolute;left:0;top:0;height:100%;width:50%;background:linear-gradient(90deg,var(--teal),var(--violet));border-radius:999px;transition:width 1s cubic-bezier(0.34,1.56,0.64,1);}
+.vs-circle{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:12px;color:var(--muted);flex-shrink:0;}
 
-.report-btn {
-  position:absolute; bottom:10px; left:10px; z-index:15;
-  background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2);
-  border-radius:3px; padding:4px 10px; color:var(--red);
-  font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1px;
-  cursor:pointer; display:none; transition:all 0.2s;
-}
-.report-btn:hover { background:rgba(239,68,68,0.18); }
-
-/* MOGGING BAR */
-.mog-section { display:flex; align-items:center; gap:12px; margin-bottom:10px; padding:0 2px; }
-.mog-side { flex:1; }
-.mog-label { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.5px; color:var(--muted2); margin-bottom:4px; display:flex; justify-content:space-between; }
-.mog-bar { height:2px; background:var(--bg4); border-radius:999px; overflow:hidden; position:relative; }
-.mog-fill { position:absolute; top:0; height:100%; width:50%; background:var(--blue); border-radius:999px; transition:width 1.2s cubic-bezier(0.34,1.56,0.64,1); }
-.mog-fill-r { right:0; background:var(--red); }
-.vs-label { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2); flex-shrink:0; }
-
-.actions-row { display:flex; gap:8px; margin-bottom:12px; }
+.actions-row{display:flex;gap:10px;margin-bottom:12px;}
 
 /* RESULT */
-.result-card { display:none; background:var(--bg2); border:1px solid var(--border2); border-radius:var(--radius); padding:28px; text-align:center; }
-.result-card.show { display:block; animation:fadeUp 0.3s ease; }
-@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-.result-label { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:2px; color:var(--muted); margin-bottom:10px; }
-.result-title { font-family:'Space Grotesk',sans-serif; font-size:32px; font-weight:700; margin-bottom:16px; }
-.scores-row { display:flex; align-items:center; justify-content:center; gap:20px; margin-bottom:12px; }
-.score-num { font-family:'Space Grotesk',sans-serif; font-size:64px; font-weight:700; color:var(--blue); line-height:1; }
-.score-lbl { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2); margin-top:4px; letter-spacing:1px; }
-.score-vs { font-family:'JetBrains Mono',monospace; font-size:16px; color:var(--muted2); }
-.elo-change { font-family:'JetBrains Mono',monospace; font-size:13px; margin-bottom:20px; }
-.elo-up { color:var(--green); } .elo-dn { color:var(--red); }
-.result-actions { display:flex; gap:8px; justify-content:center; }
+.result-card{display:none;background:linear-gradient(135deg,#141228,#0f0d20);border:1px solid rgba(13,242,200,0.2);border-radius:16px;padding:28px;text-align:center;}
+.result-card.show{display:block;}
+.result-eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;margin-bottom:10px;}
+.result-title{font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:900;margin-bottom:14px;}
+.scores-row{display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:10px;}
+.score-big{font-family:'Barlow Condensed',sans-serif;font-size:68px;font-weight:900;color:var(--teal);line-height:1;}
+.score-vs{font-family:'JetBrains Mono',monospace;font-size:18px;color:var(--muted2);}
+.score-sm{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px;}
+.elo-line{font-family:'JetBrains Mono',monospace;font-size:13px;margin-bottom:18px;}
+.elo-up{color:var(--green);} .elo-down{color:var(--crimson);}
+.result-actions{display:flex;gap:10px;justify-content:center;}
 </style>
 </head>
 <body>
 <div class="page-wrap">
 <div class="arena-wrap">
-  <div class="page-eyebrow">Ranked Matchmaking</div>
-  <div class="page-title">1V1 Arena</div>
+  <div class="page-title">⚔️ 1V1 ARENA</div>
+  <div class="page-sub">RANKED MATCHMAKING — PEER TO PEER</div>
 
-  <div class="status-bar">
-    <div class="status-left">
+  <div class="status-top">
+    <div style="display:flex;align-items:center;gap:8px;">
       <div class="status-dot" id="sDot"></div>
-      <div class="status-text" id="sText">Start your camera to enter the queue</div>
+      <div class="status-label" id="sText">Start your camera to enter the queue</div>
     </div>
-    <div class="queue-text" id="qText"></div>
+    <div class="queue-label" id="qText"></div>
   </div>
 
   <div class="feeds-grid">
     <!-- YOU -->
-    <div class="feed-box" id="myFeedBox">
+    <div class="feed-box">
       <video class="feed-video" id="myVid" autoplay playsinline muted></video>
       <canvas class="feed-canvas" id="myCanvas"></canvas>
-      <div class="scan-tl" id="myTL">
-        <div class="scan-score-label">Score</div>
-        <div class="scan-score" id="myScoreVal">—</div>
-        <div class="scan-tier" id="myTierVal">—</div>
-        <div class="scan-metrics">
-          <div class="scan-metric-row"><span class="scan-metric-label">DOM</span><span class="scan-metric-val" id="myDom">—</span></div>
-          <div class="scan-metric-row"><span class="scan-metric-label">FLAW</span><span class="scan-metric-val scan-flaw" id="myFlaw">—</span></div>
-          <div class="scan-metric-row"><span class="scan-metric-label">SYM</span><span class="scan-metric-val" id="mySym">—</span></div>
+      <!-- Overlay -->
+      <div class="scan-overlay">
+        <div class="scan-info-tl" id="myInfoTL">
+          <div class="scan-score-label">OVERALL SCORE</div>
+          <div class="scan-score-val" id="myScoreVal">—</div>
+          <div class="scan-tier-badge" id="myTierBadge">—</div>
+          <div class="scan-dom-row">
+            <div class="scan-feat-label">DOM</div>
+            <div class="scan-feat-val" id="myDom">—</div>
+            <div class="scan-feat-label" style="margin-top:3px;">FLAW</div>
+            <div class="scan-flaw-val" id="myFlaw">—</div>
+          </div>
+        </div>
+        <div class="scan-label-tr" id="myLabelTR">
+          <div class="scan-label-tag">YOUR SCAN</div>
+          <div class="scan-label-name" id="myLabelName">YOU</div>
+          <div class="scan-label-elo" id="myLabelElo">
+            <span id="myTierEmoji">🔴</span>
+            <span id="myTierName" style="color:var(--teal);">SUB3</span>
+            <span style="color:rgba(255,255,255,0.4);">|</span>
+            <span id="myEloLabel" style="color:var(--teal);">400 ELO</span>
+          </div>
         </div>
       </div>
-      <div class="scan-tr" id="myTR">
-        <div class="scan-tag">Your Scan</div>
-        <div class="scan-name" id="myTRName">You</div>
-        <div class="scan-elo-row" id="myTRElo">400 ELO</div>
-      </div>
-      <div class="feed-ph" id="myPH">
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="#333" stroke-width="1"/><circle cx="16" cy="12" r="5" stroke="#333" stroke-width="1"/><path d="M6 28c0-5.523 4.477-10 10-10s10 4.477 10 10" stroke="#333" stroke-width="1"/></svg>
-        <div class="feed-ph-text">Camera Off</div>
-      </div>
+      <div class="feed-ph" id="myPH"><div class="feed-ph-icon">📷</div><div class="feed-ph-text">CAMERA OFF</div></div>
     </div>
 
     <!-- OPPONENT -->
-    <div class="feed-box" id="oppFeedBox">
+    <div class="feed-box">
       <video class="feed-video" id="oppVid" autoplay playsinline style="display:none;"></video>
-      <div class="scan-tl" id="oppTL">
-        <div class="scan-score-label">Score</div>
-        <div class="scan-score" id="oppScoreVal">—</div>
-        <div class="scan-tier" id="oppTierVal">—</div>
-        <div class="scan-metrics">
-          <div class="scan-metric-row"><span class="scan-metric-label">DOM</span><span class="scan-metric-val" id="oppDom">—</span></div>
-          <div class="scan-metric-row"><span class="scan-metric-label">FLAW</span><span class="scan-metric-val scan-flaw" id="oppFlaw">—</span></div>
+      <!-- Overlay -->
+      <div class="scan-overlay">
+        <div class="scan-info-tl" id="oppInfoTL">
+          <div class="scan-score-label">OVERALL SCORE</div>
+          <div class="scan-score-val" id="oppScoreVal">—</div>
+          <div class="scan-tier-badge" id="oppTierBadge">—</div>
+          <div class="scan-dom-row">
+            <div class="scan-feat-label">DOM</div>
+            <div class="scan-feat-val" id="oppDom">—</div>
+            <div class="scan-feat-label" style="margin-top:3px;">FLAW</div>
+            <div class="scan-flaw-val" id="oppFlaw">—</div>
+          </div>
+        </div>
+        <div class="scan-label-tr" id="oppLabelTR">
+          <div class="scan-label-tag">ENEMY SCAN</div>
+          <div class="scan-label-name" id="oppLabelName">—</div>
+          <div class="scan-label-elo" id="oppLabelElo">
+            <span id="oppTierEmoji">🔴</span>
+            <span id="oppTierName" style="color:var(--crimson);">SUB3</span>
+            <span style="color:rgba(255,255,255,0.4);">|</span>
+            <span id="oppEloLabel" style="color:var(--crimson);">— ELO</span>
+          </div>
         </div>
       </div>
-      <div class="scan-tr" id="oppTR">
-        <div class="scan-tag">Enemy Scan</div>
-        <div class="scan-name" id="oppTRName">—</div>
-        <div class="scan-elo-row" id="oppTRElo">— ELO</div>
-      </div>
-      <button class="report-btn" id="reportBtn" onclick="reportOpp()">Report</button>
-      <div class="feed-ph" id="oppPH">
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="#333" stroke-width="1"/><circle cx="16" cy="12" r="5" stroke="#333" stroke-width="1"/><path d="M6 28c0-5.523 4.477-10 10-10s10 4.477 10 10" stroke="#333" stroke-width="1"/></svg>
-        <div class="feed-ph-text" id="oppPHText">Waiting...</div>
-      </div>
+      <button class="report-btn" id="reportBtn" onclick="reportOpponent()">REPORT</button>
+      <div class="feed-ph" id="oppPH"><div class="feed-ph-icon">👤</div><div class="feed-ph-text" id="oppPHText">WAITING...</div></div>
     </div>
   </div>
 
-  <!-- MOGGING BAR -->
-  <div class="mog-section">
-    <div class="mog-side">
-      <div class="mog-label"><span id="myMogName">You</span><span>Mogging</span></div>
-      <div class="mog-bar"><div class="mog-fill" id="mogFillL" style="width:50%;"></div></div>
+  <!-- VS + MOGGING BAR -->
+  <div class="vs-section">
+    <div class="mogging-wrap">
+      <div class="mogging-label"><span id="myMogLabel">YOU</span><span>MOGGING</span></div>
+      <div class="mogging-bar"><div class="mogging-fill" id="moggingFill"></div></div>
     </div>
-    <div class="vs-label">VS</div>
-    <div class="mog-side">
-      <div class="mog-label"><span>Mogging</span><span id="oppMogName">Opp</span></div>
-      <div class="mog-bar"><div class="mog-fill mog-fill-r" id="mogFillR" style="width:50%;"></div></div>
+    <div class="vs-circle">VS</div>
+    <div class="mogging-wrap">
+      <div class="mogging-label"><span>MOGGING</span><span id="oppMogLabel">OPP</span></div>
+      <div class="mogging-bar"><div class="mogging-fill" id="moggingFillR" style="background:linear-gradient(270deg,var(--crimson),var(--violet));left:auto;right:0;width:50%;"></div></div>
     </div>
   </div>
 
   <div class="actions-row">
-    <button class="btn-ghost" id="skipBtn" onclick="skipOpp()" style="display:none;flex:0 0 100px;">Skip →</button>
-    <button class="btn-primary" id="mainBtn" onclick="mainAction()" style="flex:1;font-size:15px;padding:14px;">Start Camera</button>
+    <button class="btn-outline" id="skipBtn" onclick="skipOpp()" style="display:none;flex:0 0 110px;">SKIP →</button>
+    <button class="btn-amber" id="mainBtn" onclick="mainAction()" style="flex:1;font-size:17px;padding:15px;">START CAMERA</button>
   </div>
 
   <div class="result-card" id="resultCard">
-    <div class="result-label">Match Complete</div>
+    <div class="result-eyebrow">MATCH COMPLETE</div>
     <div class="result-title" id="rTitle">—</div>
     <div class="scores-row">
-      <div><div class="score-num" id="rMy">—</div><div class="score-lbl">You</div></div>
-      <div class="score-vs">vs</div>
-      <div><div class="score-num" id="rOpp">—</div><div class="score-lbl">Opponent</div></div>
+      <div><div class="score-big" id="rMy">—</div><div class="score-sm">YOU</div></div>
+      <div class="score-vs">VS</div>
+      <div><div class="score-big" id="rOpp">—</div><div class="score-sm">OPPONENT</div></div>
     </div>
-    <div class="elo-change" id="rElo"></div>
+    <div class="elo-line" id="rElo"></div>
     <div class="result-actions">
-      <button class="btn-primary" onclick="rematch()">Rematch</button>
-      <button class="btn-ghost" onclick="window.location.href='index.html'">Dashboard</button>
+      <button class="btn-amber" onclick="rematch()">REMATCH</button>
+      <button class="btn-outline" onclick="window.location.href='index.html'">DASHBOARD</button>
     </div>
   </div>
 </div>
@@ -206,28 +202,44 @@
 <script type="module" src="auth.js"></script>
 <script>
 var state='idle',myStream=null,faceMesh=null,fmReady=false,myLandmarks=null;
-var peerConn=null,oppSocketId=null,myRole=null,myLastScore=0,oppLastScore=0;
+var peerConn=null,oppSocketId=null,myRole=null;
+var myLastScore=0,oppLastScore=0;
 var ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]};
 
-var _elo=parseInt(localStorage.getItem('mgm_elo')||'400');
-var _name=localStorage.getItem('mgm_username')||localStorage.getItem('mgm_name')||'You';
-document.getElementById('myTRName').textContent=_name;
-document.getElementById('myTRElo').textContent=_elo+' ELO · '+getTierName(_elo);
-document.getElementById('myMogName').textContent=_name;
+// Load user info
+var _name  = localStorage.getItem('mgm_username')||localStorage.getItem('mgm_name')||'YOU';
+var _elo   = parseInt(localStorage.getItem('mgm_elo')||'400');
+var _photo = localStorage.getItem('mgm_photo')||'';
+document.getElementById('myLabelName').textContent = _name;
+document.getElementById('myEloLabel').textContent  = _elo+' ELO';
+document.getElementById('myTierEmoji').textContent = getTierEmoji(_elo);
+document.getElementById('myTierName').textContent  = getTierName(_elo);
+document.getElementById('myMogLabel').textContent  = _name;
 
 injectSharedUI();
 connectWS(onMsg);
 
 function onMsg(msg){
   switch(msg.type){
-    case 'queue_joined': setS('searching','Searching for opponent...'); document.getElementById('mainBtn').textContent='Searching...'; document.getElementById('mainBtn').disabled=true; document.getElementById('skipBtn').style.display='flex'; state='searching'; break;
-    case 'queue_update': document.getElementById('qText').textContent=msg.size>0?msg.size+' in queue':''; break;
+    case 'queue_joined':
+      setS('searching','Searching for opponent...');
+      document.getElementById('mainBtn').textContent='SEARCHING...';
+      document.getElementById('mainBtn').disabled=true;
+      document.getElementById('skipBtn').style.display='flex';
+      state='searching'; break;
+    case 'queue_update':
+      document.getElementById('qText').textContent=msg.size>0?msg.size+' in queue':''; break;
     case 'match_found': onMatchFound(msg); break;
     case 'match_result': onResult(msg); break;
     case 'score_submitted': setS('searching','Score submitted — awaiting opponent...'); break;
-    case 'opponent_disconnected': setS('','Opponent disconnected'); resetOpp(); closeRTC(); state='camera'; setBtnFind(); document.getElementById('skipBtn').style.display='none'; break;
-    case 'opponent_skipped': setS('','You were skipped'); resetOpp(); closeRTC(); state='camera'; setBtnFind(); document.getElementById('skipBtn').style.display='none'; break;
-    case 'rtc_timeout': setS('','Camera timeout — returning to queue'); resetOpp(); closeRTC(); state='camera'; setBtnFind(); break;
+    case 'opponent_disconnected':
+      setS('','Opponent disconnected');resetOpp();closeRTC();state='camera';
+      setBtnFind();document.getElementById('skipBtn').style.display='none';
+      hideOverlays(); break;
+    case 'opponent_skipped':
+      setS('','You were skipped');resetOpp();closeRTC();state='camera';
+      setBtnFind();document.getElementById('skipBtn').style.display='none';
+      hideOverlays(); break;
     case 'webrtc_offer': handleOffer(msg); break;
     case 'webrtc_answer': handleAnswer(msg); break;
     case 'webrtc_ice': handleIce(msg); break;
@@ -244,10 +256,10 @@ function startCam(){
     v.onloadedmetadata=function(){
       var c=document.getElementById('myCanvas'); c.width=v.videoWidth; c.height=v.videoHeight;
       document.getElementById('myPH').style.display='none';
-      document.getElementById('myTL').style.display='block';
-      document.getElementById('myTR').style.display='block';
-      document.getElementById('myFeedBox').classList.add('active');
-      state='camera'; setBtnFind(); setS('','Camera active — find a match');
+      // Show my overlay
+      document.getElementById('myInfoTL').style.display='block';
+      document.getElementById('myLabelTR').style.display='block';
+      state='camera'; setBtnFind(); setS('','Camera active — find a match!');
       initFM(v,c);
     };
   }).catch(function(){ setS('','Camera denied — allow access to continue'); });
@@ -260,97 +272,273 @@ function initFM(v,c){
     var ctx=c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height);
     if(r.multiFaceLandmarks&&r.multiFaceLandmarks.length>0){
       myLandmarks=r.multiFaceLandmarks[0];
-      drawMesh(c,myLandmarks);
+      drawMesh(c,myLandmarks,'rgba(0,229,119,0.7)');
+      // Live score preview during camera
       if(state==='camera'||state==='matched'){
-        var res=calcScore(myLandmarks);
-        myLastScore=res.score;
-        document.getElementById('myScoreVal').textContent=res.score.toFixed(1);
-        document.getElementById('myTierVal').textContent=getTierName(scoreToElo(res.score));
-        document.getElementById('myDom').textContent=res.dom;
-        document.getElementById('myFlaw').textContent=res.flaw;
-        document.getElementById('mySym').textContent=Math.round(res.sym*100)+'%';
-        updateMogBar(res.score,oppLastScore);
+        var live=calcDetailedScore(myLandmarks);
+        document.getElementById('myScoreVal').textContent=live.score.toFixed(1);
+        document.getElementById('myTierBadge').textContent=getTierEmoji(scoreToElo(live.score))+' '+getTierName(scoreToElo(live.score));
+        document.getElementById('myTierBadge').style.color=getTierColor(live.score);
+        document.getElementById('myDom').textContent=live.dom;
+        document.getElementById('myFlaw').textContent=live.flaw;
+        updateMoggingBar(live.score, oppLastScore);
       }
-    }else{ myLandmarks=null; }
+    }else{myLandmarks=null;}
   });
   fmReady=true;
-  (function loop(){if(!fmReady||!myStream)return;faceMesh.send({image:v}).then(function(){requestAnimationFrame(loop);});})();
+  (async function loop(){if(!fmReady||!myStream)return;await faceMesh.send({image:v});requestAnimationFrame(loop);})();
 }
 
-function drawMesh(canvas,lm){
+function drawMesh(canvas,lm,dotColor){
   var ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
-  ctx.fillStyle='rgba(74,158,255,0.6)';
-  for(var i=0;i<lm.length;i++){ctx.beginPath();ctx.arc(lm[i].x*w,lm[i].y*h,1.1,0,Math.PI*2);ctx.fill();}
-  var c=[[33,7],[7,163],[163,144],[144,145],[145,153],[153,154],[154,155],[155,133],[362,382],[382,381],[381,380],[380,374],[374,373],[373,390],[390,249],[249,263],[61,185],[185,40],[40,39],[39,37],[37,0],[0,267],[267,269],[269,270],[270,409],[409,291],[291,375],[375,321],[321,405],[405,314],[314,17],[17,84],[84,181],[181,91],[91,146],[146,61],[10,338],[338,297],[297,332],[332,284],[284,251],[251,389],[389,356],[356,454],[454,323],[323,361],[361,288],[288,397],[397,365],[365,379],[379,378],[378,400],[400,377],[377,152]];
-  ctx.strokeStyle='rgba(74,158,255,0.15)'; ctx.lineWidth=0.7;
+  ctx.fillStyle=dotColor||'rgba(0,229,119,0.7)';
+  for(var i=0;i<lm.length;i++){ctx.beginPath();ctx.arc(lm[i].x*w,lm[i].y*h,1.4,0,Math.PI*2);ctx.fill();}
+  var c=[[33,7],[7,163],[163,144],[144,145],[145,153],[153,154],[154,155],[155,133],[362,382],[382,381],[381,380],[380,374],[374,373],[373,390],[390,249],[249,263],[61,185],[185,40],[40,39],[39,37],[37,0],[0,267],[267,269],[269,270],[270,409],[409,291],[291,375],[375,321],[321,405],[405,314],[314,17],[17,84],[84,181],[181,91],[91,146],[146,61],[10,338],[338,297],[297,332],[332,284],[284,251],[251,389],[389,356],[356,454],[454,323],[323,361],[361,288],[288,397],[397,365],[365,379],[379,378],[378,400],[400,377],[377,152],[152,148],[148,176],[176,149],[149,150],[150,136],[136,172]];
+  ctx.strokeStyle=(dotColor||'rgba(0,229,119,0.7)').replace('0.7','0.2');ctx.lineWidth=0.8;
   for(var j=0;j<c.length;j++){var a=c[j][0],b=c[j][1];if(lm[a]&&lm[b]){ctx.beginPath();ctx.moveTo(lm[a].x*w,lm[a].y*h);ctx.lineTo(lm[b].x*w,lm[b].y*h);ctx.stroke();}}
 }
 
-function calcScore(lm){
-  function dist(a,b){return Math.sqrt(Math.pow(lm[a].x-lm[b].x,2)+Math.pow(lm[a].y-lm[b].y,2));}
+/* ═══════════════════════════════════════
+   MOGME.TV — IMPROVED FACE ALGORITHM v2
+   Pure landmark math. Zero randomness.
+   10 metrics, temporal smoothing,
+   multi-sample averaging for stability.
+═══════════════════════════════════════ */
+
+// Rolling buffer for temporal smoothing — prevents score flickering
+var _scoreBuffer=[], _BUFFER_SIZE=8;
+
+function calcDetailedScore(lm){
+  if(!lm||lm.length<468) return {score:5,dom:'—',flaw:'—',metrics:{}};
+
+  // Distance between two landmark indices
+  function d(a,b){
+    return Math.sqrt(Math.pow((lm[a].x-lm[b].x),2)+Math.pow((lm[a].y-lm[b].y),2));
+  }
+  // Clamp to 0–1
+  function clamp(v){return Math.max(0,Math.min(1,v));}
+
+  var faceW  = d(234,454);  // total face width
+  var faceH  = d(10,152);   // total face height
+  if(faceW<0.01||faceH<0.01) return {score:5,dom:'—',flaw:'—',metrics:{}};
+
+  /* ── 1. FACIAL SYMMETRY (weight: 2.5)
+     Compare horizontal distances of 12 symmetric pairs from nose midline.
+     More pairs = more robust against head tilt. ── */
   var nose=lm[1];
-  var pairs=[[33,263],[130,359],[159,386],[145,374],[61,291],[234,454],[58,288],[172,397]];
-  var d=0,cnt=0;
-  for(var i=0;i<pairs.length;i++){var l=pairs[i][0],r=pairs[i][1];if(lm[l]&&lm[r]){d+=Math.abs(Math.abs(nose.x-lm[l].x)-Math.abs(lm[r].x-nose.x));cnt++;}}
-  var sym=Math.max(0,Math.min(1,1-(d/cnt)*16));
-  var jaw=Math.max(0,Math.min(1,1-Math.abs(dist(234,454)/dist(10,152)-0.75)*4));
-  var li=lm[133],lo=lm[33],ri=lm[362],ro=lm[263];
-  var tilt=li&&lo&&ri&&ro?((li.y-lo.y)+(ri.y-ro.y))/2:0;
-  var canthal=Math.max(0,Math.min(1,0.5+tilt*18));
-  var cheek=Math.max(0,Math.min(1,1-Math.abs(dist(234,454)/Math.max(dist(130,359),0.001)-1.05)*4));
-  var eye=Math.max(0,Math.min(1,1-Math.abs(dist(133,362)/Math.max(dist(234,454),0.001)-0.32)*10));
-  var total=(sym*3+jaw*2+canthal*1.8+cheek*1.2+eye*0.8)/8.8;
-  var score=Math.min(10,Math.max(1,total*9+( Math.random()-0.5)*0.4));
-  var metrics=[{n:'Symmetry',v:sym},{n:'Jawline',v:jaw},{n:'Canthal',v:canthal},{n:'Cheekbones',v:cheek},{n:'Eye Set',v:eye}];
-  metrics.sort(function(a,b){return b.v-a.v;});
-  var domMap={'Symmetry':'Strong Symmetry','Jawline':'Strong Jawline','Canthal':'Positive Canthal','Cheekbones':'High Cheekbones','Eye Set':'Ideal Eye Set'};
-  var flawMap={'Symmetry':'Asymmetry','Jawline':'Weak Jaw','Canthal':'Negative Canthal','Cheekbones':'Flat Cheeks','Eye Set':'Eye Spacing'};
-  return {score:score,sym:sym,dom:domMap[metrics[0].n]||metrics[0].n,flaw:flawMap[metrics[metrics.length-1].n]||metrics[metrics.length-1].n};
+  var symPairs=[
+    [33,263],[130,359],[159,386],[145,374],
+    [61,291],[234,454],[58,288],[172,397],
+    [70,300],[105,334],[107,336],[46,276]
+  ];
+  var symTotal=0,symCount=0;
+  for(var i=0;i<symPairs.length;i++){
+    var li=symPairs[i][0],ri=symPairs[i][1];
+    if(lm[li]&&lm[ri]){
+      var lDist=Math.abs(nose.x-lm[li].x);
+      var rDist=Math.abs(lm[ri].x-nose.x);
+      var avg=(lDist+rDist)/2;
+      if(avg>0.005){ // ignore near-zero distances
+        symTotal+=Math.abs(lDist-rDist)/avg;
+        symCount++;
+      }
+    }
+  }
+  var symmetry = symCount>0 ? clamp(1-(symTotal/symCount)*3.5) : 0.5;
+
+  /* ── 2. JAW DEFINITION (weight: 2.0)
+     Jaw-to-face ratio + jaw angularity (chin point vs jaw corners) ── */
+  var jawW=d(172,397); // jaw corner to jaw corner
+  var jawRatio=jawW/faceW;
+  var jawRatioScore=clamp(1-Math.abs(jawRatio-0.78)*5);
+  // Chin sharpness: how pointed the chin is relative to jaw width
+  var chinDepth=d(152,172)+d(152,397);
+  var chinRatio=chinDepth>0?jawW/chinDepth:0;
+  var chinScore=clamp(1-Math.abs(chinRatio-0.88)*6);
+  var jawScore=(jawRatioScore*0.6+chinScore*0.4);
+
+  /* ── 3. CANTHAL TILT (weight: 2.0)
+     Positive tilt (hunter eyes) = outer corner higher than inner.
+     Measured on both eyes, averaged. ── */
+  var lTilt=(lm[133]&&lm[33])?(lm[133].y-lm[33].y):0;
+  var rTilt=(lm[362]&&lm[263])?(lm[362].y-lm[263].y):0;
+  var avgTilt=(lTilt+rTilt)/2;
+  // Normalize: +0.015 tilt = very positive, −0.015 = very negative
+  var canthalScore=clamp(0.5+avgTilt*22);
+
+  /* ── 4. CHEEKBONE PROMINENCE (weight: 1.5)
+     Cheekbone width vs jaw width ratio. High cheekbones = cheekW > jawW. ── */
+  var cheekW=d(234,454);   // zygomatic width
+  var midW=d(130,359);     // mid-face width
+  var cheekRatio=midW>0?cheekW/midW:1;
+  // Ideal: cheekbones ~10% wider than mid-face
+  var cheekScore=clamp(1-Math.abs(cheekRatio-1.10)*6);
+
+  /* ── 5. EYE QUALITY (weight: 1.5)
+     Combines: inter-eye spacing + eye openness (vertical aperture) ── */
+  var eyeDist=d(133,362);
+  var eyeRatio=eyeDist/faceW;
+  var eyeSpacingScore=clamp(1-Math.abs(eyeRatio-0.31)*14);
+  // Eye openness: vertical height of eye aperture
+  var lEyeH=d(159,145); // left eye top to bottom
+  var rEyeH=d(386,374);
+  var avgEyeH=(lEyeH+rEyeH)/2;
+  var eyeOpenRatio=avgEyeH/faceH;
+  var eyeOpenScore=clamp(1-Math.abs(eyeOpenRatio-0.055)*40);
+  var eyeScore=(eyeSpacingScore*0.55+eyeOpenScore*0.45);
+
+  /* ── 6. NOSE PROPORTIONS (weight: 1.0)
+     Width ratio + tip definition (how sharp the nose tip is) ── */
+  var noseW=d(48,278);
+  var noseRatio=noseW/faceW;
+  var noseWidthScore=clamp(1-Math.abs(noseRatio-0.21)*14);
+  // Nose length relative to face height (rule of thirds = ~0.33)
+  var noseH=d(168,2);
+  var noseLenRatio=noseH/faceH;
+  var noseLenScore=clamp(1-Math.abs(noseLenRatio-0.32)*10);
+  var noseScore=(noseWidthScore*0.6+noseLenScore*0.4);
+
+  /* ── 7. LIP RATIO (weight: 0.8)
+     Upper-to-lower lip ratio (ideal ~0.7) + lip width ratio ── */
+  var upperLipH=d(0,13);   // philtrum to upper lip edge
+  var lowerLipH=d(14,152); // lower lip to chin
+  var lipRatio=lowerLipH>0?upperLipH/lowerLipH:0.7;
+  var lipScore=clamp(1-Math.abs(lipRatio-0.7)*5);
+
+  /* ── 8. FACIAL THIRDS (weight: 0.7)
+     Top third (forehead), mid third (nose zone), lower third (mouth/chin)
+     should be roughly equal ── */
+  var topThird=d(10,168);
+  var midThird=d(168,2);
+  var botThird=d(2,152);
+  var thirdsTotal=topThird+midThird+botThird;
+  var t1=thirdsTotal>0?topThird/thirdsTotal:0.33;
+  var t2=thirdsTotal>0?midThird/thirdsTotal:0.33;
+  var t3=thirdsTotal>0?botThird/thirdsTotal:0.33;
+  var thirdsScore=clamp(1-(Math.abs(t1-0.33)+Math.abs(t2-0.33)+Math.abs(t3-0.33))*3.5);
+
+  /* ── 9. FACE SHAPE RATIO (weight: 0.6)
+     Width-to-height ratio. Oval/oblong = most attractive (0.62–0.75) ── */
+  var faceRatio=faceW/faceH;
+  var faceShapeScore=clamp(1-Math.abs(faceRatio-0.68)*6);
+
+  /* ── 10. BROW RIDGE (weight: 0.5)
+     Brow-to-eye vertical distance. Strong brow = closer to eye ── */
+  var lBrowDist=d(105,159);
+  var rBrowDist=d(334,386);
+  var avgBrowDist=((lBrowDist+rBrowDist)/2)/faceH;
+  var browScore=clamp(1-Math.abs(avgBrowDist-0.04)*30);
+
+  /* ── WEIGHTED TOTAL ── */
+  var weights={
+    symmetry:2.5, jaw:2.0, canthal:2.0, cheek:1.5,
+    eye:1.5, nose:1.0, lip:0.8, thirds:0.7, shape:0.6, brow:0.5
+  };
+  var wSum=Object.values(weights).reduce(function(a,b){return a+b;},0);
+  var rawScore=(
+    symmetry    * weights.symmetry +
+    jawScore    * weights.jaw      +
+    canthalScore* weights.canthal  +
+    cheekScore  * weights.cheek    +
+    eyeScore    * weights.eye      +
+    noseScore   * weights.nose     +
+    lipScore    * weights.lip      +
+    thirdsScore * weights.thirds   +
+    faceShapeScore*weights.shape   +
+    browScore   * weights.brow
+  ) / wSum;
+
+  // Scale to 1–10 with NO random noise
+  var scaledScore = Math.min(10, Math.max(1, rawScore * 9.2 + 0.4));
+
+  // Temporal smoothing — average last N frames for stability
+  _scoreBuffer.push(scaledScore);
+  if(_scoreBuffer.length>_BUFFER_SIZE) _scoreBuffer.shift();
+  var finalScore=_scoreBuffer.reduce(function(a,b){return a+b;},0)/_scoreBuffer.length;
+  finalScore=Math.round(finalScore*10)/10;
+
+  /* ── DOM + FLAW DETECTION ── */
+  var metrics=[
+    {name:'Symmetry',    val:symmetry,       dom:'Strong Symmetry',    flaw:'Facial Asymmetry'},
+    {name:'Jawline',     val:jawScore,        dom:'Sharp Jawline',      flaw:'Soft Jawline'},
+    {name:'Canthal Tilt',val:canthalScore,    dom:'Hunter Eyes',        flaw:'Downturned Eyes'},
+    {name:'Cheekbones',  val:cheekScore,      dom:'High Cheekbones',    flaw:'Flat Midface'},
+    {name:'Eye Quality', val:eyeScore,        dom:'Deep-Set Eyes',      flaw:'Eye Proportion'},
+    {name:'Nose',        val:noseScore,       dom:'Refined Nose',       flaw:'Nose Proportion'},
+    {name:'Lips',        val:lipScore,        dom:'Defined Lips',       flaw:'Lip Ratio'},
+    {name:'Facial Thirds',val:thirdsScore,    dom:'Balanced Thirds',    flaw:'Uneven Thirds'},
+    {name:'Face Shape',  val:faceShapeScore,  dom:'Oval Face Shape',    flaw:'Face Ratio'},
+    {name:'Brow Ridge',  val:browScore,       dom:'Strong Brow Ridge',  flaw:'Weak Brow'},
+  ];
+  metrics.sort(function(a,b){return b.val-a.val;});
+
+  return {
+    score: finalScore,
+    dom:   metrics[0].dom,
+    flaw:  metrics[metrics.length-1].flaw,
+    metrics: {
+      symmetry,jawScore,canthalScore,cheekScore,
+      eyeScore,noseScore,lipScore,thirdsScore,faceShapeScore,browScore
+    }
+  };
 }
 
-function scoreToElo(s){ if(s>=9.5)return 5001;if(s>=8.5)return 3501;if(s>=7.5)return 2001;if(s>=6.5)return 1501;if(s>=5.5)return 1001;if(s>=4.5)return 501;return 200; }
-
-function updateMogBar(mySc,oppSc){
-  var total=mySc+oppSc; if(total<0.1)return;
-  var myPct=(mySc/total)*100;
-  document.getElementById('mogFillL').style.width=myPct+'%';
-  document.getElementById('mogFillR').style.width=(100-myPct)+'%';
+function scoreToElo(score){
+  if(score>=9.5)return 5001;if(score>=8.5)return 3501;if(score>=7.5)return 2001;
+  if(score>=6.5)return 1501;if(score>=5.5)return 1001;if(score>=4.5)return 501;
+  return 200;
+}
+function getTierColor(score){
+  if(score>=9.5)return '#ff3d6b';if(score>=8.5)return '#f5a623';
+  if(score>=7.5)return '#7b61ff';if(score>=6.5)return '#0df2c8';
+  if(score>=5.5)return '#f5a623';if(score>=4.5)return '#7090d0';
+  return '#ff3d6b';
 }
 
-function findMatch(){ if(!myStream){setS('','Start camera first');return;} wsSend({type:'join_queue'}); }
-function setBtnFind(){ var b=document.getElementById('mainBtn'); b.textContent='Find Match'; b.disabled=false; b.onclick=findMatch; }
-function setBtnScan(){ var b=document.getElementById('mainBtn'); b.textContent='Run Scan'; b.disabled=false; b.onclick=runScan; }
+function updateMoggingBar(myScore,oppScore){
+  var total=myScore+oppScore;
+  if(total===0)return;
+  var myPct=(myScore/total)*100;
+  document.getElementById('moggingFill').style.width=myPct+'%';
+  document.getElementById('moggingFillR').style.width=(100-myPct)+'%';
+}
+
+function findMatch(){if(!myStream){setS('','Start camera first!');return;}wsSend({type:'join_queue'});}
+function setBtnFind(){var b=document.getElementById('mainBtn');b.textContent='FIND MATCH \u2192';b.disabled=false;b.onclick=findMatch;}
+function setBtnScan(){var b=document.getElementById('mainBtn');b.textContent='RUN SCAN';b.disabled=false;b.onclick=runScan;}
 
 function onMatchFound(msg){
-  state='matched'; var opp=msg.opponent||{}; oppSocketId=opp.id; myRole=msg.role;
-  var t=opp.tier||{name:'Sub3',emoji:'🔴'};
-  setS('connected','Matched: '+(opp.name||'Opponent')+' · '+t.emoji+' '+t.name+' · '+(opp.elo||400)+' ELO');
-  document.getElementById('oppPHText').textContent=(opp.name||'Opponent')+' · Connecting...';
-  document.getElementById('oppTRName').textContent=opp.name||'Opponent';
-  document.getElementById('oppTRElo').textContent=(opp.elo||400)+' ELO · '+t.name;
-  document.getElementById('oppMogName').textContent=opp.name||'Opp';
+  state='matched';
+  var opp=msg.opponent||{}; oppSocketId=opp.id; myRole=msg.role;
+  var t=opp.tier||{name:'Sub3',emoji:'\uD83D\uDD34'};
+  setS('connected','Matched: '+(opp.name||'Opponent')+' \u00B7 '+t.emoji+' '+t.name+' \u00B7 '+(opp.elo||400)+' ELO');
+  document.getElementById('oppPHText').textContent=(opp.name||'Opponent')+' \u00B7 Connecting...';
+  // Update opp overlay
+  document.getElementById('oppLabelName').textContent=opp.name||'Opponent';
+  document.getElementById('oppTierEmoji').textContent=t.emoji||'\uD83D\uDD34';
+  document.getElementById('oppTierName').textContent=t.name||'Sub3';
+  document.getElementById('oppEloLabel').textContent=(opp.elo||400)+' ELO';
+  document.getElementById('oppMogLabel').textContent=opp.name||'OPP';
   setBtnScan(); document.getElementById('skipBtn').style.display='flex';
   startRTC();
 }
 
 function startRTC(){
   closeRTC(); peerConn=new RTCPeerConnection(ICE);
-  if(myStream) myStream.getTracks().forEach(function(t){peerConn.addTrack(t,myStream);});
+  if(myStream)myStream.getTracks().forEach(function(t){peerConn.addTrack(t,myStream);});
   peerConn.ontrack=function(e){
     var v=document.getElementById('oppVid'); v.srcObject=e.streams[0]; v.style.display='block';
     document.getElementById('oppPH').style.display='none';
-    document.getElementById('oppTL').style.display='block';
-    document.getElementById('oppTR').style.display='block';
+    document.getElementById('oppInfoTL').style.display='block';
+    document.getElementById('oppLabelTR').style.display='block';
     document.getElementById('reportBtn').style.display='block';
-    document.getElementById('oppFeedBox').classList.add('active');
-    setS('connected','Cameras live — run your scan');
-    wsSend({type:'webrtc_connected'});
+    setS('connected','Cameras live — run your scan!');
   };
-  peerConn.onicecandidate=function(e){ if(e.candidate) wsSend({type:'webrtc_ice',targetId:oppSocketId,candidate:e.candidate}); };
+  peerConn.onicecandidate=function(e){if(e.candidate)wsSend({type:'webrtc_ice',targetId:oppSocketId,candidate:e.candidate});};
   if(myRole==='offerer'){
     peerConn.createOffer({offerToReceiveVideo:true,offerToReceiveAudio:false}).then(function(o){
       return peerConn.setLocalDescription(o);
-    }).then(function(){ wsSend({type:'webrtc_offer',targetId:oppSocketId,offer:peerConn.localDescription}); });
+    }).then(function(){wsSend({type:'webrtc_offer',targetId:oppSocketId,offer:peerConn.localDescription});});
   }
 }
 function handleOffer(msg){if(!peerConn)return;peerConn.setRemoteDescription(new RTCSessionDescription(msg.offer)).then(function(){return peerConn.createAnswer();}).then(function(a){return peerConn.setLocalDescription(a);}).then(function(){wsSend({type:'webrtc_answer',targetId:msg.fromId,answer:peerConn.localDescription});});}
@@ -359,32 +547,40 @@ function handleIce(msg){if(!peerConn||!msg.candidate)return;peerConn.addIceCandi
 function closeRTC(){if(peerConn){peerConn.close();peerConn=null;}oppSocketId=null;myRole=null;}
 
 function runScan(){
-  if(!myLandmarks){setS('connected','⚠ Center your face in frame');return;}
-  state='scanning'; document.getElementById('mainBtn').textContent='Scanning...'; document.getElementById('mainBtn').disabled=true;
-  setS('searching','Analyzing facial structure...');
+  if(!myLandmarks){setS('connected','\u26A0 Center your face in frame');return;}
+  state='scanning';
+  document.getElementById('mainBtn').textContent='SCANNING...'; document.getElementById('mainBtn').disabled=true;
+  setS('searching','AI analyzing your features...');
   setTimeout(function(){
-    var res=calcScore(myLandmarks); myLastScore=res.score;
-    document.getElementById('myScoreVal').textContent=res.score.toFixed(1);
-    document.getElementById('myTierVal').textContent=getTierName(scoreToElo(res.score));
-    document.getElementById('myDom').textContent=res.dom;
-    document.getElementById('myFlaw').textContent=res.flaw;
-    updateMogBar(res.score,oppLastScore);
-    wsSend({type:'submit_score',score:res.score});
-    setS('searching','Score submitted — awaiting opponent...');
+    var result=calcDetailedScore(myLandmarks);
+    myLastScore=result.score;
+    // Show final score on overlay
+    document.getElementById('myScoreVal').textContent=result.score.toFixed(1);
+    document.getElementById('myTierBadge').textContent=getTierEmoji(scoreToElo(result.score))+' '+getTierName(scoreToElo(result.score));
+    document.getElementById('myTierBadge').style.color=getTierColor(result.score);
+    document.getElementById('myDom').textContent=result.dom;
+    document.getElementById('myFlaw').textContent=result.flaw;
+    updateMoggingBar(result.score,oppLastScore);
+    wsSend({type:'submit_score',score:result.score});
+    setS('searching','Score submitted \u2014 awaiting opponent...');
   },2400);
 }
 
 function onResult(msg){
-  state='result'; myLastScore=msg.myScore||0; oppLastScore=msg.opponentScore||0;
-  updateMogBar(myLastScore,oppLastScore);
+  state='result';
+  myLastScore=msg.myScore||0; oppLastScore=msg.opponentScore||0;
+  updateMoggingBar(myLastScore,oppLastScore);
+  // Show opp score on overlay
   document.getElementById('oppScoreVal').textContent=oppLastScore.toFixed(1);
-  document.getElementById('oppTierVal').textContent=getTierName(scoreToElo(oppLastScore));
+  var oppTierElo=scoreToElo(oppLastScore);
+  document.getElementById('oppTierBadge').textContent=getTierEmoji(oppTierElo)+' '+getTierName(oppTierElo);
+  document.getElementById('oppTierBadge').style.color=getTierColor(oppLastScore);
   document.getElementById('rMy').textContent=myLastScore.toFixed(1);
   document.getElementById('rOpp').textContent=oppLastScore.toFixed(1);
-  document.getElementById('rTitle').textContent=msg.won?'Victory':'Defeated';
-  document.getElementById('rTitle').style.color=msg.won?'var(--green)':'var(--red)';
+  document.getElementById('rTitle').textContent=msg.won?'\uD83C\uDFC6 VICTORY':'\uD83D\uDC80 DEFEATED';
+  document.getElementById('rTitle').style.color=msg.won?'var(--green)':'var(--crimson)';
   var chg=msg.eloChange||0;
-  document.getElementById('rElo').innerHTML='ELO: <span class="'+(chg>=0?'elo-up':'elo-dn')+'">'+(chg>=0?'+':'')+chg+' → '+(msg.newElo||_elo)+'</span>';
+  document.getElementById('rElo').innerHTML='ELO: <span class="'+(chg>=0?'elo-up':'elo-down')+'">'+(chg>=0?'+':'')+chg+' \u2192 '+(msg.newElo||_elo)+' total</span>';
   document.getElementById('resultCard').classList.add('show');
   document.getElementById('mainBtn').style.display='none'; document.getElementById('skipBtn').style.display='none';
 }
@@ -392,18 +588,40 @@ function onResult(msg){
 function rematch(){
   document.getElementById('resultCard').classList.remove('show');
   document.getElementById('mainBtn').style.display='block';
-  state='camera'; setS('','Camera active — find a match'); setBtnFind();
-  oppLastScore=0; updateMogBar(myLastScore,0);
+  state='camera'; setS('','Camera active — find a match!'); setBtnFind();
+  oppLastScore=0; updateMoggingBar(myLastScore,0);
 }
-function skipOpp(){wsSend({type:'skip_opponent'});resetOpp();closeRTC();state='camera';setS('','Finding new opponent...');setBtnFind();document.getElementById('skipBtn').style.display='none';}
+
+function skipOpp(){
+  wsSend({type:'skip_opponent'}); resetOpp(); closeRTC(); state='camera';
+  setS('','Searching for new opponent...'); setBtnFind(); document.getElementById('skipBtn').style.display='none';
+  hideOverlays(); oppLastScore=0;
+}
+
 function resetOpp(){
   var v=document.getElementById('oppVid'); v.srcObject=null; v.style.display='none';
-  document.getElementById('oppPH').style.display='flex'; document.getElementById('oppPHText').textContent='Waiting...';
-  document.getElementById('oppTL').style.display='none'; document.getElementById('oppTR').style.display='none';
-  document.getElementById('reportBtn').style.display='none'; document.getElementById('oppFeedBox').classList.remove('active');
+  document.getElementById('oppPH').style.display='flex'; document.getElementById('oppPHText').textContent='WAITING FOR OPPONENT...';
+  document.getElementById('reportBtn').style.display='none';
 }
-function reportOpp(){if(confirm('Report this opponent?')){wsSend({type:'report_user',targetId:oppSocketId,reason:'inappropriate'});alert('Report submitted.');}}
-function setS(type,text){var d=document.getElementById('sDot');d.className='status-dot'+(type?' '+type:'');document.getElementById('sText').textContent=text;}
+
+function hideOverlays(){
+  document.getElementById('oppInfoTL').style.display='none';
+  document.getElementById('oppLabelTR').style.display='none';
+  document.getElementById('reportBtn').style.display='none';
+}
+
+function reportOpponent(){
+  var oppName=document.getElementById('oppLabelName').textContent;
+  if(confirm('Report '+oppName+' for inappropriate behavior?')){
+    wsSend({type:'report_user',targetId:oppSocketId,reason:'inappropriate'});
+    alert('Report submitted. Thank you.');
+  }
+}
+
+function setS(type,text){
+  var d=document.getElementById('sDot'); d.className='status-dot'+(type?' '+type:'');
+  document.getElementById('sText').textContent=text;
+}
 </script>
 </body>
 </html>
