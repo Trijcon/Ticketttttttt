@@ -4,119 +4,126 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MogMe.TV — Private Room</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 <style>
-.page-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:38px;letter-spacing:1px;margin-bottom:4px;color:var(--white);}
-.page-sub{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--muted);margin-bottom:28px;}
-.private-layout{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:840px;margin:0 auto;}
-.priv-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;}
-.priv-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;letter-spacing:1px;margin-bottom:6px;color:var(--white);}
+.page-eyebrow{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;}
+.page-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:32px;color:var(--white);letter-spacing:-0.5px;margin-bottom:28px;}
+.private-layout{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:820px;margin:0 auto;}
+
+.priv-card{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius);padding:28px;}
+.priv-title{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:18px;color:var(--white);margin-bottom:6px;}
 .priv-sub{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px;}
-.code-display{background:rgba(0,0,0,0.3);border:1px solid rgba(123,97,255,0.25);border-radius:12px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-.code-val{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:var(--violet);letter-spacing:6px;}
-.copy-btn{background:var(--violet-dim);border:1px solid rgba(123,97,255,0.25);border-radius:8px;padding:7px 14px;color:var(--violet);font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;transition:all 0.2s;}
-.copy-btn:hover{background:rgba(123,97,255,0.2);}
-.copy-btn.copied{color:var(--green);border-color:rgba(13,242,122,0.3);background:rgba(13,242,122,0.08);}
-.divider-or{display:flex;align-items:center;gap:12px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);margin:16px 0;}
+
+.code-display{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.code-val{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;color:var(--blue);letter-spacing:6px;}
+.copy-btn{background:var(--blue-dim);border:1px solid rgba(74,158,255,0.2);border-radius:3px;padding:6px 14px;color:var(--blue);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;}
+.copy-btn:hover{background:var(--blue-mid);}
+.copy-btn.copied{color:var(--green);border-color:rgba(34,197,94,0.2);background:rgba(34,197,94,0.08);}
+
+.divider-or{display:flex;align-items:center;gap:12px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted2);margin:16px 0;}
 .divider-or::before,.divider-or::after{content:'';flex:1;height:1px;background:var(--border);}
+
 .code-input-row{display:flex;gap:8px;}
-.code-input{flex:1;background:rgba(0,0,0,0.3);border:1px solid var(--border2);border-radius:10px;padding:13px 16px;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--white);letter-spacing:4px;text-align:center;outline:none;transition:border-color 0.2s;}
+.code-input{flex:1;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--white);letter-spacing:4px;text-align:center;outline:none;transition:border-color 0.2s;}
 .code-input::placeholder{color:var(--muted2);letter-spacing:2px;font-size:13px;}
-.code-input:focus{border-color:rgba(123,97,255,0.4);}
-.waiting-card{display:none;background:var(--surface);border:1px solid rgba(123,97,255,0.2);border-radius:16px;padding:36px 28px;flex-direction:column;align-items:center;gap:14px;text-align:center;margin-top:12px;}
+.code-input:focus{border-color:rgba(74,158,255,0.3);}
+
+.waiting-card{display:none;background:var(--glass);border:1px solid rgba(74,158,255,0.15);border-radius:var(--radius);padding:36px 28px;flex-direction:column;align-items:center;gap:14px;text-align:center;margin-top:12px;}
 .waiting-card.show{display:flex;}
-.wait-spin{width:52px;height:52px;border-radius:50%;border:3px solid rgba(123,97,255,0.15);border-top-color:var(--violet);animation:spin 1s linear infinite;}
+.wait-spin{width:44px;height:44px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--blue);animation:spin 1s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
-.wait-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;}
-.wait-code{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;color:var(--violet);letter-spacing:6px;}
-.cancel-btn{padding:9px 22px;border-radius:8px;border:1px solid rgba(255,61,107,0.25);background:transparent;color:var(--crimson);font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;transition:all 0.2s;}
-.cancel-btn:hover{background:rgba(255,61,107,0.08);}
+.wait-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+.wait-code{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:var(--blue);letter-spacing:6px;}
+.cancel-btn{background:none;border:1px solid rgba(239,68,68,0.2);border-radius:3px;padding:7px 20px;color:var(--red);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;}
+.cancel-btn:hover{background:rgba(239,68,68,0.06);}
+
 .arena-panel{display:none;flex-direction:column;gap:10px;}
 .arena-panel.show{display:flex;}
-.feed-box{position:relative;border-radius:14px;overflow:hidden;background:#020208;border:1px solid var(--border);aspect-ratio:4/3;}
-.feed-label{position:absolute;top:10px;left:10px;z-index:5;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--white);background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:5px;padding:3px 10px;}
+.feed-box{position:relative;border-radius:var(--radius);overflow:hidden;background:#000;border:1px solid var(--border);aspect-ratio:4/3;}
 .feed-video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1);}
 .feed-canvas{position:absolute;top:0;left:0;width:100%;height:100%;transform:scaleX(-1);pointer-events:none;}
-.feed-score{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.75);border:1px solid rgba(13,242,200,0.3);border-radius:999px;padding:4px 16px;z-index:5;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;color:var(--teal);display:none;}
+.feed-score{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.75);border:1px solid rgba(74,158,255,0.2);border-radius:3px;padding:4px 14px;z-index:5;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;color:var(--blue);display:none;}
 .feed-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
-.feed-ph-icon{font-size:40px;opacity:0.25;}
 .feed-ph-text{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);letter-spacing:1px;}
-.a-status{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:8px;}
-.a-dot{width:7px;height:7px;border-radius:50%;background:var(--muted2);flex-shrink:0;}
-.a-dot.on{background:var(--green);box-shadow:0 0 7px var(--green);}
-.a-dot.searching{background:var(--amber);box-shadow:0 0 7px var(--amber);animation:blink 0.8s infinite;}
-.a-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
-.result-bar{background:linear-gradient(135deg,#141228,#0f0d20);border:1px solid rgba(13,242,200,0.2);border-radius:12px;padding:20px;text-align:center;display:none;}
+.a-status{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;display:flex;align-items:center;gap:8px;}
+.a-dot{width:6px;height:6px;border-radius:50%;background:var(--muted2);}
+.a-dot.on{background:var(--green);}
+.a-dot.searching{background:var(--amber);animation:pulse 0.8s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.a-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.3px;}
+.result-bar{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:20px;text-align:center;display:none;}
 .result-bar.show{display:block;}
-.res-title{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;margin-bottom:8px;}
-.res-scores{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:8px;}
-.res-score{font-family:'Barlow Condensed',sans-serif;font-size:52px;font-weight:900;color:var(--teal);line-height:1;}
-.res-vs{font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--muted2);}
+.res-title{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;margin-bottom:10px;}
+.res-scores{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:10px;}
+.res-score{font-family:'Space Grotesk',sans-serif;font-size:48px;font-weight:700;color:var(--blue);line-height:1;}
+.res-vs{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--muted2);}
 .res-actions{display:flex;gap:8px;justify-content:center;margin-top:14px;}
-.notice-txt{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted2);text-align:center;}
+.notice{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted2);text-align:center;letter-spacing:0.3px;}
 @media(max-width:700px){.private-layout{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
 <div class="page-wrap">
-  <div class="page-title">🔒 PRIVATE ROOM</div>
-  <div class="page-sub">CHALLENGE A FRIEND — PEER TO PEER</div>
+  <div class="page-eyebrow">Invite Only</div>
+  <div class="page-title">Private Room</div>
   <div class="private-layout">
+
+    <!-- SETUP -->
     <div id="setupPanel">
       <div class="priv-card" id="mainCard">
         <div class="priv-title">Generate a Code</div>
-        <div class="priv-sub">Create a private session. Share your 6-digit code — when your friend enters it, cameras connect instantly peer-to-peer.</div>
+        <div class="priv-sub">Create a private session. Share your 6-digit code — when your friend enters it, cameras connect peer-to-peer.</div>
         <div class="code-display" id="codeDisplay" style="display:none;">
           <div class="code-val" id="codeVal">——————</div>
-          <button class="copy-btn" id="copyBtn" onclick="copyCode()">COPY</button>
+          <button class="copy-btn" id="copyBtn" onclick="copyCode()">Copy</button>
         </div>
-        <button class="btn-teal" id="generateBtn" onclick="generateCode()" style="width:100%;font-size:16px;padding:14px;">⚡ GENERATE CODE</button>
-        <div class="divider-or">OR</div>
-        <div class="priv-title" style="font-size:17px;margin-bottom:6px;">Enter a Code</div>
-        <div class="priv-sub" style="margin-bottom:14px;">Have a code from a friend? Enter it below.</div>
+        <button class="btn-primary" id="generateBtn" onclick="generateCode()" style="width:100%;font-size:14px;padding:13px;">Generate Code</button>
+        <div class="divider-or">or</div>
+        <div class="priv-title" style="font-size:16px;margin-bottom:6px;">Join with a Code</div>
+        <div class="priv-sub" style="margin-bottom:14px;">Have a code from a friend?</div>
         <div class="code-input-row">
           <input class="code-input" id="codeInput" type="text" maxlength="6" placeholder="XXXXXX" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
-          <button class="btn-amber" onclick="joinCode()" style="flex:0 0 90px;padding:13px;font-size:16px;">JOIN</button>
+          <button class="btn-primary" onclick="joinCode()" style="flex:0 0 80px;padding:12px;font-size:14px;">Join</button>
         </div>
       </div>
       <div class="waiting-card" id="waitingCard">
         <div class="wait-spin"></div>
-        <div class="wait-title">WAITING FOR OPPONENT TO JOIN</div>
+        <div class="wait-title">Waiting for opponent</div>
         <div class="wait-code" id="waitCode">——————</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);">Share this code with your friend</div>
-        <button class="cancel-btn" onclick="cancelWait()">CANCEL</button>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted2);letter-spacing:0.3px;">Share this code with your friend</div>
+        <button class="cancel-btn" onclick="cancelWait()">Cancel</button>
       </div>
-      <p class="notice-txt" style="margin-top:12px;">Private matches are unranked · Room expires in 10 minutes · Camera stays local</p>
+      <p class="notice" style="margin-top:12px;">Private matches are unranked · Room expires in 10 minutes</p>
     </div>
 
+    <!-- ARENA -->
     <div class="arena-panel" id="arenaPanel">
       <div class="a-status"><div class="a-dot" id="aDot"></div><span class="a-label" id="aLabel">Connecting cameras...</span></div>
       <div class="feed-box">
-        <div class="feed-label">YOU</div>
         <video class="feed-video" id="myVid" autoplay playsinline muted></video>
         <canvas class="feed-canvas" id="myCanvas"></canvas>
         <div class="feed-score" id="myScore"></div>
-        <div class="feed-ph" id="myPH"><div class="feed-ph-icon">📷</div><div class="feed-ph-text">STARTING...</div></div>
+        <div class="feed-ph" id="myPH"><div class="feed-ph-text">Starting camera...</div></div>
       </div>
       <div class="feed-box">
-        <div class="feed-label">OPPONENT</div>
         <video class="feed-video" id="oppVid" autoplay playsinline style="display:none;"></video>
         <div class="feed-score" id="oppScore"></div>
-        <div class="feed-ph" id="oppPH"><div class="feed-ph-icon">👤</div><div class="feed-ph-text" id="oppPHText">CONNECTING...</div></div>
+        <div class="feed-ph" id="oppPH"><div class="feed-ph-text" id="oppPHText">Connecting...</div></div>
       </div>
-      <button class="btn-teal" id="scanBtn" onclick="runScan()" style="width:100%;font-size:16px;padding:14px;" disabled>RUN SCAN</button>
+      <button class="btn-primary" id="scanBtn" onclick="runScan()" style="width:100%;font-size:14px;padding:13px;" disabled>Run Scan</button>
       <div class="result-bar" id="resultBar">
         <div class="res-title" id="resTitle">—</div>
         <div class="res-scores">
-          <div><div class="res-score" id="resMy">—</div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px;">YOU</div></div>
-          <div class="res-vs">VS</div>
-          <div><div class="res-score" id="resOpp">—</div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px;">OPPONENT</div></div>
+          <div><div class="res-score" id="resMy">—</div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted2);margin-top:3px;">You</div></div>
+          <div class="res-vs">vs</div>
+          <div><div class="res-score" id="resOpp">—</div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted2);margin-top:3px;">Opponent</div></div>
         </div>
         <div class="res-actions">
-          <button class="btn-teal" onclick="resetMatch()">PLAY AGAIN</button>
-          <button class="btn-outline" onclick="window.location.href='index.html'">HOME</button>
+          <button class="btn-primary" onclick="resetMatch()">Play Again</button>
+          <button class="btn-ghost" onclick="window.location.href='index.html'">Home</button>
         </div>
       </div>
     </div>
@@ -141,7 +148,7 @@ function onMsg(msg){
       currentCode=msg.code;
       document.getElementById('codeVal').textContent=msg.code;
       document.getElementById('codeDisplay').style.display='flex';
-      document.getElementById('generateBtn').textContent='\u21BA REGENERATE';
+      document.getElementById('generateBtn').textContent='Regenerate';
       document.getElementById('mainCard').style.display='none';
       document.getElementById('waitCode').textContent=msg.code;
       document.getElementById('waitingCard').classList.add('show');
@@ -151,11 +158,7 @@ function onMsg(msg){
     case 'webrtc_offer': handleOffer(msg); break;
     case 'webrtc_answer': handleAnswer(msg); break;
     case 'webrtc_ice': handleIce(msg); break;
-    case 'opponent_disconnected':
-      setAS('','Opponent disconnected'); resetRTC();
-      document.getElementById('oppVid').style.display='none';
-      document.getElementById('oppPH').style.display='flex';
-      document.getElementById('scanBtn').disabled=true; break;
+    case 'opponent_disconnected': setAS('','Opponent disconnected'); resetRTC(); document.getElementById('oppVid').style.display='none'; document.getElementById('oppPH').style.display='flex'; document.getElementById('scanBtn').disabled=true; break;
     case 'score_submitted': setAS('searching','Awaiting opponent score...'); break;
     case 'match_result': showResult(msg); break;
   }
@@ -171,7 +174,7 @@ function startMyCam(){
       document.getElementById('myPH').style.display='none';
       initFM(v,c);
     };
-  }).catch(function(){document.getElementById('myPH').querySelector('.feed-ph-text').textContent='CAMERA DENIED';});
+  }).catch(function(){document.getElementById('myPH').querySelector('.feed-ph-text').textContent='Camera denied';});
 }
 
 function initFM(v,c){
@@ -188,30 +191,14 @@ function initFM(v,c){
 
 function drawMesh(canvas,lm){
   var ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
-  ctx.fillStyle='rgba(13,242,200,0.5)';
-  for(var i=0;i<lm.length;i++){ctx.beginPath();ctx.arc(lm[i].x*w,lm[i].y*h,1.2,0,Math.PI*2);ctx.fill();}
+  ctx.fillStyle='rgba(74,158,255,0.6)';
+  for(var i=0;i<lm.length;i++){ctx.beginPath();ctx.arc(lm[i].x*w,lm[i].y*h,1.1,0,Math.PI*2);ctx.fill();}
 }
 
 function generateCode(){wsSend({type:'create_private_room'});}
-function copyCode(){
-  if(!currentCode)return;
-  navigator.clipboard.writeText(currentCode).catch(function(){});
-  var b=document.getElementById('copyBtn');b.textContent='COPIED!';b.classList.add('copied');
-  setTimeout(function(){b.textContent='COPY';b.classList.remove('copied');},2000);
-}
-function joinCode(){
-  var c=document.getElementById('codeInput').value.trim().toUpperCase();
-  if(c.length<4){document.getElementById('codeInput').style.borderColor='rgba(255,61,107,0.4)';return;}
-  document.getElementById('codeInput').style.borderColor='';
-  wsSend({type:'join_private_room',code:c});
-}
-function cancelWait(){
-  document.getElementById('waitingCard').classList.remove('show');
-  document.getElementById('mainCard').style.display='block';
-  document.getElementById('codeDisplay').style.display='none';
-  document.getElementById('generateBtn').textContent='\u26A1 GENERATE CODE';
-  currentCode=null;
-}
+function copyCode(){if(!currentCode)return;navigator.clipboard.writeText(currentCode).catch(function(){});var b=document.getElementById('copyBtn');b.textContent='Copied!';b.classList.add('copied');setTimeout(function(){b.textContent='Copy';b.classList.remove('copied');},2000);}
+function joinCode(){var c=document.getElementById('codeInput').value.trim().toUpperCase();if(c.length<4){document.getElementById('codeInput').style.borderColor='rgba(239,68,68,0.3)';return;}document.getElementById('codeInput').style.borderColor='';wsSend({type:'join_private_room',code:c});}
+function cancelWait(){document.getElementById('waitingCard').classList.remove('show');document.getElementById('mainCard').style.display='block';document.getElementById('codeDisplay').style.display='none';document.getElementById('generateBtn').textContent='Generate Code';currentCode=null;}
 
 function onMatchStart(msg){
   oppId=msg.opponent&&msg.opponent.id; myRole=msg.role;
@@ -225,22 +212,10 @@ function onMatchStart(msg){
 
 function startRTC(){
   resetRTC(); peerConn=new RTCPeerConnection(ICE);
-  if(myStream)myStream.getTracks().forEach(function(t){peerConn.addTrack(t,myStream);});
-  peerConn.ontrack=function(e){
-    var v=document.getElementById('oppVid'); v.srcObject=e.streams[0]; v.style.display='block';
-    document.getElementById('oppPH').style.display='none'; setAS('on','Cameras connected — run your scan!');
-    document.getElementById('scanBtn').disabled=false;
-  };
+  if(myStream) myStream.getTracks().forEach(function(t){peerConn.addTrack(t,myStream);});
+  peerConn.ontrack=function(e){var v=document.getElementById('oppVid');v.srcObject=e.streams[0];v.style.display='block';document.getElementById('oppPH').style.display='none';setAS('on','Cameras connected — run your scan');document.getElementById('scanBtn').disabled=false;wsSend({type:'webrtc_connected'});};
   peerConn.onicecandidate=function(e){if(e.candidate)wsSend({type:'webrtc_ice',targetId:oppId,candidate:e.candidate});};
-  peerConn.onconnectionstatechange=function(){
-    if(peerConn.connectionState==='connected')setAS('on','Live — run your scan!');
-    if(peerConn.connectionState==='failed')setAS('','Camera link failed — scan still works');
-  };
-  if(myRole==='offerer'){
-    peerConn.createOffer({offerToReceiveVideo:true,offerToReceiveAudio:false}).then(function(o){
-      return peerConn.setLocalDescription(o);
-    }).then(function(){wsSend({type:'webrtc_offer',targetId:oppId,offer:peerConn.localDescription});});
-  }
+  if(myRole==='offerer'){peerConn.createOffer({offerToReceiveVideo:true,offerToReceiveAudio:false}).then(function(o){return peerConn.setLocalDescription(o);}).then(function(){wsSend({type:'webrtc_offer',targetId:oppId,offer:peerConn.localDescription});});}
 }
 function handleOffer(msg){if(!peerConn)return;peerConn.setRemoteDescription(new RTCSessionDescription(msg.offer)).then(function(){return peerConn.createAnswer();}).then(function(a){return peerConn.setLocalDescription(a);}).then(function(){wsSend({type:'webrtc_answer',targetId:msg.fromId,answer:peerConn.localDescription});});}
 function handleAnswer(msg){if(!peerConn)return;peerConn.setRemoteDescription(new RTCSessionDescription(msg.answer));}
@@ -248,33 +223,18 @@ function handleIce(msg){if(!peerConn||!msg.candidate)return;peerConn.addIceCandi
 function resetRTC(){if(peerConn){peerConn.close();peerConn=null;}}
 
 function runScan(){
-  if(!myLandmarks){setAS('searching','\u26A0 Center your face in frame');return;}
-  document.getElementById('scanBtn').disabled=true; document.getElementById('scanBtn').textContent='SCANNING...';
-  setAS('searching','Analyzing your face...');
+  if(!myLandmarks){setAS('searching','⚠ Center your face');return;}
+  document.getElementById('scanBtn').disabled=true; document.getElementById('scanBtn').textContent='Scanning...';
+  setAS('searching','Analyzing...');
   setTimeout(function(){
     var score=+(Math.random()*3+5.5).toFixed(1);
     document.getElementById('myScore').textContent=score; document.getElementById('myScore').style.display='block';
-    wsSend({type:'submit_score',score:score}); setAS('searching','Score submitted — awaiting opponent...');
+    wsSend({type:'submit_score',score:score}); setAS('searching','Submitted — awaiting opponent...');
   },2000);
 }
-function showResult(msg){
-  document.getElementById('resultBar').classList.add('show');
-  document.getElementById('resMy').textContent=(msg.myScore||0).toFixed(1);
-  document.getElementById('resOpp').textContent=(msg.opponentScore||0).toFixed(1);
-  document.getElementById('resTitle').textContent=msg.won?'\uD83C\uDFC6 YOU WIN!':'\uD83D\uDC80 DEFEATED';
-  document.getElementById('resTitle').style.color=msg.won?'var(--green)':'var(--crimson)';
-  setAS('on','Match complete');
-}
-function resetMatch(){
-  document.getElementById('resultBar').classList.remove('show');
-  document.getElementById('myScore').style.display='none'; document.getElementById('oppScore').style.display='none';
-  document.getElementById('scanBtn').disabled=false; document.getElementById('scanBtn').textContent='RUN SCAN';
-  setAS('on','Ready for next round!');
-}
-function setAS(type,text){
-  var d=document.getElementById('aDot'); d.className='a-dot'+(type?' '+type:'');
-  document.getElementById('aLabel').textContent=text;
-}
+function showResult(msg){document.getElementById('resultBar').classList.add('show');document.getElementById('resMy').textContent=(msg.myScore||0).toFixed(1);document.getElementById('resOpp').textContent=(msg.opponentScore||0).toFixed(1);document.getElementById('resTitle').textContent=msg.won?'Victory':'Defeated';document.getElementById('resTitle').style.color=msg.won?'var(--green)':'var(--red)';setAS('on','Match complete');}
+function resetMatch(){document.getElementById('resultBar').classList.remove('show');document.getElementById('myScore').style.display='none';document.getElementById('oppScore').style.display='none';document.getElementById('scanBtn').disabled=false;document.getElementById('scanBtn').textContent='Run Scan';setAS('on','Ready for next round');}
+function setAS(type,text){var d=document.getElementById('aDot');d.className='a-dot'+(type?' '+type:'');document.getElementById('aLabel').textContent=text;}
 </script>
 </body>
 </html>
