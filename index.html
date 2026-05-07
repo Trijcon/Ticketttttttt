@@ -480,11 +480,7 @@
   .season-bar { grid-column: 1 / -1; }
   .social-grid { grid-template-columns: repeat(3,1fr); }
 }
-@media(max-width:640px){
-  .dash-grid { grid-template-columns: 1fr; }
-  .arena-hero-title { font-size: 52px; }
-  .social-grid { grid-template-columns: repeat(2,1fr); }
-}
+@keyframes livepulse { 0%,100%{opacity:0.8}50%{opacity:0.3} }
 </style>
 </head>
 <body>
@@ -684,7 +680,6 @@
       <div id="activityFeed"></div>
     </div>
   </div>
-  @keyframes livepulse { 0%,100%{opacity:0.8}50%{opacity:0.3} }
 
   <!-- TOP MOGGERS -->
   <div class="panel" style="grid-column:span 2;">
