@@ -12,20 +12,25 @@
 .page-eyebrow{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;}
 .page-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:32px;color:var(--white);letter-spacing:-0.5px;margin-bottom:28px;}
 .private-layout{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:820px;margin:0 auto;}
+
 .priv-card{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius);padding:28px;}
 .priv-title{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:18px;color:var(--white);margin-bottom:6px;}
 .priv-sub{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px;}
+
 .code-display{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
 .code-val{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;color:var(--blue);letter-spacing:6px;}
 .copy-btn{background:var(--blue-dim);border:1px solid rgba(74,158,255,0.2);border-radius:3px;padding:6px 14px;color:var(--blue);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;}
 .copy-btn:hover{background:var(--blue-mid);}
 .copy-btn.copied{color:var(--green);border-color:rgba(34,197,94,0.2);background:rgba(34,197,94,0.08);}
+
 .divider-or{display:flex;align-items:center;gap:12px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted2);margin:16px 0;}
 .divider-or::before,.divider-or::after{content:'';flex:1;height:1px;background:var(--border);}
+
 .code-input-row{display:flex;gap:8px;}
 .code-input{flex:1;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--white);letter-spacing:4px;text-align:center;outline:none;transition:border-color 0.2s;}
 .code-input::placeholder{color:var(--muted2);letter-spacing:2px;font-size:13px;}
 .code-input:focus{border-color:rgba(74,158,255,0.3);}
+
 .waiting-card{display:none;background:var(--glass);border:1px solid rgba(74,158,255,0.15);border-radius:var(--radius);padding:36px 28px;flex-direction:column;align-items:center;gap:14px;text-align:center;margin-top:12px;}
 .waiting-card.show{display:flex;}
 .wait-spin{width:44px;height:44px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--blue);animation:spin 1s linear infinite;}
@@ -34,6 +39,7 @@
 .wait-code{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:var(--blue);letter-spacing:6px;}
 .cancel-btn{background:none;border:1px solid rgba(239,68,68,0.2);border-radius:3px;padding:7px 20px;color:var(--red);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;}
 .cancel-btn:hover{background:rgba(239,68,68,0.06);}
+
 .arena-panel{display:none;flex-direction:column;gap:10px;}
 .arena-panel.show{display:flex;}
 .feed-box{position:relative;border-radius:var(--radius);overflow:hidden;background:#000;border:1px solid var(--border);aspect-ratio:4/3;}
@@ -56,28 +62,16 @@
 .res-vs{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--muted2);}
 .res-actions{display:flex;gap:8px;justify-content:center;margin-top:14px;}
 .notice{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted2);text-align:center;letter-spacing:0.3px;}
-/* MOBILE FIX */
-@media(max-width:700px){
-  .private-layout{grid-template-columns:1fr;}
-  .page-title{font-size:24px;margin-bottom:16px;}
-  .priv-card{padding:18px;}
-  .code-val{font-size:18px;letter-spacing:3px;}
-  .feed-box{aspect-ratio:4/3;}
-  .res-score{font-size:36px;}
-  .code-input-row{flex-direction:column;}
-  .code-input{font-size:16px;}
-  .res-scores{gap:10px;}
-}
+@media(max-width:700px){.private-layout{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
 <div class="page-wrap">
   <div class="page-eyebrow">Invite Only</div>
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
-    <div class="page-title" style="margin-bottom:0;">Private Room</div>
-    <button class="btn-ghost" onclick="window.location.href='index.html'" style="padding:10px 20px;font-size:13px;">← Home</button>
-  </div>
+  <div class="page-title">Private Room</div>
   <div class="private-layout">
+
+    <!-- SETUP -->
     <div id="setupPanel">
       <div class="priv-card" id="mainCard">
         <div class="priv-title">Generate a Code</div>
@@ -104,6 +98,8 @@
       </div>
       <p class="notice" style="margin-top:12px;">Private matches are unranked · Room expires in 10 minutes</p>
     </div>
+
+    <!-- ARENA -->
     <div class="arena-panel" id="arenaPanel">
       <div class="a-status"><div class="a-dot" id="aDot"></div><span class="a-label" id="aLabel">Connecting cameras...</span></div>
       <div class="feed-box">
@@ -117,10 +113,7 @@
         <div class="feed-score" id="oppScore"></div>
         <div class="feed-ph" id="oppPH"><div class="feed-ph-text" id="oppPHText">Connecting...</div></div>
       </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn-ghost" onclick="window.location.href='index.html'" style="flex:0 0 90px;padding:13px;font-size:14px;">← Back</button>
-        <button class="btn-primary" id="scanBtn" onclick="runScan()" style="flex:1;font-size:14px;padding:13px;" disabled>Run Scan</button>
-      </div>
+      <button class="btn-primary" id="scanBtn" onclick="runScan()" style="width:100%;font-size:14px;padding:13px;" disabled>Run Scan</button>
       <div class="result-bar" id="resultBar">
         <div class="res-title" id="resTitle">—</div>
         <div class="res-scores">
@@ -129,7 +122,7 @@
           <div><div class="res-score" id="resOpp">—</div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted2);margin-top:3px;">Opponent</div></div>
         </div>
         <div class="res-actions">
-          <button class="btn-primary" onclick="requestRematch()">Play Again</button>
+          <button class="btn-primary" onclick="resetMatch()">Play Again</button>
           <button class="btn-ghost" onclick="window.location.href='index.html'">Home</button>
         </div>
       </div>
@@ -151,13 +144,21 @@ startMyCam();
 
 function onMsg(msg){
   switch(msg.type){
-    case 'room_created': currentCode=msg.code;document.getElementById('codeVal').textContent=msg.code;document.getElementById('codeDisplay').style.display='flex';document.getElementById('generateBtn').textContent='Regenerate';document.getElementById('mainCard').style.display='none';document.getElementById('waitCode').textContent=msg.code;document.getElementById('waitingCard').classList.add('show');break;
+    case 'room_created':
+      currentCode=msg.code;
+      document.getElementById('codeVal').textContent=msg.code;
+      document.getElementById('codeDisplay').style.display='flex';
+      document.getElementById('generateBtn').textContent='Regenerate';
+      document.getElementById('mainCard').style.display='none';
+      document.getElementById('waitCode').textContent=msg.code;
+      document.getElementById('waitingCard').classList.add('show');
+      break;
     case 'private_match_start': onMatchStart(msg); break;
     case 'room_error': alert(msg.error); break;
     case 'webrtc_offer': handleOffer(msg); break;
     case 'webrtc_answer': handleAnswer(msg); break;
     case 'webrtc_ice': handleIce(msg); break;
-    case 'opponent_disconnected': setAS('','Opponent disconnected');resetRTC();document.getElementById('oppVid').style.display='none';document.getElementById('oppPH').style.display='flex';document.getElementById('scanBtn').disabled=true;break;
+    case 'opponent_disconnected': setAS('','Opponent disconnected'); resetRTC(); document.getElementById('oppVid').style.display='none'; document.getElementById('oppPH').style.display='flex'; document.getElementById('scanBtn').disabled=true; break;
     case 'score_submitted': setAS('searching','Awaiting opponent score...'); break;
     case 'match_result': showResult(msg); break;
   }
@@ -165,177 +166,74 @@ function onMsg(msg){
 
 function startMyCam(){
   navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'},audio:false})
-  .then(function(stream){myStream=stream;var v=document.getElementById('myVid');v.srcObject=stream;v.onloadedmetadata=function(){var c=document.getElementById('myCanvas');c.width=v.videoWidth;c.height=v.videoHeight;function syncCanvasSize(){var rect=v.getBoundingClientRect();c.style.width=rect.width+'px';c.style.height=rect.height+'px';}syncCanvasSize();window.addEventListener('resize',syncCanvasSize);document.getElementById('myPH').style.display='none';initFM(v,c);};})
-  .catch(function(){document.getElementById('myPH').querySelector('.feed-ph-text').textContent='Camera denied';});
+  .then(function(stream){
+    myStream=stream;
+    var v=document.getElementById('myVid'); v.srcObject=stream;
+    v.onloadedmetadata=function(){
+      var c=document.getElementById('myCanvas'); c.width=v.videoWidth; c.height=v.videoHeight;
+      document.getElementById('myPH').style.display='none';
+      initFM(v,c);
+    };
+  }).catch(function(){document.getElementById('myPH').querySelector('.feed-ph-text').textContent='Camera denied';});
 }
 
 function initFM(v,c){
   faceMesh=new FaceMesh({locateFile:function(f){return 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/'+f;}});
   faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.6,minTrackingConfidence:0.6});
-  faceMesh.onResults(function(r){var ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);if(r.multiFaceLandmarks&&r.multiFaceLandmarks.length>0){myLandmarks=r.multiFaceLandmarks[0];drawMesh(c,myLandmarks);}else{myLandmarks=null;}});
+  faceMesh.onResults(function(r){
+    var ctx=c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height);
+    if(r.multiFaceLandmarks&&r.multiFaceLandmarks.length>0){myLandmarks=r.multiFaceLandmarks[0];drawMesh(c,myLandmarks);}
+    else{myLandmarks=null;}
+  });
   fmReady=true;
   (function loop(){if(!fmReady||!myStream)return;faceMesh.send({image:v}).then(function(){requestAnimationFrame(loop);});})();
 }
 
-function drawMesh(canvas,lm){var ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;ctx.fillStyle='rgba(74,158,255,0.6)';for(var i=0;i<lm.length;i++){ctx.beginPath();ctx.arc(lm[i].x*w,lm[i].y*h,1.1,0,Math.PI*2);ctx.fill();}}
-
-/* REAL ALGORITHM v3 */
-var _buf=[],_BUF=8;
-function calcScore(lm){
-  if(!lm||lm.length<468)return 5;
-  function d(a,b){return Math.sqrt(Math.pow(lm[a].x-lm[b].x,2)+Math.pow(lm[a].y-lm[b].y,2));}
-  function clamp(v){return Math.max(0,Math.min(1,v));}
-  var fW=d(234,454),fH=d(10,152);if(fW<0.01||fH<0.01)return 5;
-  var nose=lm[1],sP=[[33,263],[130,359],[159,386],[145,374],[61,291],[234,454],[58,288],[172,397],[70,300],[105,334],[107,336],[46,276]],sT=0,sC=0;
-  for(var i=0;i<sP.length;i++){var lx=sP[i][0],rx=sP[i][1];if(lm[lx]&&lm[rx]){var lD=Math.abs(nose.x-lm[lx].x),rD=Math.abs(lm[rx].x-nose.x),av=(lD+rD)/2;if(av>0.005){sT+=Math.abs(lD-rD)/av;sC++;}}}
-  var sym=sC>0?clamp(1-(sT/sC)*3.5):0.5;
-  var jawW=d(172,397),jaw=(clamp(1-Math.abs(jawW/fW-0.78)*5)*0.6+clamp(1-Math.abs(jawW/Math.max(d(152,172)+d(152,397),0.001)-0.88)*6)*0.4);
-  var lT=(lm[133]&&lm[33])?(lm[133].y-lm[33].y):0,rT=(lm[362]&&lm[263])?(lm[362].y-lm[263].y):0;
-  var canthal=clamp(0.5+((lT+rT)/2)*22);
-  var cheek=clamp(1-Math.abs(d(234,454)/Math.max(d(130,359),0.001)-1.10)*6);
-  var eye=(clamp(1-Math.abs(d(133,362)/fW-0.31)*14)*0.55+clamp(1-Math.abs(((d(159,145)+d(386,374))/2)/fH-0.055)*40)*0.45);
-  var nose2=(clamp(1-Math.abs(d(48,278)/fW-0.21)*14)*0.6+clamp(1-Math.abs(d(168,2)/fH-0.32)*10)*0.4);
-  var lip=clamp(1-Math.abs(d(0,13)/Math.max(d(14,152),0.001)-0.7)*5);
-  var t1=d(10,168),t2=d(168,2),t3=d(2,152),tT=t1+t2+t3;
-  var thirds=tT>0?clamp(1-(Math.abs(t1/tT-0.33)+Math.abs(t2/tT-0.33)+Math.abs(t3/tT-0.33))*3.5):0.5;
-  var shape=clamp(1-Math.abs(fW/fH-0.68)*6);
-  var brow=clamp(1-Math.abs(((d(105,159)+d(334,386))/2)/fH-0.04)*30);
-  var raw=(sym*2.5+jaw*2.0+canthal*2.0+cheek*1.5+eye*1.5+nose2*1.0+lip*0.8+thirds*0.7+shape*0.6+brow*0.5)/13.1;
-  var scaled=Math.min(10,Math.max(1,raw*9.2+0.4));
-  _buf.push(scaled);if(_buf.length>_BUF)_buf.shift();
-  return Math.round((_buf.reduce(function(a,b){return a+b;},0)/_buf.length)*10)/10;
+function drawMesh(canvas,lm){
+  var ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
+  ctx.fillStyle='rgba(74,158,255,0.6)';
+  for(var i=0;i<lm.length;i++){ctx.beginPath();ctx.arc(lm[i].x*w,lm[i].y*h,1.1,0,Math.PI*2);ctx.fill();}
 }
 
-/* SOUND ENGINE */
-function playVictorySound(){
-  try{var ctx=new(window.AudioContext||window.webkitAudioContext)();var master=ctx.createGain();master.gain.value=0.7;master.connect(ctx.destination);
-  function kick(t){var o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(master);o.type='sine';o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(0.001,t+0.4);g.gain.setValueAtTime(1,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.4);o.start(t);o.stop(t+0.4);}
-  function snare(t){var buf=ctx.createBuffer(1,ctx.sampleRate*0.15,ctx.sampleRate),data=buf.getChannelData(0);for(var i=0;i<data.length;i++)data[i]=(Math.random()*2-1);var src=ctx.createBufferSource();src.buffer=buf;var g=ctx.createGain(),f=ctx.createBiquadFilter();f.type='highpass';f.frequency.value=1000;src.connect(f);f.connect(g);g.connect(master);g.gain.setValueAtTime(0.4,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.15);src.start(t);src.stop(t+0.15);}
-  function note(freq,t,dur,type,vol){var o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(master);o.type=type||'square';o.frequency.value=freq;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol||0.3,t+0.02);g.gain.setValueAtTime(vol||0.3,t+dur-0.05);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur);}
-  var T=ctx.currentTime;
-  kick(T);kick(T+0.5);kick(T+0.75);kick(T+1.0);kick(T+1.5);kick(T+1.75);
-  snare(T+0.25);snare(T+0.75);snare(T+1.25);snare(T+1.75);
-  note(523,T+0.0,0.18,'square',0.25);note(659,T+0.2,0.18,'square',0.25);note(784,T+0.4,0.18,'square',0.25);note(1047,T+0.6,0.35,'square',0.3);note(988,T+1.0,0.18,'square',0.25);note(1047,T+1.2,0.55,'square',0.35);
-  note(262,T+0.0,0.18,'sawtooth',0.1);note(330,T+0.2,0.18,'sawtooth',0.1);note(392,T+0.4,0.18,'sawtooth',0.1);note(523,T+0.6,0.9,'sawtooth',0.12);
-  [523,659,784,1047].forEach(function(f){note(f,T+1.85,0.8,'sine',0.2);});}catch(e){}
-}
-function playDefeatSound(){
-  try{var ctx=new(window.AudioContext||window.webkitAudioContext)();var master=ctx.createGain();master.gain.value=0.6;master.connect(ctx.destination);
-  function note(freq,t,dur,type,vol){var o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(master);o.type=type||'sine';o.frequency.value=freq;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol||0.25,t+0.04);g.gain.setValueAtTime(vol||0.25,t+dur-0.08);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur);}
-  var T=ctx.currentTime;
-  note(392,T+0.0,0.4,'sine',0.3);note(370,T+0.4,0.4,'sine',0.28);note(330,T+0.8,0.4,'sine',0.26);note(294,T+1.2,0.8,'sine',0.24);
-  note(196,T+0.0,0.4,'sawtooth',0.08);note(185,T+0.4,0.4,'sawtooth',0.08);note(165,T+0.8,0.4,'sawtooth',0.08);note(147,T+1.2,0.8,'sawtooth',0.08);
-  var o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(master);o.type='sine';o.frequency.value=60;g.gain.setValueAtTime(0.5,T+2.1);g.gain.exponentialRampToValueAtTime(0.001,T+2.8);o.start(T+2.1);o.stop(T+2.8);}catch(e){}
-}
-
-function generateCode(){
-  var btn=document.getElementById('generateBtn');
-  btn.textContent='Connecting...'; btn.disabled=true;
-  var attempts=0;
-  function tryGenerate(){
-    attempts++;
-    if(wsSend({type:'create_private_room'})){
-      btn.disabled=false;
-    } else if(attempts<20){
-      setTimeout(tryGenerate,300);
-    } else {
-      btn.textContent='Generate Code'; btn.disabled=false;
-      alert('Could not connect to server. Check your connection.');
-    }
-  }
-  tryGenerate();
-}
+function generateCode(){wsSend({type:'create_private_room'});}
 function copyCode(){if(!currentCode)return;navigator.clipboard.writeText(currentCode).catch(function(){});var b=document.getElementById('copyBtn');b.textContent='Copied!';b.classList.add('copied');setTimeout(function(){b.textContent='Copy';b.classList.remove('copied');},2000);}
 function joinCode(){var c=document.getElementById('codeInput').value.trim().toUpperCase();if(c.length<4){document.getElementById('codeInput').style.borderColor='rgba(239,68,68,0.3)';return;}document.getElementById('codeInput').style.borderColor='';wsSend({type:'join_private_room',code:c});}
 function cancelWait(){document.getElementById('waitingCard').classList.remove('show');document.getElementById('mainCard').style.display='block';document.getElementById('codeDisplay').style.display='none';document.getElementById('generateBtn').textContent='Generate Code';currentCode=null;}
 
-function onMatchStart(msg){oppId=msg.opponent&&msg.opponent.id;myRole=msg.role;document.getElementById('setupPanel').style.display='none';document.getElementById('arenaPanel').classList.add('show');document.getElementById('waitingCard').classList.remove('show');document.getElementById('oppPHText').textContent=(msg.opponent&&msg.opponent.name)||'Opponent';setAS('searching','Connecting peer cameras...');startRTC();}
+function onMatchStart(msg){
+  oppId=msg.opponent&&msg.opponent.id; myRole=msg.role;
+  document.getElementById('setupPanel').style.display='none';
+  document.getElementById('arenaPanel').classList.add('show');
+  document.getElementById('waitingCard').classList.remove('show');
+  document.getElementById('oppPHText').textContent=(msg.opponent&&msg.opponent.name)||'Opponent';
+  setAS('searching','Connecting peer cameras...');
+  startRTC();
+}
 
-function startRTC(){resetRTC();peerConn=new RTCPeerConnection(ICE);if(myStream)myStream.getTracks().forEach(function(t){peerConn.addTrack(t,myStream);});peerConn.ontrack=function(e){var v=document.getElementById('oppVid');v.srcObject=e.streams[0];v.style.display='block';document.getElementById('oppPH').style.display='none';setAS('on','Cameras connected — run your scan');scanDone=false;document.getElementById('scanBtn').disabled=false;wsSend({type:'webrtc_connected'});};peerConn.onicecandidate=function(e){if(e.candidate)wsSend({type:'webrtc_ice',targetId:oppId,candidate:e.candidate});};if(myRole==='offerer'){peerConn.createOffer({offerToReceiveVideo:true,offerToReceiveAudio:false}).then(function(o){return peerConn.setLocalDescription(o);}).then(function(){wsSend({type:'webrtc_offer',targetId:oppId,offer:peerConn.localDescription});});}}
+function startRTC(){
+  resetRTC(); peerConn=new RTCPeerConnection(ICE);
+  if(myStream) myStream.getTracks().forEach(function(t){peerConn.addTrack(t,myStream);});
+  peerConn.ontrack=function(e){var v=document.getElementById('oppVid');v.srcObject=e.streams[0];v.style.display='block';document.getElementById('oppPH').style.display='none';setAS('on','Cameras connected — run your scan');document.getElementById('scanBtn').disabled=false;wsSend({type:'webrtc_connected'});};
+  peerConn.onicecandidate=function(e){if(e.candidate)wsSend({type:'webrtc_ice',targetId:oppId,candidate:e.candidate});};
+  if(myRole==='offerer'){peerConn.createOffer({offerToReceiveVideo:true,offerToReceiveAudio:false}).then(function(o){return peerConn.setLocalDescription(o);}).then(function(){wsSend({type:'webrtc_offer',targetId:oppId,offer:peerConn.localDescription});});}
+}
 function handleOffer(msg){if(!peerConn)return;peerConn.setRemoteDescription(new RTCSessionDescription(msg.offer)).then(function(){return peerConn.createAnswer();}).then(function(a){return peerConn.setLocalDescription(a);}).then(function(){wsSend({type:'webrtc_answer',targetId:msg.fromId,answer:peerConn.localDescription});});}
 function handleAnswer(msg){if(!peerConn)return;peerConn.setRemoteDescription(new RTCSessionDescription(msg.answer));}
 function handleIce(msg){if(!peerConn||!msg.candidate)return;peerConn.addIceCandidate(new RTCIceCandidate(msg.candidate)).catch(function(){});}
 function resetRTC(){if(peerConn){peerConn.close();peerConn=null;}}
 
-var scanDone=false;
-
 function runScan(){
-  if(scanDone){setAS('searching','⚠ Already scanned — wait for result');return;}
   if(!myLandmarks){setAS('searching','⚠ Center your face');return;}
-  scanDone=true;
-  document.getElementById('scanBtn').disabled=true;document.getElementById('scanBtn').textContent='Scanning...';setAS('searching','Analyzing...');
+  document.getElementById('scanBtn').disabled=true; document.getElementById('scanBtn').textContent='Scanning...';
+  setAS('searching','Analyzing...');
   setTimeout(function(){
-    var score=calcScore(myLandmarks);
-    document.getElementById('myScore').textContent=score.toFixed(1);document.getElementById('myScore').style.display='block';
-    wsSend({type:'submit_score',score:score});setAS('searching','Submitted — awaiting opponent...');
+    var score=+(Math.random()*3+5.5).toFixed(1);
+    document.getElementById('myScore').textContent=score; document.getElementById('myScore').style.display='block';
+    wsSend({type:'submit_score',score:score}); setAS('searching','Submitted — awaiting opponent...');
   },2000);
 }
-
-function showResult(msg){
-  document.getElementById('resultBar').classList.add('show');
-  document.getElementById('resMy').textContent=(msg.myScore||0).toFixed(1);
-  document.getElementById('resOpp').textContent=(msg.opponentScore||0).toFixed(1);
-  document.getElementById('resTitle').textContent=msg.won?'Victory':'Defeated';
-  document.getElementById('resTitle').style.color=msg.won?'var(--green)':'var(--red)';
-  setAS('on','Match complete');
-  if(msg.won) playVictorySound(); else playDefeatSound();
-}
-
-function requestRematch(){
-  // Reset everything
-  document.getElementById('resultBar').classList.remove('show');
-  document.getElementById('myScore').style.display='none';
-  document.getElementById('oppScore').style.display='none';
-  document.getElementById('scanBtn').disabled=true;
-  document.getElementById('scanBtn').textContent='Run Scan';
-  document.getElementById('oppVid').style.display='none';
-  document.getElementById('oppPH').style.display='flex';
-  document.getElementById('oppPHText').textContent='Waiting...';
-  scanDone=false; _buf=[]; myLandmarks=null;
-  resetRTC();
-  // Go back to setup and auto-generate a new code
-  document.getElementById('arenaPanel').classList.remove('show');
-  document.getElementById('setupPanel').style.display='block';
-  document.getElementById('mainCard').style.display='block';
-  document.getElementById('waitingCard').classList.remove('show');
-  // Restart face mesh
-  fmReady=false;
-  if(faceMesh&&myStream){
-    var v=document.getElementById('myVid'),c=document.getElementById('myCanvas');
-    faceMesh.onResults(function(r){var ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);if(r.multiFaceLandmarks&&r.multiFaceLandmarks.length>0){myLandmarks=r.multiFaceLandmarks[0];drawMesh(c,myLandmarks);}else{myLandmarks=null;}});
-    fmReady=true;
-    (function loop(){if(!fmReady||!myStream)return;faceMesh.send({image:v}).then(function(){requestAnimationFrame(loop);});})();
-  }
-  // Auto generate new code so they can share it again
-  generateCode();
-}
-  document.getElementById('resultBar').classList.remove('show');
-  document.getElementById('myScore').style.display='none';
-  document.getElementById('oppScore').style.display='none';
-  document.getElementById('oppVid').style.display='none';
-  document.getElementById('oppPH').style.display='flex';
-  document.getElementById('oppPHText').textContent='Waiting for opponent...';
-  document.getElementById('scanBtn').disabled=true;
-  document.getElementById('scanBtn').textContent='Run Scan';
-  scanDone=false;
-  _buf=[];
-  myLandmarks=null;
-  resetRTC();
-  setAS('searching','Waiting for opponent to reconnect...');
-  // Restart face mesh loop cleanly
-  fmReady=false;
-  if(faceMesh&&myStream){
-    var v=document.getElementById('myVid');
-    var c=document.getElementById('myCanvas');
-    faceMesh.onResults(function(r){
-      var ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);
-      if(r.multiFaceLandmarks&&r.multiFaceLandmarks.length>0){myLandmarks=r.multiFaceLandmarks[0];drawMesh(c,myLandmarks);}
-      else{myLandmarks=null;}
-    });
-    fmReady=true;
-    (function loop(){if(!fmReady||!myStream)return;faceMesh.send({image:v}).then(function(){requestAnimationFrame(loop);});})();
-  }
-}
+function showResult(msg){document.getElementById('resultBar').classList.add('show');document.getElementById('resMy').textContent=(msg.myScore||0).toFixed(1);document.getElementById('resOpp').textContent=(msg.opponentScore||0).toFixed(1);document.getElementById('resTitle').textContent=msg.won?'Victory':'Defeated';document.getElementById('resTitle').style.color=msg.won?'var(--green)':'var(--red)';setAS('on','Match complete');}
+function resetMatch(){document.getElementById('resultBar').classList.remove('show');document.getElementById('myScore').style.display='none';document.getElementById('oppScore').style.display='none';document.getElementById('scanBtn').disabled=false;document.getElementById('scanBtn').textContent='Run Scan';setAS('on','Ready for next round');}
 function setAS(type,text){var d=document.getElementById('aDot');d.className='a-dot'+(type?' '+type:'');document.getElementById('aLabel').textContent=text;}
 </script>
 </body>
