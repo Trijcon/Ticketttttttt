@@ -3,177 +3,175 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MogMe.TV — My Profile</title>
+<title>MogMe.TV — Profile</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 <style>
-.profile-layout { display:grid; grid-template-columns:1fr 1.3fr; gap:16px; max-width:920px; margin:0 auto; }
+.profile-wrap { max-width:860px; margin:0 auto; }
 
-/* ── HEADER CARD ── */
-.profile-header-card {
-  background:linear-gradient(135deg,#141228,#0f0d20);
-  border:1px solid rgba(13,242,200,0.15); border-radius:18px; padding:28px;
-  display:flex; align-items:center; gap:20px; margin-bottom:14px; grid-column:1/-1;
+/* HEADER */
+.profile-header {
+  background:var(--glass); border:1px solid var(--border);
+  border-radius:var(--radius); padding:28px;
+  display:flex; align-items:center; gap:22px; margin-bottom:14px;
 }
-.profile-photo-wrap { position:relative; flex-shrink:0; }
 .profile-photo {
-  width:80px; height:80px; border-radius:50%;
-  border:3px solid rgba(13,242,200,0.3);
-  background:var(--surface2); object-fit:cover;
+  width:72px; height:72px; border-radius:50%;
+  background:var(--bg4); border:1px solid var(--border2);
   display:flex; align-items:center; justify-content:center;
-  font-family:'Barlow Condensed',sans-serif; font-size:32px; font-weight:800; color:var(--white);
-  overflow:hidden;
+  font-family:'Space Grotesk',sans-serif; font-size:28px; font-weight:700;
+  flex-shrink:0; overflow:hidden; color:var(--muted);
 }
 .profile-photo img { width:100%; height:100%; object-fit:cover; }
-.profile-main { flex:1; }
-.profile-username { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:28px; letter-spacing:1px; color:var(--white); margin-bottom:4px; }
-.profile-tier { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--teal); margin-bottom:10px; }
-.profile-stats-row { display:flex; gap:24px; }
-.profile-stat { text-align:center; }
-.profile-stat-val { font-family:'Barlow Condensed',sans-serif; font-size:24px; font-weight:800; color:var(--white); }
-.profile-stat-label { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:1px; color:var(--muted2); }
-.profile-elo-big { font-family:'Barlow Condensed',sans-serif; font-size:48px; font-weight:900; color:var(--teal); line-height:1; text-shadow:0 0 24px var(--teal-glow); margin-left:auto; text-align:right; }
-.profile-elo-label { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:1px; }
+.profile-name { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:24px; color:var(--white); margin-bottom:3px; letter-spacing:-0.3px; }
+.profile-tier { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--blue); letter-spacing:0.5px; margin-bottom:12px; }
+.profile-stats { display:flex; gap:24px; }
+.pstat-v { font-family:'Space Grotesk',sans-serif; font-size:22px; font-weight:700; color:var(--white); }
+.pstat-l { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:1px; color:var(--muted2); margin-top:1px; }
+.profile-elo { font-family:'Space Grotesk',sans-serif; font-size:48px; font-weight:700; color:var(--blue); line-height:1; margin-left:auto; }
+.profile-elo-label { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:1px; color:var(--muted2); text-align:right; margin-top:3px; }
 
-/* ── SECTION CARD ── */
-.section-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:14px; }
-.section-head { padding:16px 20px; border-bottom:1px solid var(--border); font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; letter-spacing:2px; color:var(--muted); display:flex; align-items:center; justify-content:space-between; }
-.section-body { padding:20px; }
+/* LAYOUT */
+.profile-layout { display:grid; grid-template-columns:1fr 1.3fr; gap:12px; align-items:start; }
 
-/* ── FORM FIELDS ── */
+/* CARDS */
+.pcard { background:var(--glass); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:10px; }
+.pcard-head { padding:12px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.pcard-title { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:2px; color:var(--muted2); text-transform:uppercase; }
+.pcard-body { padding:18px; }
+
+/* FIELDS */
 .field-group { margin-bottom:16px; }
-.field-label { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:2px; color:var(--muted2); margin-bottom:6px; display:block; }
-.field-val { font-family:'Barlow',sans-serif; font-size:15px; color:var(--white); padding:11px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; width:100%; }
-.field-input { font-family:'Barlow',sans-serif; font-size:15px; color:var(--white); padding:11px 14px; background:var(--surface2); border:1px solid var(--border2); border-radius:10px; width:100%; outline:none; transition:border-color 0.2s; }
-.field-input:focus { border-color:rgba(13,242,200,0.4); }
-.edit-btn { background:none; border:1px solid var(--border2); border-radius:8px; padding:6px 14px; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:10px; cursor:pointer; transition:all 0.2s; }
-.edit-btn:hover { color:var(--white); border-color:rgba(255,255,255,0.2); }
-.save-btn { background:var(--teal); border:none; border-radius:8px; padding:8px 18px; color:#080810; font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:700; cursor:pointer; transition:all 0.2s; }
-.save-btn:hover { background:#2fffd8; }
-
-/* ── MATCH HISTORY ── */
-.match-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.03); }
-.match-row:last-child { border-bottom:none; }
-.match-result { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:800; flex-shrink:0; }
-.match-result.win { background:rgba(13,242,122,0.12); color:var(--green); border:1px solid rgba(13,242,122,0.2); }
-.match-result.loss { background:rgba(255,61,107,0.12); color:var(--crimson); border:1px solid rgba(255,61,107,0.2); }
-.match-opp { font-size:13px; color:var(--white); font-weight:600; flex:1; }
-.match-elo { font-family:'JetBrains Mono',monospace; font-size:11px; }
-.match-elo.up { color:var(--green); }
-.match-elo.down { color:var(--crimson); }
-.match-score { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); }
-
-/* ── ACCOUNT ACTIONS ── */
-.action-btn {
-  width:100%; padding:13px; border-radius:10px; border:none;
-  font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:700; letter-spacing:1px;
-  cursor:pointer; transition:all 0.2s; margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:8px;
+.field-label { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:2px; color:var(--muted2); margin-bottom:6px; display:block; text-transform:uppercase; }
+.field-val {
+  font-size:14px; color:var(--silver); padding:10px 14px;
+  background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius);
+  width:100%; font-family:'Inter',sans-serif;
 }
-.action-btn.signout { background:var(--surface2); border:1px solid var(--border2); color:var(--muted); }
-.action-btn.signout:hover { color:var(--white); border-color:rgba(255,255,255,0.2); }
-.action-btn.delete { background:rgba(255,61,107,0.08); border:1px solid rgba(255,61,107,0.2); color:var(--crimson); }
-.action-btn.delete:hover { background:rgba(255,61,107,0.15); }
+.field-input {
+  font-size:14px; color:var(--white); padding:10px 14px;
+  background:var(--bg3); border:1px solid var(--border2); border-radius:var(--radius);
+  width:100%; outline:none; transition:border-color 0.2s; font-family:'Inter',sans-serif;
+}
+.field-input:focus { border-color:rgba(74,158,255,0.3); }
+.edit-link { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.5px; color:var(--muted2); background:none; border:none; cursor:pointer; transition:color 0.2s; }
+.edit-link:hover { color:var(--blue); }
 
-/* ── CONFIRM MODAL ── */
-.confirm-modal { max-width:380px; text-align:center; }
-.confirm-icon { font-size:40px; margin-bottom:12px; }
-.confirm-title { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:24px; margin-bottom:8px; }
-.confirm-text { font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:20px; }
-.confirm-actions { display:flex; gap:10px; }
+/* MATCH HISTORY */
+.match-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.03); }
+.match-row:last-child { border-bottom:none; }
+.match-result { width:32px; height:32px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; flex-shrink:0; letter-spacing:0; }
+.match-result.w { background:rgba(34,197,94,0.08); color:var(--green); border:1px solid rgba(34,197,94,0.15); }
+.match-result.l { background:rgba(239,68,68,0.08); color:var(--red); border:1px solid rgba(239,68,68,0.15); }
+.match-opp { font-size:13px; color:var(--silver); font-weight:500; flex:1; }
+.match-score { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2); }
+.match-elo { font-family:'JetBrains Mono',monospace; font-size:11px; }
+.match-elo.up { color:var(--green); } .match-elo.dn { color:var(--red); }
 
-@media(max-width:700px) { .profile-layout { grid-template-columns:1fr; } .profile-header-card { flex-direction:column; text-align:center; } .profile-stats-row { justify-content:center; } .profile-elo-big { margin-left:0; } }
+/* ACTIONS */
+.action-row { display:flex; flex-direction:column; gap:8px; }
+
+/* CONFIRM MODAL */
+.confirm-inner { text-align:center; }
+.confirm-icon { font-size:36px; margin-bottom:12px; }
+.confirm-text { font-size:13px; color:var(--muted); line-height:1.7; margin-bottom:20px; }
+.confirm-btns { display:flex; gap:10px; }
+
+@media(max-width:700px){.profile-layout{grid-template-columns:1fr;}.profile-header{flex-direction:column;text-align:center;}.profile-elo{margin-left:0;}.profile-stats{justify-content:center;}}
 </style>
 </head>
 <body>
 <div class="page-wrap">
+<div class="profile-wrap">
 
   <!-- HEADER -->
-  <div class="profile-header-card">
-    <div class="profile-photo-wrap">
-      <div class="profile-photo" id="profilePhoto">?</div>
-    </div>
-    <div class="profile-main">
-      <div class="profile-username" id="profileUsername">Loading...</div>
-      <div class="profile-tier" id="profileTier">— ELO</div>
-      <div class="profile-stats-row">
-        <div class="profile-stat"><div class="profile-stat-val" id="profileWins">0</div><div class="profile-stat-label">WINS</div></div>
-        <div class="profile-stat"><div class="profile-stat-val" id="profileLosses">0</div><div class="profile-stat-label">LOSSES</div></div>
-        <div class="profile-stat"><div class="profile-stat-val" id="profileWR">—</div><div class="profile-stat-label">WIN RATE</div></div>
-        <div class="profile-stat"><div class="profile-stat-val">S1</div><div class="profile-stat-label">SEASON</div></div>
+  <div class="profile-header">
+    <div class="profile-photo" id="pPhoto">?</div>
+    <div>
+      <div class="profile-name" id="pName">Loading...</div>
+      <div class="profile-tier" id="pTier">—</div>
+      <div class="profile-stats">
+        <div><div class="pstat-v" id="pWins">0</div><div class="pstat-l">Wins</div></div>
+        <div><div class="pstat-v" id="pLosses">0</div><div class="pstat-l">Losses</div></div>
+        <div><div class="pstat-v" id="pWR">—</div><div class="pstat-l">Win Rate</div></div>
+        <div><div class="pstat-v">S1</div><div class="pstat-l">Season</div></div>
       </div>
     </div>
     <div>
-      <div class="profile-elo-big" id="profileElo">400</div>
-      <div class="profile-elo-label">ELO RATING</div>
+      <div class="profile-elo" id="pElo">400</div>
+      <div class="profile-elo-label">ELO Rating</div>
     </div>
   </div>
 
   <div class="profile-layout">
     <!-- LEFT -->
     <div>
-      <!-- PROFILE IDENTITY -->
-      <div class="section-card">
-        <div class="section-head">
-          PROFILE IDENTITY
-          <button class="edit-btn" id="editBtn" onclick="toggleEdit()">✏ EDIT</button>
+      <div class="pcard">
+        <div class="pcard-head">
+          <div class="pcard-title">Identity</div>
+          <button class="edit-link" id="editBtn" onclick="toggleEdit()">Edit</button>
         </div>
-        <div class="section-body">
+        <div class="pcard-body">
           <div class="field-group">
-            <label class="field-label">DISPLAY NAME</label>
-            <div id="nameDisplay" class="field-val" id="nameDisplay"></div>
-            <input id="nameInput" class="field-input" type="text" maxlength="24" style="display:none;" placeholder="Enter display name">
-            <div id="saveRow" style="display:none;margin-top:8px;">
-              <button class="save-btn" onclick="saveName()">SAVE CHANGES</button>
+            <label class="field-label">Display Name</label>
+            <div id="nameDisplay" class="field-val"></div>
+            <input id="nameInput" class="field-input" type="text" maxlength="24" style="display:none;">
+            <div id="saveRow" style="display:none;margin-top:8px;display:none;">
+              <button class="btn-primary" style="font-size:13px;padding:9px 20px;" onclick="saveName()">Save</button>
             </div>
           </div>
           <div class="field-group">
-            <label class="field-label">USERNAME</label>
+            <label class="field-label">Username</label>
             <div class="field-val" id="usernameDisplay" style="color:var(--muted);">—</div>
           </div>
           <div class="field-group">
-            <label class="field-label">EMAIL</label>
+            <label class="field-label">Email</label>
             <div class="field-val" id="emailDisplay" style="color:var(--muted);">—</div>
           </div>
           <div class="field-group">
-            <label class="field-label">MEMBER SINCE</label>
+            <label class="field-label">Member Since</label>
             <div class="field-val" id="joinDate" style="color:var(--muted);">—</div>
           </div>
         </div>
       </div>
 
-      <!-- ACCOUNT ACTIONS -->
-      <div class="section-card">
-        <div class="section-head">ACCOUNT ACTIONS</div>
-        <div class="section-body">
-          <button class="action-btn signout" onclick="signOutUser()">↩ Sign Out</button>
-          <button class="action-btn delete" onclick="openModal('confirmDeleteModal')">🗑 Delete Account</button>
+      <div class="pcard">
+        <div class="pcard-head"><div class="pcard-title">Account</div></div>
+        <div class="pcard-body">
+          <div class="action-row">
+            <button class="btn-ghost" onclick="signOutUser()" style="width:100%;text-align:center;">Sign Out</button>
+            <button class="btn-danger" onclick="openModal('confirmDelete')" style="width:100%;text-align:center;">Delete Account</button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- RIGHT -->
     <div>
-      <!-- MATCH HISTORY -->
-      <div class="section-card">
-        <div class="section-head">MATCH HISTORY</div>
-        <div class="section-body" id="matchHistory">
-          <div style="text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted2);padding:20px 0;">No matches yet — get in the arena!</div>
+      <div class="pcard">
+        <div class="pcard-head"><div class="pcard-title">Match History</div></div>
+        <div class="pcard-body" id="matchHistory">
+          <div style="text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);padding:16px 0;">No matches yet — get in the arena</div>
         </div>
       </div>
     </div>
   </div>
 </div>
+</div>
 
-<!-- DELETE CONFIRM MODAL -->
-<div class="modal-overlay" id="confirmDeleteModal" onclick="if(event.target===this)closeModal('confirmDeleteModal')">
-  <div class="modal-box confirm-modal">
-    <div class="confirm-icon">⚠️</div>
-    <div class="confirm-title">DELETE ACCOUNT?</div>
-    <div class="confirm-text">This permanently deletes your profile, ELO and match history. This cannot be undone.</div>
-    <div class="confirm-actions">
-      <button class="btn-outline" style="flex:1;" onclick="closeModal('confirmDeleteModal')">CANCEL</button>
-      <button style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--crimson);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;cursor:pointer;" onclick="deleteAccount()">DELETE</button>
+<!-- DELETE CONFIRM -->
+<div class="modal-overlay" id="confirmDelete" onclick="if(event.target===this)closeModal('confirmDelete')">
+  <div class="modal-box" style="max-width:380px;">
+    <div class="confirm-inner">
+      <div class="confirm-icon">⚠️</div>
+      <div class="modal-title" style="font-size:20px;">Delete Account?</div>
+      <div class="confirm-text">This permanently deletes your profile, ELO and match history. This cannot be undone.</div>
+      <div class="confirm-btns">
+        <button class="btn-ghost" style="flex:1;" onclick="closeModal('confirmDelete')">Cancel</button>
+        <button class="btn-danger" style="flex:1;" onclick="deleteAccount()">Delete</button>
+      </div>
     </div>
   </div>
 </div>
@@ -181,7 +179,7 @@
 <script src="shared.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, deleteUser }
+import { getAuth, onAuthStateChanged, deleteUser, signOut }
   from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, updateDoc, deleteDoc, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -196,102 +194,106 @@ const fbApp = initializeApp({
 const auth = getAuth(fbApp);
 const db   = getFirestore(fbApp);
 
-let currentUser = null;
-let currentProfile = null;
-let editMode = false;
+let _user = null, _profile = null, _editMode = false;
 
 injectSharedUI();
 connectWS();
 
 onAuthStateChanged(auth, async (user) => {
-  if (!user) { window.location.href = 'index.html'; return; }
-  currentUser = user;
+  if (!user) { window.location.href='index.html'; return; }
+  _user = user;
   try {
-    const snap = await getDoc(doc(db, 'users', user.uid));
-    if (!snap.exists()) { window.location.href = 'setup.html'; return; }
-    currentProfile = snap.data();
-    renderProfile(user, currentProfile);
-  } catch(e) {
-    console.error('Profile load error:', e);
-  }
+    const snap = await getDoc(doc(db,'users',user.uid));
+    if (!snap.exists()) { window.location.href='setup.html'; return; }
+    _profile = snap.data();
+    renderProfile(user, _profile);
+  } catch(e) { console.error('Profile load error:',e); }
 });
 
 function renderProfile(user, p) {
   const elo    = p.elo || 400;
   const wins   = p.wins || 0;
   const losses = p.losses || 0;
-  const tn     = getTierName(elo);
-  const te     = getTierEmoji(elo);
+  const wr     = (wins+losses) ? Math.round(wins/(wins+losses)*100)+'%' : '—';
 
-  // Header
-  const photoEl = document.getElementById('profilePhoto');
-  if (p.photoURL || user.photoURL) {
-    photoEl.innerHTML = `<img src="${p.photoURL||user.photoURL}" onerror="this.parentElement.textContent='${(p.username||'?')[0].toUpperCase()}'">`;
+  // Photo
+  const photoEl = document.getElementById('pPhoto');
+  const photoSrc = p.photoURL || user.photoURL;
+  if (photoSrc) {
+    photoEl.innerHTML = `<img src="${photoSrc}" onerror="this.parentElement.textContent='${(p.username||'?')[0].toUpperCase()}'">`;
   } else {
     photoEl.textContent = (p.username||'?')[0].toUpperCase();
   }
-  document.getElementById('profileUsername').textContent = p.username || 'Unknown';
-  document.getElementById('profileTier').textContent = te + ' ' + tn + ' · ' + elo + ' ELO';
-  document.getElementById('profileElo').textContent = elo;
-  document.getElementById('profileWins').textContent = wins;
-  document.getElementById('profileLosses').textContent = losses;
-  document.getElementById('profileWR').textContent = (wins+losses) ? Math.round(wins/(wins+losses)*100)+'%' : '—';
 
-  // Identity
-  document.getElementById('nameDisplay').textContent = p.displayName || p.username;
-  document.getElementById('nameInput').value = p.displayName || p.username;
+  document.getElementById('pName').textContent    = p.displayName || p.username || 'Unknown';
+  document.getElementById('pTier').textContent    = getTierEmoji(elo)+' '+getTierName(elo)+' · '+elo+' ELO';
+  document.getElementById('pElo').textContent     = elo;
+  document.getElementById('pWins').textContent    = wins;
+  document.getElementById('pLosses').textContent  = losses;
+  document.getElementById('pWR').textContent      = wr;
+  document.getElementById('nameDisplay').textContent  = p.displayName || p.username || '—';
+  document.getElementById('nameInput').value          = p.displayName || p.username || '';
   document.getElementById('usernameDisplay').textContent = p.username || '—';
-  document.getElementById('emailDisplay').textContent = user.email || '—';
-  if (p.createdAt && p.createdAt.toDate) {
+  document.getElementById('emailDisplay').textContent    = user.email || '—';
+
+  if (p.createdAt?.toDate) {
     document.getElementById('joinDate').textContent = p.createdAt.toDate().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   }
 
-  // Match history
   const hist = p.matchHistory || [];
   const histEl = document.getElementById('matchHistory');
-  if (hist.length === 0) {
-    histEl.innerHTML = '<div style="text-align:center;font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--muted2);padding:20px 0;">No matches yet — get in the arena!</div>';
+  if (!hist.length) {
+    histEl.innerHTML = '<div style="text-align:center;font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--muted2);padding:16px 0;">No matches yet — get in the arena</div>';
   } else {
     histEl.innerHTML = hist.slice(-10).reverse().map(m => `
       <div class="match-row">
-        <div class="match-result ${m.won?'win':'loss'}">${m.won?'W':'L'}</div>
-        <div>
+        <div class="match-result ${m.won?'w':'l'}">${m.won?'W':'L'}</div>
+        <div style="flex:1;">
           <div class="match-opp">${m.opponentName||'Unknown'}</div>
           <div class="match-score">${(m.myScore||0).toFixed(1)} vs ${(m.oppScore||0).toFixed(1)}</div>
         </div>
-        <div class="match-elo ${m.eloChange>=0?'up':'down'}">${m.eloChange>=0?'+':''}${m.eloChange} ELO</div>
+        <div class="match-elo ${m.eloChange>=0?'up':'dn'}">${m.eloChange>=0?'+':''}${m.eloChange}</div>
       </div>`).join('');
   }
 }
 
 window.toggleEdit = function() {
-  editMode = !editMode;
-  document.getElementById('nameDisplay').style.display = editMode ? 'none' : 'block';
-  document.getElementById('nameInput').style.display   = editMode ? 'block' : 'none';
-  document.getElementById('saveRow').style.display     = editMode ? 'block' : 'none';
-  document.getElementById('editBtn').textContent       = editMode ? '✕ CANCEL' : '✏ EDIT';
+  _editMode = !_editMode;
+  document.getElementById('nameDisplay').style.display = _editMode ? 'none' : 'block';
+  document.getElementById('nameInput').style.display   = _editMode ? 'block' : 'none';
+  document.getElementById('saveRow').style.display     = _editMode ? 'block' : 'none';
+  document.getElementById('editBtn').textContent       = _editMode ? 'Cancel' : 'Edit';
 };
 
 window.saveName = async function() {
   const newName = document.getElementById('nameInput').value.trim();
-  if (!newName || !currentUser) return;
+  if (!newName || !_user) return;
+  if (newName.length < 2) { alert('Name too short'); return; }
   try {
-    await updateDoc(doc(db,'users',currentUser.uid), { displayName: newName, lastSeen: serverTimestamp() });
+    await updateDoc(doc(db,'users',_user.uid), { displayName:newName, lastSeen:serverTimestamp() });
     document.getElementById('nameDisplay').textContent = newName;
+    document.getElementById('pName').textContent = newName;
     localStorage.setItem('mgm_name', newName);
     window.toggleEdit();
-  } catch(e) { alert('Save failed: ' + e.message); }
+  } catch(e) { alert('Save failed: '+e.message); }
+};
+
+window.signOutUser = async function() {
+  await signOut(auth);
+  ['mgm_uid','mgm_username','mgm_name','mgm_elo','mgm_wins','mgm_losses','mgm_photo']
+    .forEach(k=>localStorage.removeItem(k));
+  window.location.href = 'index.html';
 };
 
 window.deleteAccount = async function() {
-  if (!currentUser) return;
+  if (!_user) return;
   try {
-    await deleteDoc(doc(db,'users',currentUser.uid));
-    const uname = currentProfile?.usernameLower;
-    if (uname) await deleteDoc(doc(db,'usernames',uname));
-    await deleteUser(currentUser);
-    ['mgm_name','mgm_elo','mgm_wins','mgm_losses','mgm_uid','mgm_photo','mgm_username']
-      .forEach(k => localStorage.removeItem(k));
+    await deleteDoc(doc(db,'users',_user.uid));
+    const unameLower = _profile?.usernameLower;
+    if (unameLower) await deleteDoc(doc(db,'usernames',unameLower));
+    await deleteUser(_user);
+    ['mgm_uid','mgm_username','mgm_name','mgm_elo','mgm_wins','mgm_losses','mgm_photo']
+      .forEach(k=>localStorage.removeItem(k));
     window.location.href = 'index.html';
   } catch(e) { alert('Delete failed. Please sign out and sign back in, then try again.'); }
 };
