@@ -30,6 +30,15 @@
   --green:     #22c55e;
   --red:       #ef4444;
   --amber:     #f59e0b;
+  --crimson:   #ef4444;
+
+  /* ── LEGACY ALIASES (kept for older pages) ── */
+  --surface:   rgba(255,255,255,0.03);
+  --surface2:  rgba(255,255,255,0.05);
+  --teal:      #0df2c8;
+  --teal-dim:  rgba(13,242,200,0.1);
+  --violet:    #7b61ff;
+  --violet-dim:rgba(123,97,255,0.1);
 
   /* ── LAYOUT ── */
   --nav-h:   56px;
@@ -281,6 +290,25 @@ body::before {
   font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;
 }
 .btn-danger:hover { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); }
+
+.btn-amber {
+  padding: 12px 22px; border-radius: var(--radius);
+  border: none; background: var(--blue);
+  color: #000; font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px; font-weight: 600; letter-spacing: 0.3px;
+  cursor: pointer; transition: opacity 0.2s;
+}
+.btn-amber:hover { opacity: 0.85; }
+.btn-amber:disabled { background: var(--bg4); color: var(--muted2); cursor: not-allowed; }
+
+.btn-outline {
+  padding: 11px 22px; border-radius: var(--radius);
+  border: 1px solid var(--border2); background: transparent;
+  color: var(--muted); font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-outline:hover { color: var(--silver); border-color: var(--border3); background: var(--glass2); }
 
 /* ════════════════════════════════
    GLASSMORPHISM CARDS
