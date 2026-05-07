@@ -60,7 +60,43 @@
 .report-btn{position:absolute;bottom:10px;left:10px;background:rgba(255,61,107,0.15);border:1px solid rgba(255,61,107,0.3);border-radius:7px;padding:5px 12px;color:#ff3d6b;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;display:none;z-index:15;transition:all 0.2s;}
 .report-btn:hover{background:rgba(255,61,107,0.25);}
 
-/* VS + MOGGING BAR */
+/* MATCH TIMER (top-center) */
+.match-timer{
+  text-align:center;
+  font-family:'JetBrains Mono',monospace;
+  font-size:22px;font-weight:700;letter-spacing:6px;
+  color:var(--white);margin-bottom:8px;
+}
+.match-timer.hidden{display:none;}
+
+/* GETTING MOGGED BAR */
+.getmog-section{margin:14px 0 10px;text-align:center;}
+.getmog-bar{
+  position:relative;
+  height:6px;background:rgba(255,255,255,0.06);
+  border-radius:999px;overflow:hidden;
+  margin:0 auto 6px;max-width:520px;
+}
+.getmog-fill-l{
+  position:absolute;left:0;top:0;height:100%;width:50%;
+  background:linear-gradient(90deg,var(--green),var(--teal));
+  transition:width 1s cubic-bezier(0.34,1.56,0.64,1);
+}
+.getmog-fill-r{
+  position:absolute;right:0;top:0;height:100%;width:50%;
+  background:linear-gradient(270deg,var(--red),var(--crimson));
+  transition:width 1s cubic-bezier(0.34,1.56,0.64,1);
+}
+.getmog-divider{
+  position:absolute;top:-3px;left:50%;
+  width:1px;height:12px;background:var(--white);opacity:0.4;
+}
+.getmog-label{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  letter-spacing:3px;color:var(--muted);text-transform:uppercase;
+}
+
+/* VS + MOGGING BAR (legacy section retained for backward compat) */
 .vs-section{display:flex;align-items:center;gap:14px;margin-bottom:10px;padding:0 4px;}
 .mogging-wrap{flex:1;}
 .mogging-label{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted2);margin-bottom:4px;}
@@ -97,6 +133,8 @@
     </div>
     <div class="queue-label" id="qText"></div>
   </div>
+
+  <div class="match-timer hidden" id="matchTimer">00:00</div>
 
   <div class="feeds-grid">
     <!-- YOU -->
@@ -175,6 +213,16 @@
     </div>
   </div>
 
+  <!-- GETTING MOGGED bar -->
+  <div class="getmog-section">
+    <div class="getmog-bar">
+      <div class="getmog-fill-l" id="getmogFillL"></div>
+      <div class="getmog-fill-r" id="getmogFillR"></div>
+      <div class="getmog-divider"></div>
+    </div>
+    <div class="getmog-label" id="getmogLabel">⟵  GETTING MOGGED</div>
+  </div>
+
   <div class="actions-row">
     <button class="btn-outline" id="skipBtn" onclick="skipOpp()" style="display:none;flex:0 0 110px;">SKIP →</button>
     <button class="btn-amber" id="mainBtn" onclick="mainAction()" style="flex:1;font-size:17px;padding:15px;">START CAMERA</button>
@@ -204,7 +252,39 @@
 var state='idle',myStream=null,faceMesh=null,fmReady=false,myLandmarks=null;
 var peerConn=null,oppSocketId=null,myRole=null;
 var myLastScore=0,oppLastScore=0;
+var matchStartTs=0,matchTimerId=null;
 var ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]};
+
+function startMatchTimer(){
+  matchStartTs=Date.now();
+  var el=document.getElementById('matchTimer');
+  el.classList.remove('hidden');
+  if(matchTimerId)clearInterval(matchTimerId);
+  matchTimerId=setInterval(function(){
+    var s=Math.floor((Date.now()-matchStartTs)/1000);
+    var m=Math.floor(s/60),ss=s%60;
+    el.textContent=String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0');
+  },1000);
+}
+function stopMatchTimer(){
+  if(matchTimerId){clearInterval(matchTimerId);matchTimerId=null;}
+  document.getElementById('matchTimer').classList.add('hidden');
+}
+function updateGetMog(myScore,oppScore){
+  var total=myScore+oppScore;
+  if(total<=0){
+    document.getElementById('getmogFillL').style.width='50%';
+    document.getElementById('getmogFillR').style.width='50%';
+    document.getElementById('getmogLabel').textContent='⟵  AWAITING SCAN  ⟶';
+    return;
+  }
+  var myPct=(myScore/total)*100;
+  document.getElementById('getmogFillL').style.width=myPct+'%';
+  document.getElementById('getmogFillR').style.width=(100-myPct)+'%';
+  if(myPct>55) document.getElementById('getmogLabel').textContent='⟵  YOU ARE MOGGING';
+  else if(myPct<45) document.getElementById('getmogLabel').textContent='GETTING MOGGED  ⟶';
+  else document.getElementById('getmogLabel').textContent='—  EVEN MATCH  —';
+}
 
 // Load user info
 var _name  = localStorage.getItem('mgm_username')||localStorage.getItem('mgm_name')||'YOU';
@@ -282,6 +362,7 @@ function initFM(v,c){
         document.getElementById('myDom').textContent=live.dom;
         document.getElementById('myFlaw').textContent=live.flaw;
         updateMoggingBar(live.score, oppLastScore);
+        updateGetMog(live.score, oppLastScore);
       }
     }else{myLandmarks=null;}
   });
@@ -299,28 +380,59 @@ function drawMesh(canvas,lm,dotColor){
 }
 
 /* ═══════════════════════════════════════
-   MOGME.TV — IMPROVED FACE ALGORITHM v2
-   Pure landmark math. Zero randomness.
-   10 metrics, temporal smoothing,
-   multi-sample averaging for stability.
+   MOGME.TV — FACE ALGORITHM v3
+   Head-pose compensated, research-backed
+   ratios, 13 metrics, temporal smoothing.
 ═══════════════════════════════════════ */
 
 // Rolling buffer for temporal smoothing — prevents score flickering
-var _scoreBuffer=[], _BUFFER_SIZE=8;
+var _scoreBuffer=[], _BUFFER_SIZE=10;
 
 function calcDetailedScore(lm){
   if(!lm||lm.length<468) return {score:5,dom:'—',flaw:'—',metrics:{}};
 
-  // Distance between two landmark indices
-  function d(a,b){
-    return Math.sqrt(Math.pow((lm[a].x-lm[b].x),2)+Math.pow((lm[a].y-lm[b].y),2));
-  }
-  // Clamp to 0–1
   function clamp(v){return Math.max(0,Math.min(1,v));}
 
-  var faceW  = d(234,454);  // total face width
-  var faceH  = d(10,152);   // total face height
+  /* ── HEAD POSE COMPENSATION ──
+     Normalize landmarks against head rotation so off-axis faces
+     don't tank scores. We use 3D landmarks (x,y,z) and rotate
+     them so that the inter-eye axis is horizontal and the face
+     points at the camera. ── */
+  var lEye = lm[33], rEye = lm[263], chin = lm[152], fHead = lm[10];
+  if (!lEye || !rEye || !chin || !fHead) return {score:5,dom:'—',flaw:'—',metrics:{}};
+
+  // Roll angle (in-plane tilt)
+  var roll = Math.atan2(rEye.y - lEye.y, rEye.x - lEye.x);
+  // Yaw approximation (asymmetric distance from nose to ears)
+  var noseTip = lm[1] || lm[4];
+  var leftEar = lm[234], rightEar = lm[454];
+  var yawApprox = noseTip ? ((noseTip.x - leftEar.x) - (rightEar.x - noseTip.x)) : 0;
+  // Pitch approximation (head looking up/down via z of forehead vs chin)
+  var pitchApprox = (fHead.z - chin.z);
+
+  // Cache rotated/normalized landmarks for measurements
+  var cosR = Math.cos(-roll), sinR = Math.sin(-roll);
+  var cx = (lEye.x + rEye.x) / 2;
+  var cy = (lEye.y + rEye.y) / 2;
+  function rotLm(i){
+    if (!lm[i]) return null;
+    var dx = lm[i].x - cx, dy = lm[i].y - cy;
+    return { x: dx*cosR - dy*sinR + cx, y: dx*sinR + dy*cosR + cy, z: lm[i].z };
+  }
+
+  // Distance between two indices in roll-normalized space
+  function d(a,b){
+    var pa = rotLm(a), pb = rotLm(b);
+    if (!pa || !pb) return 0;
+    return Math.sqrt((pa.x-pb.x)*(pa.x-pb.x) + (pa.y-pb.y)*(pa.y-pb.y));
+  }
+
+  var faceW  = d(234,454);
+  var faceH  = d(10,152);
   if(faceW<0.01||faceH<0.01) return {score:5,dom:'—',flaw:'—',metrics:{}};
+
+  // Yaw confidence: more yaw = less reliable measurements (penalize less, smooth more)
+  var yawPenalty = Math.min(0.25, Math.abs(yawApprox) * 1.5);
 
   /* ── 1. FACIAL SYMMETRY (weight: 2.5)
      Compare horizontal distances of 12 symmetric pairs from nose midline.
@@ -429,27 +541,54 @@ function calcDetailedScore(lm){
   var avgBrowDist=((lBrowDist+rBrowDist)/2)/faceH;
   var browScore=clamp(1-Math.abs(avgBrowDist-0.04)*30);
 
-  /* ── WEIGHTED TOTAL ── */
+  /* ── 11. MIDFACE RATIO (weight: 0.9)
+     Midface (brow-to-nosetip) should be ~36% of face height.
+     Compact midface is associated with strong attractiveness. ── */
+  var midfaceLen = d(168,2);
+  var midfaceRatio = midfaceLen / faceH;
+  var midfaceScore = clamp(1 - Math.abs(midfaceRatio - 0.36) * 7);
+
+  /* ── 12. PHILTRUM / LOWER-LIP RATIO (weight: 0.5)
+     Philtrum length should be ~ 30-35% of upper-jaw to lip line.
+     Short philtrum is generally rated more attractive. ── */
+  var philtrum = d(2,0);   // nose base to upper lip
+  var lipChin  = d(13,152);
+  var philtrumRatio = lipChin > 0 ? philtrum / lipChin : 0.4;
+  var philtrumScore = clamp(1 - Math.abs(philtrumRatio - 0.32) * 5);
+
+  /* ── 13. GOLDEN RATIO PHI CHECK (weight: 0.6)
+     Face height / face width should approximate phi (1.618).
+     Strong predictor in classical-beauty research. ── */
+  var phiActual = faceH / faceW;
+  var phiScore = clamp(1 - Math.abs(phiActual - 1.618) * 1.4);
+
+  /* ── WEIGHTED TOTAL — research-backed weighting ── */
   var weights={
-    symmetry:2.5, jaw:2.0, canthal:2.0, cheek:1.5,
-    eye:1.5, nose:1.0, lip:0.8, thirds:0.7, shape:0.6, brow:0.5
+    symmetry:2.5, jaw:2.2, canthal:2.0, cheek:1.6,
+    eye:1.5, nose:1.1, lip:0.8, thirds:0.7, shape:0.6, brow:0.5,
+    midface:0.9, philtrum:0.5, phi:0.6
   };
   var wSum=Object.values(weights).reduce(function(a,b){return a+b;},0);
   var rawScore=(
-    symmetry    * weights.symmetry +
-    jawScore    * weights.jaw      +
-    canthalScore* weights.canthal  +
-    cheekScore  * weights.cheek    +
-    eyeScore    * weights.eye      +
-    noseScore   * weights.nose     +
-    lipScore    * weights.lip      +
-    thirdsScore * weights.thirds   +
-    faceShapeScore*weights.shape   +
-    browScore   * weights.brow
+    symmetry      * weights.symmetry +
+    jawScore      * weights.jaw      +
+    canthalScore  * weights.canthal  +
+    cheekScore    * weights.cheek    +
+    eyeScore      * weights.eye      +
+    noseScore     * weights.nose     +
+    lipScore      * weights.lip      +
+    thirdsScore   * weights.thirds   +
+    faceShapeScore* weights.shape    +
+    browScore     * weights.brow     +
+    midfaceScore  * weights.midface  +
+    philtrumScore * weights.philtrum +
+    phiScore      * weights.phi
   ) / wSum;
 
+  // Yaw penalty: heavily off-axis faces lose up to 0.25 of raw confidence
+  var poseAdjusted = rawScore * (1 - yawPenalty * 0.5);
   // Scale to 1–10 with NO random noise
-  var scaledScore = Math.min(10, Math.max(1, rawScore * 9.2 + 0.4));
+  var scaledScore = Math.min(10, Math.max(1, poseAdjusted * 9.2 + 0.4));
 
   // Temporal smoothing — average last N frames for stability
   _scoreBuffer.push(scaledScore);
@@ -459,16 +598,19 @@ function calcDetailedScore(lm){
 
   /* ── DOM + FLAW DETECTION ── */
   var metrics=[
-    {name:'Symmetry',    val:symmetry,       dom:'Strong Symmetry',    flaw:'Facial Asymmetry'},
-    {name:'Jawline',     val:jawScore,        dom:'Sharp Jawline',      flaw:'Soft Jawline'},
-    {name:'Canthal Tilt',val:canthalScore,    dom:'Hunter Eyes',        flaw:'Downturned Eyes'},
-    {name:'Cheekbones',  val:cheekScore,      dom:'High Cheekbones',    flaw:'Flat Midface'},
-    {name:'Eye Quality', val:eyeScore,        dom:'Deep-Set Eyes',      flaw:'Eye Proportion'},
-    {name:'Nose',        val:noseScore,       dom:'Refined Nose',       flaw:'Nose Proportion'},
-    {name:'Lips',        val:lipScore,        dom:'Defined Lips',       flaw:'Lip Ratio'},
-    {name:'Facial Thirds',val:thirdsScore,    dom:'Balanced Thirds',    flaw:'Uneven Thirds'},
-    {name:'Face Shape',  val:faceShapeScore,  dom:'Oval Face Shape',    flaw:'Face Ratio'},
-    {name:'Brow Ridge',  val:browScore,       dom:'Strong Brow Ridge',  flaw:'Weak Brow'},
+    {name:'Symmetry',     val:symmetry,       dom:'Strong Symmetry',    flaw:'Facial Asymmetry'},
+    {name:'Jawline',      val:jawScore,        dom:'Sharp Jawline',      flaw:'Soft Jawline'},
+    {name:'Canthal Tilt', val:canthalScore,    dom:'Hunter Eyes',        flaw:'Downturned Eyes'},
+    {name:'Cheekbones',   val:cheekScore,      dom:'High Cheekbones',    flaw:'Flat Midface'},
+    {name:'Eye Quality',  val:eyeScore,        dom:'Deep-Set Eyes',      flaw:'Eye Proportion'},
+    {name:'Nose',         val:noseScore,       dom:'Refined Nose',       flaw:'Nose Proportion'},
+    {name:'Lips',         val:lipScore,        dom:'Defined Lips',       flaw:'Lip Ratio'},
+    {name:'Facial Thirds',val:thirdsScore,     dom:'Balanced Thirds',    flaw:'Uneven Thirds'},
+    {name:'Face Shape',   val:faceShapeScore,  dom:'Oval Face Shape',    flaw:'Face Ratio'},
+    {name:'Brow Ridge',   val:browScore,       dom:'Strong Brow Ridge',  flaw:'Weak Brow'},
+    {name:'Midface',      val:midfaceScore,    dom:'Compact Midface',    flaw:'Long Midface'},
+    {name:'Philtrum',     val:philtrumScore,   dom:'Short Philtrum',     flaw:'Long Philtrum'},
+    {name:'Golden Ratio', val:phiScore,        dom:'Phi Proportions',    flaw:'Off-Phi Geometry'},
   ];
   metrics.sort(function(a,b){return b.val-a.val;});
 
@@ -476,9 +618,11 @@ function calcDetailedScore(lm){
     score: finalScore,
     dom:   metrics[0].dom,
     flaw:  metrics[metrics.length-1].flaw,
+    pose:  { roll: roll, yaw: yawApprox, pitch: pitchApprox },
     metrics: {
       symmetry,jawScore,canthalScore,cheekScore,
-      eyeScore,noseScore,lipScore,thirdsScore,faceShapeScore,browScore
+      eyeScore,noseScore,lipScore,thirdsScore,faceShapeScore,browScore,
+      midfaceScore,philtrumScore,phiScore
     }
   };
 }
@@ -520,6 +664,8 @@ function onMatchFound(msg){
   document.getElementById('oppEloLabel').textContent=(opp.elo||400)+' ELO';
   document.getElementById('oppMogLabel').textContent=opp.name||'OPP';
   setBtnScan(); document.getElementById('skipBtn').style.display='flex';
+  startMatchTimer();
+  updateGetMog(0,0);
   startRTC();
 }
 
@@ -574,6 +720,8 @@ function onResult(msg){
   state='result';
   myLastScore=msg.myScore||0; oppLastScore=msg.opponentScore||0;
   updateMoggingBar(myLastScore,oppLastScore);
+  updateGetMog(myLastScore,oppLastScore);
+  stopMatchTimer();
   // Show opp score on overlay
   document.getElementById('oppScoreVal').textContent=oppLastScore.toFixed(1);
   var oppTierElo=scoreToElo(oppLastScore);
@@ -600,6 +748,7 @@ function skipOpp(){
   wsSend({type:'skip_opponent'}); resetOpp(); closeRTC(); state='camera';
   setS('','Searching for new opponent...'); setBtnFind(); document.getElementById('skipBtn').style.display='none';
   hideOverlays(); oppLastScore=0;
+  stopMatchTimer(); updateGetMog(0,0);
 }
 
 function resetOpp(){

@@ -319,6 +319,49 @@
 <body>
 <div class="page-wrap">
 
+  <!-- ALGORITHM PREVIEW HOLOGRAM -->
+  <div class="holo-hero" id="holoHero">
+    <div class="holo-grid-bg"></div>
+    <div class="holo-glow"></div>
+    <div class="holo-scan"></div>
+
+    <div class="holo-tl">
+      <div class="holo-tag">// THE LAB</div>
+      <div class="holo-title">ALGORITHM PREVIEW</div>
+      <div class="holo-sub">[MAX ASCENSION REACHED]</div>
+    </div>
+
+    <div class="holo-tr">
+      <div class="holo-status"><span class="holo-status-dot" id="holoDot"></span><span id="holoStatusText">STANDBY</span></div>
+      <div class="holo-meta">
+        <div class="holo-meta-line">REAL-TIME ENGINE</div>
+        <div class="holo-meta-line">MTC-0011 7B0</div>
+      </div>
+    </div>
+
+    <div class="holo-stats left">
+      <div class="holo-stat-line"><span class="holo-stat-key">PROPORTIONS</span><span class="holo-stat-val" id="holoStat1">85%</span></div>
+      <div class="holo-stat-line"><span class="holo-stat-key">SYMMETRY</span><span class="holo-stat-val" id="holoStat2">92</span></div>
+      <div class="holo-stat-line"><span class="holo-stat-key">JAW DEF</span><span class="holo-stat-val" id="holoStat3">88</span></div>
+      <div class="holo-stat-line"><span class="holo-stat-key">CANTHAL</span><span class="holo-stat-val" id="holoStat4">+0.02</span></div>
+    </div>
+
+    <div class="holo-stats right">
+      <div class="holo-stat-line"><span class="holo-stat-key">CHEEKBONES</span><span class="holo-stat-val" id="holoStat5">90%</span></div>
+      <div class="holo-stat-line"><span class="holo-stat-key">MIDFACE</span><span class="holo-stat-val" id="holoStat6">87</span></div>
+      <div class="holo-stat-line"><span class="holo-stat-key">LIPS</span><span class="holo-stat-val" id="holoStat7">86</span></div>
+      <div class="holo-stat-line"><span class="holo-stat-key">NOSE</span><span class="holo-stat-val" id="holoStat8">91</span></div>
+    </div>
+
+    <div class="holo-stage">
+      <canvas id="holoCanvas" width="360" height="360"></canvas>
+      <canvas id="holoFaceCanvas" width="640" height="480"></canvas>
+      <video id="holoVid" autoplay playsinline muted></video>
+    </div>
+
+    <button class="holo-activate" id="holoActivate" onclick="toggleHolo()">⚡ ACTIVATE LIVE SCAN</button>
+  </div>
+
   <!-- SEASON -->
   <div class="season-bar">
     <div class="season-tag">🏆 Season 1</div>
@@ -441,11 +484,185 @@
 
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script src="shared.js"></script>
 <script type="module" src="auth.js"></script>
 <script>
 injectSharedUI();
 connectWS();
+
+/* ════════════════════════════════
+   ALGORITHM PREVIEW HOLOGRAM
+═════════════════════════════════ */
+var _holo = { scene:null, camera:null, renderer:null, head:null, inner:null, ring:null, animId:null, active:false, stream:null, faceMesh:null, mpRunning:false };
+
+function initHolo(){
+  var canvas = document.getElementById('holoCanvas');
+  if (!canvas || !window.THREE) return;
+  var W = canvas.width = canvas.offsetWidth || 360;
+  var H = canvas.height = canvas.offsetHeight || 360;
+
+  _holo.scene  = new THREE.Scene();
+  _holo.camera = new THREE.PerspectiveCamera(45, W/H, 0.1, 100);
+  _holo.camera.position.z = 4;
+  _holo.renderer = new THREE.WebGLRenderer({canvas:canvas, alpha:true, antialias:true});
+  _holo.renderer.setSize(W, H, false);
+  _holo.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+  // Stretched wireframe head
+  var headGeom = new THREE.SphereGeometry(1.25, 32, 26);
+  var pos = headGeom.attributes.position;
+  for (var i = 0; i < pos.count; i++) {
+    var x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    pos.setY(i, y * 1.2);
+    // Push out front for nose bridge area, indent eye sockets slightly
+    if (z > 0.5 && y > -0.3 && y < 0.4) pos.setZ(i, z * 1.04);
+    if (z > 0.5 && Math.abs(x) > 0.35 && Math.abs(x) < 0.7 && y > 0.05 && y < 0.35) pos.setZ(i, z * 0.92);
+  }
+  pos.needsUpdate = true;
+  headGeom.computeVertexNormals();
+  _holo.head = new THREE.Mesh(headGeom, new THREE.MeshBasicMaterial({wireframe:true, color:0x4A9EFF, transparent:true, opacity:0.55}));
+  _holo.scene.add(_holo.head);
+
+  // Inner glow shell
+  var innerGeom = new THREE.SphereGeometry(1.18, 18, 14);
+  var ipos = innerGeom.attributes.position;
+  for (var j=0;j<ipos.count;j++) ipos.setY(j, ipos.getY(j)*1.2);
+  ipos.needsUpdate = true;
+  _holo.inner = new THREE.Mesh(innerGeom, new THREE.MeshBasicMaterial({color:0x4A9EFF, transparent:true, opacity:0.05}));
+  _holo.scene.add(_holo.inner);
+
+  // Outer rotating ring
+  var ringGeom = new THREE.TorusGeometry(1.7, 0.005, 6, 80);
+  _holo.ring = new THREE.Mesh(ringGeom, new THREE.MeshBasicMaterial({color:0x4A9EFF, transparent:true, opacity:0.4}));
+  _holo.ring.rotation.x = Math.PI/2;
+  _holo.scene.add(_holo.ring);
+
+  function animate(){
+    if (_holo.head) _holo.head.rotation.y += 0.005;
+    if (_holo.inner) _holo.inner.rotation.y -= 0.003;
+    if (_holo.ring) _holo.ring.rotation.z += 0.003;
+    if (_holo.renderer) _holo.renderer.render(_holo.scene, _holo.camera);
+    _holo.animId = requestAnimationFrame(animate);
+  }
+  animate();
+
+  // Animate side stats subtly
+  setInterval(function(){
+    if (_holo.active) return;
+    var ids = ['holoStat1','holoStat2','holoStat3','holoStat5','holoStat6','holoStat7','holoStat8'];
+    var id = ids[Math.floor(Math.random()*ids.length)];
+    var el = document.getElementById(id);
+    if (!el) return;
+    var t = el.textContent;
+    var hasPct = t.indexOf('%') > -1;
+    var n = parseInt(t);
+    if (isNaN(n)) return;
+    n = Math.max(78, Math.min(99, n + (Math.random()<0.5?-1:1)));
+    el.textContent = hasPct ? n+'%' : n;
+  }, 750);
+}
+
+window.toggleHolo = async function(){
+  var btn = document.getElementById('holoActivate');
+  var dot = document.getElementById('holoDot');
+  var hero = document.getElementById('holoHero');
+  var statusText = document.getElementById('holoStatusText');
+
+  if (_holo.active) {
+    if (_holo.stream) { _holo.stream.getTracks().forEach(function(t){t.stop();}); _holo.stream = null; }
+    _holo.mpRunning = false;
+    document.getElementById('holoCanvas').style.display = 'block';
+    document.getElementById('holoFaceCanvas').style.display = 'none';
+    btn.textContent = '⚡ ACTIVATE LIVE SCAN';
+    btn.classList.remove('live');
+    dot.classList.remove('live');
+    hero.classList.remove('live');
+    statusText.textContent = 'STANDBY';
+    _holo.active = false;
+    return;
+  }
+
+  try {
+    btn.textContent = 'REQUESTING CAMERA...';
+    _holo.stream = await navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'},audio:false});
+    var v = document.getElementById('holoVid');
+    v.srcObject = _holo.stream;
+
+    var fc = document.getElementById('holoFaceCanvas');
+    fc.style.display = 'block';
+    document.getElementById('holoCanvas').style.display = 'none';
+
+    if (!_holo.faceMesh && window.FaceMesh) {
+      _holo.faceMesh = new FaceMesh({locateFile:function(f){return 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/'+f;}});
+      _holo.faceMesh.setOptions({maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.6, minTrackingConfidence:0.6});
+      _holo.faceMesh.onResults(holoOnResults);
+    }
+
+    _holo.mpRunning = true;
+    (async function loop(){
+      if (!_holo.mpRunning) return;
+      try { await _holo.faceMesh.send({image:v}); } catch(e){}
+      requestAnimationFrame(loop);
+    })();
+
+    btn.textContent = '◉ SCANNING — TAP TO STOP';
+    btn.classList.add('live');
+    dot.classList.add('live');
+    hero.classList.add('live');
+    statusText.textContent = 'LIVE';
+    _holo.active = true;
+  } catch(e) {
+    btn.textContent = '⚡ ACTIVATE LIVE SCAN';
+    alert('Camera access denied or unavailable.');
+  }
+};
+
+function holoOnResults(r){
+  var c = document.getElementById('holoFaceCanvas');
+  if (!c) return;
+  var ctx = c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height);
+
+  if (r.multiFaceLandmarks && r.multiFaceLandmarks.length > 0) {
+    var lm = r.multiFaceLandmarks[0];
+    var W = c.width, H = c.height;
+    ctx.save();
+    ctx.translate(W,0); ctx.scale(-1,1);
+    // Glow dots
+    ctx.shadowColor = '#4A9EFF';
+    ctx.shadowBlur = 4;
+    ctx.fillStyle = 'rgba(74,158,255,0.85)';
+    for (var i=0;i<lm.length;i++) {
+      ctx.beginPath();
+      ctx.arc(lm[i].x*W, lm[i].y*H, 1.2, 0, Math.PI*2);
+      ctx.fill();
+    }
+    // Connection lines
+    var conns = [[33,7],[7,163],[163,144],[144,145],[145,153],[153,154],[154,155],[155,133],[362,382],[382,381],[381,380],[380,374],[374,373],[373,390],[390,249],[249,263],[61,185],[185,40],[40,39],[39,37],[37,0],[0,267],[267,269],[269,270],[270,409],[409,291],[291,375],[375,321],[321,405],[405,314],[314,17],[17,84],[84,181],[181,91],[91,146],[146,61],[10,338],[338,297],[297,332],[332,284],[284,251],[251,389],[389,356],[356,454],[454,323],[323,361],[361,288],[288,397],[397,365],[365,379],[379,378],[378,400],[400,377],[377,152],[152,148],[148,176],[176,149],[149,150],[150,136],[136,172]];
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(74,158,255,0.35)';
+    ctx.lineWidth = 0.7;
+    for (var k=0;k<conns.length;k++) {
+      var a = conns[k][0], b = conns[k][1];
+      if (lm[a] && lm[b]) {
+        ctx.beginPath();
+        ctx.moveTo(lm[a].x*W, lm[a].y*H);
+        ctx.lineTo(lm[b].x*W, lm[b].y*H);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+}
+
+// Init when DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initHolo);
+} else {
+  initHolo();
+}
 
 // Timer to June 6 2026
 var endDate=new Date('2026-06-06T00:00:00Z');

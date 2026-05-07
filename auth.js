@@ -167,9 +167,11 @@ function updateNavForUser(user, profile) {
       const uname = profile.username || user.displayName?.split(' ')[0] || 'Profile';
       btn.style.cssText = 'display:flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;border-radius:999px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);cursor:pointer;';
       btn.innerHTML = photo
-        ? `<img src="${photo}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`
-        : `<div style="width:24px;height:24px;border-radius:50%;background:rgba(74,158,255,0.1);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#4A9EFF;">${(uname[0]||'?').toUpperCase()}</div><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`;
-      btn.onclick = () => window.toggleUserMenu && window.toggleUserMenu();
+        ? `<img src="${photo}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`
+        : `<div style="width:30px;height:30px;border-radius:50%;background:rgba(74,158,255,0.12);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#4A9EFF;">${(uname[0]||'?').toUpperCase()}</div><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`;
+      // Site-wide: clicking profile icon goes directly to profile/edit page
+      btn.onclick = () => { window.location.href = 'profile.html'; };
+      btn.title = 'Edit Profile';
     }
     if (banner) banner.style.display = 'none';
     document.body.style.paddingTop = 'var(--nav-h)';
