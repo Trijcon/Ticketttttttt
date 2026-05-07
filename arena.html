@@ -27,20 +27,8 @@
 .feed-ph-icon{font-size:44px;opacity:0.25;}
 .feed-ph-text{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);letter-spacing:1px;}
 
-/* SCAN OVERLAY AND ANIMATION */
+/* SCAN OVERLAY */
 .scan-overlay{position:absolute;inset:0;pointer-events:none;z-index:10;}
-
-.feed-box.scanning-active::after {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-  background: #0df2c8; box-shadow: 0 0 20px #0df2c8;
-  animation: scanMove 2s linear infinite; z-index: 20; pointer-events: none;
-}
-@keyframes scanMove { 
-  0% { top: 0; opacity: 0; } 
-  10% { opacity: 1; } 
-  90% { opacity: 1; } 
-  100% { top: 100%; opacity: 0; } 
-}
 
 /* Top-left info panel */
 .scan-info-tl{
@@ -149,9 +137,11 @@
   <div class="match-timer hidden" id="matchTimer">00:00</div>
 
   <div class="feeds-grid">
-    <div class="feed-box" id="myFeedBox">
+    <!-- YOU -->
+    <div class="feed-box">
       <video class="feed-video" id="myVid" autoplay playsinline muted></video>
       <canvas class="feed-canvas" id="myCanvas"></canvas>
+      <!-- Overlay -->
       <div class="scan-overlay">
         <div class="scan-info-tl" id="myInfoTL">
           <div class="scan-score-label">OVERALL SCORE</div>
@@ -178,8 +168,10 @@
       <div class="feed-ph" id="myPH"><div class="feed-ph-icon">📷</div><div class="feed-ph-text">CAMERA OFF</div></div>
     </div>
 
-    <div class="feed-box" id="oppFeedBox">
+    <!-- OPPONENT -->
+    <div class="feed-box">
       <video class="feed-video" id="oppVid" autoplay playsinline style="display:none;"></video>
+      <!-- Overlay -->
       <div class="scan-overlay">
         <div class="scan-info-tl" id="oppInfoTL">
           <div class="scan-score-label">OVERALL SCORE</div>
@@ -208,6 +200,7 @@
     </div>
   </div>
 
+  <!-- VS + MOGGING BAR -->
   <div class="vs-section">
     <div class="mogging-wrap">
       <div class="mogging-label"><span id="myMogLabel">YOU</span><span>MOGGING</span></div>
@@ -220,13 +213,14 @@
     </div>
   </div>
 
+  <!-- GETTING MOGGED bar -->
   <div class="getmog-section">
     <div class="getmog-bar">
       <div class="getmog-fill-l" id="getmogFillL"></div>
       <div class="getmog-fill-r" id="getmogFillR"></div>
       <div class="getmog-divider"></div>
     </div>
-    <div class="getmog-label" id="getmogLabel">⟵  AWAITING SCAN  ⟶</div>
+    <div class="getmog-label" id="getmogLabel">⟵  GETTING MOGGED</div>
   </div>
 
   <div class="actions-row">
@@ -342,9 +336,9 @@ function startCam(){
     v.onloadedmetadata=function(){
       var c=document.getElementById('myCanvas'); c.width=v.videoWidth; c.height=v.videoHeight;
       document.getElementById('myPH').style.display='none';
-      
-      // Removed the premature overlay display here so it stays hidden until you scan
-      
+      // Show my overlay
+      document.getElementById('myInfoTL').style.display='block';
+      document.getElementById('myLabelTR').style.display='block';
       state='camera'; setBtnFind(); setS('','Camera active — find a match!');
       initFM(v,c);
     };
@@ -367,6 +361,8 @@ function initFM(v,c){
         document.getElementById('myTierBadge').style.color=getTierColor(live.score);
         document.getElementById('myDom').textContent=live.dom;
         document.getElementById('myFlaw').textContent=live.flaw;
+        updateMoggingBar(live.score, oppLastScore);
+        updateGetMog(live.score, oppLastScore);
       }
     }else{myLandmarks=null;}
   });
@@ -397,15 +393,24 @@ function calcDetailedScore(lm){
 
   function clamp(v){return Math.max(0,Math.min(1,v));}
 
+  /* ── HEAD POSE COMPENSATION ──
+     Normalize landmarks against head rotation so off-axis faces
+     don't tank scores. We use 3D landmarks (x,y,z) and rotate
+     them so that the inter-eye axis is horizontal and the face
+     points at the camera. ── */
   var lEye = lm[33], rEye = lm[263], chin = lm[152], fHead = lm[10];
   if (!lEye || !rEye || !chin || !fHead) return {score:5,dom:'—',flaw:'—',metrics:{}};
 
+  // Roll angle (in-plane tilt)
   var roll = Math.atan2(rEye.y - lEye.y, rEye.x - lEye.x);
+  // Yaw approximation (asymmetric distance from nose to ears)
   var noseTip = lm[1] || lm[4];
   var leftEar = lm[234], rightEar = lm[454];
   var yawApprox = noseTip ? ((noseTip.x - leftEar.x) - (rightEar.x - noseTip.x)) : 0;
+  // Pitch approximation (head looking up/down via z of forehead vs chin)
   var pitchApprox = (fHead.z - chin.z);
 
+  // Cache rotated/normalized landmarks for measurements
   var cosR = Math.cos(-roll), sinR = Math.sin(-roll);
   var cx = (lEye.x + rEye.x) / 2;
   var cy = (lEye.y + rEye.y) / 2;
@@ -415,6 +420,7 @@ function calcDetailedScore(lm){
     return { x: dx*cosR - dy*sinR + cx, y: dx*sinR + dy*cosR + cy, z: lm[i].z };
   }
 
+  // Distance between two indices in roll-normalized space
   function d(a,b){
     var pa = rotLm(a), pb = rotLm(b);
     if (!pa || !pb) return 0;
@@ -425,8 +431,12 @@ function calcDetailedScore(lm){
   var faceH  = d(10,152);
   if(faceW<0.01||faceH<0.01) return {score:5,dom:'—',flaw:'—',metrics:{}};
 
+  // Yaw confidence: more yaw = less reliable measurements (penalize less, smooth more)
   var yawPenalty = Math.min(0.25, Math.abs(yawApprox) * 1.5);
 
+  /* ── 1. FACIAL SYMMETRY (weight: 2.5)
+     Compare horizontal distances of 12 symmetric pairs from nose midline.
+     More pairs = more robust against head tilt. ── */
   var nose=lm[1];
   var symPairs=[
     [33,263],[130,359],[159,386],[145,374],
@@ -440,7 +450,7 @@ function calcDetailedScore(lm){
       var lDist=Math.abs(nose.x-lm[li].x);
       var rDist=Math.abs(lm[ri].x-nose.x);
       var avg=(lDist+rDist)/2;
-      if(avg>0.005){ 
+      if(avg>0.005){ // ignore near-zero distances
         symTotal+=Math.abs(lDist-rDist)/avg;
         symCount++;
       }
@@ -448,47 +458,68 @@ function calcDetailedScore(lm){
   }
   var symmetry = symCount>0 ? clamp(1-(symTotal/symCount)*3.5) : 0.5;
 
-  var jawW=d(172,397); 
+  /* ── 2. JAW DEFINITION (weight: 2.0)
+     Jaw-to-face ratio + jaw angularity (chin point vs jaw corners) ── */
+  var jawW=d(172,397); // jaw corner to jaw corner
   var jawRatio=jawW/faceW;
   var jawRatioScore=clamp(1-Math.abs(jawRatio-0.78)*5);
+  // Chin sharpness: how pointed the chin is relative to jaw width
   var chinDepth=d(152,172)+d(152,397);
   var chinRatio=chinDepth>0?jawW/chinDepth:0;
   var chinScore=clamp(1-Math.abs(chinRatio-0.88)*6);
   var jawScore=(jawRatioScore*0.6+chinScore*0.4);
 
+  /* ── 3. CANTHAL TILT (weight: 2.0)
+     Positive tilt (hunter eyes) = outer corner higher than inner.
+     Measured on both eyes, averaged. ── */
   var lTilt=(lm[133]&&lm[33])?(lm[133].y-lm[33].y):0;
   var rTilt=(lm[362]&&lm[263])?(lm[362].y-lm[263].y):0;
   var avgTilt=(lTilt+rTilt)/2;
+  // Normalize: +0.015 tilt = very positive, −0.015 = very negative
   var canthalScore=clamp(0.5+avgTilt*22);
 
-  var cheekW=d(234,454);   
-  var midW=d(130,359);     
+  /* ── 4. CHEEKBONE PROMINENCE (weight: 1.5)
+     Cheekbone width vs jaw width ratio. High cheekbones = cheekW > jawW. ── */
+  var cheekW=d(234,454);   // zygomatic width
+  var midW=d(130,359);     // mid-face width
   var cheekRatio=midW>0?cheekW/midW:1;
+  // Ideal: cheekbones ~10% wider than mid-face
   var cheekScore=clamp(1-Math.abs(cheekRatio-1.10)*6);
 
+  /* ── 5. EYE QUALITY (weight: 1.5)
+     Combines: inter-eye spacing + eye openness (vertical aperture) ── */
   var eyeDist=d(133,362);
   var eyeRatio=eyeDist/faceW;
   var eyeSpacingScore=clamp(1-Math.abs(eyeRatio-0.31)*14);
-  var lEyeH=d(159,145); 
+  // Eye openness: vertical height of eye aperture
+  var lEyeH=d(159,145); // left eye top to bottom
   var rEyeH=d(386,374);
   var avgEyeH=(lEyeH+rEyeH)/2;
   var eyeOpenRatio=avgEyeH/faceH;
   var eyeOpenScore=clamp(1-Math.abs(eyeOpenRatio-0.055)*40);
   var eyeScore=(eyeSpacingScore*0.55+eyeOpenScore*0.45);
 
+  /* ── 6. NOSE PROPORTIONS (weight: 1.0)
+     Width ratio + tip definition (how sharp the nose tip is) ── */
   var noseW=d(48,278);
   var noseRatio=noseW/faceW;
   var noseWidthScore=clamp(1-Math.abs(noseRatio-0.21)*14);
+  // Nose length relative to face height (rule of thirds = ~0.33)
   var noseH=d(168,2);
   var noseLenRatio=noseH/faceH;
   var noseLenScore=clamp(1-Math.abs(noseLenRatio-0.32)*10);
   var noseScore=(noseWidthScore*0.6+noseLenScore*0.4);
 
-  var upperLipH=d(0,13);   
-  var lowerLipH=d(14,152); 
+  /* ── 7. LIP RATIO (weight: 0.8)
+     Upper-to-lower lip ratio (ideal ~0.7) + lip width ratio ── */
+  var upperLipH=d(0,13);   // philtrum to upper lip edge
+  var lowerLipH=d(14,152); // lower lip to chin
   var lipRatio=lowerLipH>0?upperLipH/lowerLipH:0.7;
   var lipScore=clamp(1-Math.abs(lipRatio-0.7)*5);
 
+  /* ── 8. FACIAL THIRDS (weight: 0.7)
+     Top third (forehead), mid third (nose zone), lower third (mouth/chin)
+     should be roughly equal ── */
   var topThird=d(10,168);
   var midThird=d(168,2);
   var botThird=d(2,152);
@@ -498,26 +529,40 @@ function calcDetailedScore(lm){
   var t3=thirdsTotal>0?botThird/thirdsTotal:0.33;
   var thirdsScore=clamp(1-(Math.abs(t1-0.33)+Math.abs(t2-0.33)+Math.abs(t3-0.33))*3.5);
 
+  /* ── 9. FACE SHAPE RATIO (weight: 0.6)
+     Width-to-height ratio. Oval/oblong = most attractive (0.62–0.75) ── */
   var faceRatio=faceW/faceH;
   var faceShapeScore=clamp(1-Math.abs(faceRatio-0.68)*6);
 
+  /* ── 10. BROW RIDGE (weight: 0.5)
+     Brow-to-eye vertical distance. Strong brow = closer to eye ── */
   var lBrowDist=d(105,159);
   var rBrowDist=d(334,386);
   var avgBrowDist=((lBrowDist+rBrowDist)/2)/faceH;
   var browScore=clamp(1-Math.abs(avgBrowDist-0.04)*30);
 
+  /* ── 11. MIDFACE RATIO (weight: 0.9)
+     Midface (brow-to-nosetip) should be ~36% of face height.
+     Compact midface is associated with strong attractiveness. ── */
   var midfaceLen = d(168,2);
   var midfaceRatio = midfaceLen / faceH;
   var midfaceScore = clamp(1 - Math.abs(midfaceRatio - 0.36) * 7);
 
-  var philtrum = d(2,0);   
+  /* ── 12. PHILTRUM / LOWER-LIP RATIO (weight: 0.5)
+     Philtrum length should be ~ 30-35% of upper-jaw to lip line.
+     Short philtrum is generally rated more attractive. ── */
+  var philtrum = d(2,0);   // nose base to upper lip
   var lipChin  = d(13,152);
   var philtrumRatio = lipChin > 0 ? philtrum / lipChin : 0.4;
   var philtrumScore = clamp(1 - Math.abs(philtrumRatio - 0.32) * 5);
 
+  /* ── 13. GOLDEN RATIO PHI CHECK (weight: 0.6)
+     Face height / face width should approximate phi (1.618).
+     Strong predictor in classical-beauty research. ── */
   var phiActual = faceH / faceW;
   var phiScore = clamp(1 - Math.abs(phiActual - 1.618) * 1.4);
 
+  /* ── WEIGHTED TOTAL — research-backed weighting ── */
   var weights={
     symmetry:2.5, jaw:2.2, canthal:2.0, cheek:1.6,
     eye:1.5, nose:1.1, lip:0.8, thirds:0.7, shape:0.6, brow:0.5,
@@ -540,18 +585,18 @@ function calcDetailedScore(lm){
     phiScore      * weights.phi
   ) / wSum;
 
+  // Yaw penalty: heavily off-axis faces lose up to 0.25 of raw confidence
   var poseAdjusted = rawScore * (1 - yawPenalty * 0.5);
-  
-  // IMPROVEMENT: Replaced the jumpy linear multiplier with a power curve
-  // This tightens the distribution so the score acts like a true 1-10 rating
-  var curveAdjusted = Math.pow(poseAdjusted, 1.3);
-  var scaledScore = Math.min(9.9, Math.max(1.5, curveAdjusted * 10));
+  // Scale to 1–10 with NO random noise
+  var scaledScore = Math.min(10, Math.max(1, poseAdjusted * 9.2 + 0.4));
 
+  // Temporal smoothing — average last N frames for stability
   _scoreBuffer.push(scaledScore);
   if(_scoreBuffer.length>_BUFFER_SIZE) _scoreBuffer.shift();
   var finalScore=_scoreBuffer.reduce(function(a,b){return a+b;},0)/_scoreBuffer.length;
   finalScore=Math.round(finalScore*10)/10;
 
+  /* ── DOM + FLAW DETECTION ── */
   var metrics=[
     {name:'Symmetry',     val:symmetry,       dom:'Strong Symmetry',    flaw:'Facial Asymmetry'},
     {name:'Jawline',      val:jawScore,        dom:'Sharp Jawline',      flaw:'Soft Jawline'},
@@ -612,7 +657,7 @@ function onMatchFound(msg){
   var t=opp.tier||{name:'Sub3',emoji:'\uD83D\uDD34'};
   setS('connected','Matched: '+(opp.name||'Opponent')+' \u00B7 '+t.emoji+' '+t.name+' \u00B7 '+(opp.elo||400)+' ELO');
   document.getElementById('oppPHText').textContent=(opp.name||'Opponent')+' \u00B7 Connecting...';
-  
+  // Update opp overlay
   document.getElementById('oppLabelName').textContent=opp.name||'Opponent';
   document.getElementById('oppTierEmoji').textContent=t.emoji||'\uD83D\uDD34';
   document.getElementById('oppTierName').textContent=t.name||'Sub3';
@@ -625,6 +670,7 @@ function onMatchFound(msg){
 }
 
 function startRTC(){
+  // Close any prior peer connection WITHOUT clearing oppSocketId / myRole
   if(peerConn){try{peerConn.close();}catch(e){}peerConn=null;}
   peerConn=new RTCPeerConnection(ICE);
   if(myStream)myStream.getTracks().forEach(function(t){peerConn.addTrack(t,myStream);});
@@ -653,36 +699,21 @@ function closeRTC(){if(peerConn){try{peerConn.close();}catch(e){}peerConn=null;}
 function runScan(){
   if(!myLandmarks){setS('connected','\u26A0 Center your face in frame');return;}
   state='scanning';
-  
-  var btn = document.getElementById('mainBtn');
-  var myFeedBox = document.getElementById('myFeedBox'); // Grab your specific feed div
-  
-  btn.textContent='SCANNING...'; 
-  btn.disabled=true;
-  myFeedBox.classList.add('scanning-active'); // Turn on the laser animation
+  document.getElementById('mainBtn').textContent='SCANNING...'; document.getElementById('mainBtn').disabled=true;
   setS('searching','AI analyzing your features...');
-  
   setTimeout(function(){
-    myFeedBox.classList.remove('scanning-active'); // Turn off animation
     var result=calcDetailedScore(myLandmarks);
     myLastScore=result.score;
-    
-    // Unhide the UI panels now that the scan is done
-    document.getElementById('myInfoTL').style.display='block';
-    document.getElementById('myLabelTR').style.display='block';
-    
+    // Show final score on overlay
     document.getElementById('myScoreVal').textContent=result.score.toFixed(1);
     document.getElementById('myTierBadge').textContent=getTierEmoji(scoreToElo(result.score))+' '+getTierName(scoreToElo(result.score));
     document.getElementById('myTierBadge').style.color=getTierColor(result.score);
     document.getElementById('myDom').textContent=result.dom;
     document.getElementById('myFlaw').textContent=result.flaw;
-    
     updateMoggingBar(result.score,oppLastScore);
-    updateGetMog(result.score,oppLastScore); // Updates the bottom comparison bar
-    
     wsSend({type:'submit_score',score:result.score});
     setS('searching','Score submitted \u2014 awaiting opponent...');
-  }, 2400); // 2.4 second scan duration
+  },2400);
 }
 
 function onResult(msg){
@@ -691,6 +722,7 @@ function onResult(msg){
   updateMoggingBar(myLastScore,oppLastScore);
   updateGetMog(myLastScore,oppLastScore);
   stopMatchTimer();
+  // Show opp score on overlay
   document.getElementById('oppScoreVal').textContent=oppLastScore.toFixed(1);
   var oppTierElo=scoreToElo(oppLastScore);
   document.getElementById('oppTierBadge').textContent=getTierEmoji(oppTierElo)+' '+getTierName(oppTierElo);
@@ -708,8 +740,6 @@ function onResult(msg){
 function rematch(){
   document.getElementById('resultCard').classList.remove('show');
   document.getElementById('mainBtn').style.display='block';
-  document.getElementById('myInfoTL').style.display='none';
-  document.getElementById('myLabelTR').style.display='none';
   state='camera'; setS('','Camera active — find a match!'); setBtnFind();
   oppLastScore=0; updateMoggingBar(myLastScore,0);
 }
