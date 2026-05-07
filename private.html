@@ -225,7 +225,23 @@ function playDefeatSound(){
   var o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(master);o.type='sine';o.frequency.value=60;g.gain.setValueAtTime(0.5,T+2.1);g.gain.exponentialRampToValueAtTime(0.001,T+2.8);o.start(T+2.1);o.stop(T+2.8);}catch(e){}
 }
 
-function generateCode(){wsSend({type:'create_private_room'});}
+function generateCode(){
+  var btn=document.getElementById('generateBtn');
+  btn.textContent='Connecting...'; btn.disabled=true;
+  var attempts=0;
+  function tryGenerate(){
+    attempts++;
+    if(wsSend({type:'create_private_room'})){
+      btn.disabled=false;
+    } else if(attempts<20){
+      setTimeout(tryGenerate,300);
+    } else {
+      btn.textContent='Generate Code'; btn.disabled=false;
+      alert('Could not connect to server. Check your connection.');
+    }
+  }
+  tryGenerate();
+}
 function copyCode(){if(!currentCode)return;navigator.clipboard.writeText(currentCode).catch(function(){});var b=document.getElementById('copyBtn');b.textContent='Copied!';b.classList.add('copied');setTimeout(function(){b.textContent='Copy';b.classList.remove('copied');},2000);}
 function joinCode(){var c=document.getElementById('codeInput').value.trim().toUpperCase();if(c.length<4){document.getElementById('codeInput').style.borderColor='rgba(239,68,68,0.3)';return;}document.getElementById('codeInput').style.borderColor='';wsSend({type:'join_private_room',code:c});}
 function cancelWait(){document.getElementById('waitingCard').classList.remove('show');document.getElementById('mainCard').style.display='block';document.getElementById('codeDisplay').style.display='none';document.getElementById('generateBtn').textContent='Generate Code';currentCode=null;}
