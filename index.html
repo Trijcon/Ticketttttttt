@@ -38,9 +38,11 @@
   display:grid;
   grid-template-columns:1.8fr 1fr;
   grid-template-rows:auto auto;
+  align-items:start;
   gap:10px; margin-bottom:10px;
 }
-.side-stack { display:flex; flex-direction:column; gap:10px; }
+.card.arena { align-self:start; }
+.side-stack { display:flex; flex-direction:column; gap:10px; align-self:start; }
 
 /* ── CARDS ── */
 .card {
@@ -495,37 +497,100 @@ function initHolo(){
   _holo.renderer.setSize(W, H, false);
   _holo.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
 
-  // Lower-poly head (was 32x26 → 22x18) — significant perf gain
-  var headGeom = new THREE.SphereGeometry(1.25, 22, 18);
+  // Higher-poly head with anatomical deformations — looks like a real head
+  var headGeom = new THREE.SphereGeometry(1.2, 36, 28);
   var pos = headGeom.attributes.position;
   for (var i = 0; i < pos.count; i++) {
     var x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-    // Whole-head proportions: taller crown, narrower at chin
-    var ny = y * 1.18;
-    pos.setY(i, ny);
-    // Slight back-of-head bulge for full-head look
-    if (z < -0.5 && Math.abs(ny) < 0.6) pos.setZ(i, z * 1.05);
-    // Eye-socket indent
-    if (z > 0.55 && Math.abs(x) > 0.32 && Math.abs(x) < 0.68 && ny > 0.05 && ny < 0.35) pos.setZ(i, z * 0.93);
+    // Base head proportions — taller crown, narrower at chin
+    y = y * 1.22;
+
+    var ax = Math.abs(x), front = z > 0;
+
+    // ── CHIN — taper bottom ──
+    if (y < -0.7) { x *= 0.78; z *= 0.92; }
+    if (y < -0.95) { x *= 0.7; }
+
+    // ── JAW — define jawline corners ──
+    if (y > -0.85 && y < -0.4 && ax > 0.5) {
+      x *= 0.92;
+      if (front) z *= 0.95;
+    }
+
+    // ── FOREHEAD — slight recession ──
+    if (y > 0.85 && front) z *= 0.96;
+    if (y > 1.05) { x *= 0.94; z *= 0.93; }
+
+    // ── BROW RIDGE — bump out above eyes ──
+    if (front && z > 0.45 && y > 0.32 && y < 0.55) z *= 1.08;
+
+    // ── EYE SOCKETS — recess ──
+    if (front && z > 0.5 && ax > 0.22 && ax < 0.55 && y > 0.05 && y < 0.32) {
+      z *= 0.84;
+    }
+
+    // ── NOSE BRIDGE — push forward at center ──
+    if (front && z > 0.6 && ax < 0.12 && y > 0.0 && y < 0.32) z *= 1.18;
+    // Nose tip
+    if (front && z > 0.7 && ax < 0.1 && y > -0.18 && y < 0.05) z *= 1.32;
+    // Nostril flare
+    if (front && z > 0.6 && ax > 0.08 && ax < 0.18 && y > -0.22 && y < -0.05) z *= 1.05;
+
+    // ── CHEEKBONES — push out slightly ──
+    if (front && z > 0.3 && ax > 0.42 && ax < 0.65 && y > -0.15 && y < 0.18) z *= 1.06;
+
+    // ── MOUTH — recess slightly ──
+    if (front && z > 0.55 && ax < 0.22 && y > -0.45 && y < -0.22) z *= 0.95;
+    // Lower-lip / chin curve
+    if (front && z > 0.5 && ax < 0.18 && y > -0.65 && y < -0.45) z *= 0.97;
+
+    // ── BACK OF HEAD — bulge for full-head silhouette ──
+    if (!front && y > -0.5 && y < 0.7) z *= 1.06;
+
+    pos.setX(i, x);
+    pos.setY(i, y);
+    pos.setZ(i, z);
   }
   pos.needsUpdate = true;
   headGeom.computeVertexNormals();
-  _holo.head = new THREE.Mesh(headGeom, new THREE.MeshBasicMaterial({wireframe:true, color:0xFFFFFF, transparent:true, opacity:0.55}));
+  _holo.head = new THREE.Mesh(headGeom, new THREE.MeshBasicMaterial({wireframe:true, color:0xFFFFFF, transparent:true, opacity:0.6}));
   _holo.scene.add(_holo.head);
 
+  // Subtle inner shell for depth
+  var inner = new THREE.Mesh(
+    headGeom.clone(),
+    new THREE.MeshBasicMaterial({color:0xFFFFFF, transparent:true, opacity:0.04})
+  );
+  inner.scale.set(0.95, 0.95, 0.95);
+  _holo.scene.add(inner);
+  _holo.inner = inner;
+
   // Outer slow ring (single, low-poly)
-  var ringGeom = new THREE.TorusGeometry(1.8, 0.004, 4, 60);
-  _holo.ring = new THREE.Mesh(ringGeom, new THREE.MeshBasicMaterial({color:0xFFFFFF, transparent:true, opacity:0.35}));
+  var ringGeom = new THREE.TorusGeometry(1.85, 0.004, 4, 64);
+  _holo.ring = new THREE.Mesh(ringGeom, new THREE.MeshBasicMaterial({color:0xFFFFFF, transparent:true, opacity:0.3}));
   _holo.ring.rotation.x = Math.PI/2;
   _holo.scene.add(_holo.ring);
 
   // Throttled rAF render — 30fps instead of 60fps
+  // When camera is active, head rotation is driven by detected pose (smoothed)
   var lastFrame = 0;
   function animate(t){
     _holo.animId = requestAnimationFrame(animate);
-    if (t - lastFrame < 33) return; // ~30fps cap
+    if (t - lastFrame < 33) return;
     lastFrame = t;
-    if (_holo.head) _holo.head.rotation.y += 0.012;
+    if (_holo.head) {
+      if (_holo.active && _holo.targetPose) {
+        // Lerp toward live head pose for smooth tracking
+        _holo.head.rotation.x += (_holo.targetPose.pitch - _holo.head.rotation.x) * 0.18;
+        _holo.head.rotation.y += (_holo.targetPose.yaw   - _holo.head.rotation.y) * 0.18;
+        _holo.head.rotation.z += (_holo.targetPose.roll  - _holo.head.rotation.z) * 0.18;
+        if (_holo.inner) _holo.inner.rotation.copy(_holo.head.rotation);
+      } else {
+        // Idle auto-rotate
+        _holo.head.rotation.y += 0.012;
+        if (_holo.inner) _holo.inner.rotation.y = _holo.head.rotation.y;
+      }
+    }
     if (_holo.ring) _holo.ring.rotation.z += 0.008;
     if (_holo.renderer) _holo.renderer.render(_holo.scene, _holo.camera);
   }
@@ -556,6 +621,7 @@ window.toggleHolo = async function(){
   if (_holo.active) {
     if (_holo.stream) { _holo.stream.getTracks().forEach(function(t){t.stop();}); _holo.stream = null; }
     _holo.mpRunning = false;
+    _holo.targetPose = null;  // resume auto-rotate
     document.getElementById('holoFaceCanvas').style.display = 'none';
     btn.textContent = '⚡ ACTIVATE LIVE SCAN';
     btn.classList.remove('live');
@@ -609,6 +675,27 @@ window.toggleHolo = async function(){
 
 // Reduced connection set for cleaner overlay on top of 3D head
 var _HOLO_CONNS = [[33,133],[362,263],[61,291],[78,308],[10,152],[234,454],[152,234],[152,454]];
+
+// Compute head pose (yaw / pitch / roll) from MediaPipe landmarks
+function holoComputePose(lm){
+  if (!lm[33] || !lm[263] || !lm[1] || !lm[10] || !lm[152]) return null;
+  var lEye = lm[33], rEye = lm[263], nose = lm[1], top = lm[10], chin = lm[152];
+  // Roll (in-plane tilt)
+  var roll = Math.atan2(rEye.y - lEye.y, rEye.x - lEye.x);
+  // Yaw (left-right turn) — nose offset from face center, normalized by face width
+  var faceCx = (lEye.x + rEye.x) / 2;
+  var faceWidth = Math.abs(rEye.x - lEye.x);
+  var yaw = faceWidth > 0 ? -((nose.x - faceCx) / faceWidth) * 1.6 : 0;
+  // Pitch (up-down nod) — nose vertical offset from eye line, normalized by face height
+  var eyeY = (lEye.y + rEye.y) / 2;
+  var faceHeight = Math.abs(chin.y - top.y);
+  var pitch = faceHeight > 0 ? ((nose.y - eyeY) / faceHeight - 0.18) * 2.2 : 0;
+  // Clamp extremes so wireframe stays mostly facing camera
+  yaw   = Math.max(-1.0, Math.min(1.0, yaw));
+  pitch = Math.max(-0.7, Math.min(0.7, pitch));
+  return { yaw: yaw, pitch: pitch, roll: -roll };
+}
+
 function holoOnResults(r){
   var c = document.getElementById('holoFaceCanvas');
   if (!c) return;
@@ -617,6 +704,11 @@ function holoOnResults(r){
 
   if (r.multiFaceLandmarks && r.multiFaceLandmarks.length > 0) {
     var lm = r.multiFaceLandmarks[0];
+
+    // Drive 3D head rotation from detected pose
+    var pose = holoComputePose(lm);
+    if (pose) _holo.targetPose = pose;
+
     var W = c.width, H = c.height;
     ctx.save();
     ctx.translate(W,0); ctx.scale(-1,1);
@@ -642,6 +734,9 @@ function holoOnResults(r){
       }
     }
     ctx.restore();
+  } else {
+    // No face detected — drift back toward neutral
+    _holo.targetPose = { yaw: 0, pitch: 0, roll: 0 };
   }
 }
 
