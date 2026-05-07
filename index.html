@@ -6,517 +6,726 @@
 <title>MogMe.TV</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 <style>
 
-/* ── HERO ── */
-.hero {
-  padding: 40px 0 32px;
+/* ══════════════════════════════
+   DASHBOARD GRID
+══════════════════════════════ */
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px 280px;
+  grid-template-rows: auto auto auto;
+  gap: 8px;
+  padding-bottom: 24px;
+}
+
+/* ══════════════════════════════
+   BASE PANEL
+══════════════════════════════ */
+.panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
   position: relative;
 }
-.hero-eyebrow {
-  font-family:'JetBrains Mono',monospace; font-size:9px;
-  letter-spacing:3px; color:var(--muted); text-transform:uppercase;
-  margin-bottom:12px; display:flex; align-items:center; gap:10px;
-}
-.hero-eyebrow::before {
-  content:''; width:20px; height:1px; background:var(--blue); opacity:0.5;
-}
-.hero-title {
-  font-family:'Barlow Condensed',sans-serif; font-weight:900;
-  font-size:clamp(52px,7vw,96px); line-height:0.92;
-  letter-spacing:-1px; color:var(--white); margin-bottom:16px;
-}
-.hero-title span { color:var(--blue); }
-.hero-sub {
-  font-family:'JetBrains Mono',monospace; font-size:11px;
-  letter-spacing:1px; color:var(--muted); margin-bottom:28px;
-  max-width:400px; line-height:1.7;
-}
-.hero-stats {
-  display:flex; gap:32px; align-items:center;
-}
-.hero-stat {
-  display:flex; flex-direction:column; gap:2px;
-}
-.hero-stat-num {
-  font-family:'Barlow Condensed',sans-serif; font-weight:700;
-  font-size:28px; color:var(--white); line-height:1;
-}
-.hero-stat-label {
-  font-family:'JetBrains Mono',monospace; font-size:8px;
-  letter-spacing:2px; color:var(--muted); text-transform:uppercase;
-}
-.hero-divider { width:1px; height:28px; background:var(--border2); }
 
-/* ── SEASON STRIP ── */
-.season-strip {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:12px 16px;
-  background:var(--glass); border:1px solid var(--border);
-  border-radius:var(--radius); margin-bottom:16px;
-}
-.season-left {
-  display:flex; align-items:center; gap:10px;
-}
-.season-badge {
-  font-family:'JetBrains Mono',monospace; font-size:9px;
-  letter-spacing:1px; color:var(--blue);
-  border:1px solid rgba(74,158,255,0.2); border-radius:3px;
-  padding:3px 10px; background:var(--blue-dim);
-}
-.season-label {
-  font-family:'JetBrains Mono',monospace; font-size:9px;
-  letter-spacing:1px; color:var(--muted);
-}
-.season-timer {
-  display:flex; align-items:center; gap:4px;
-}
-.t-block { text-align:center; }
-.t-num {
-  font-family:'Barlow Condensed',sans-serif; font-weight:700;
-  font-size:20px; line-height:1; color:var(--white);
-}
-.t-label { font-family:'JetBrains Mono',monospace; font-size:7px; letter-spacing:1px; color:var(--muted2); }
-.t-sep { font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--muted2); padding:0 2px; margin-bottom:6px; }
-.season-right {
-  font-family:'JetBrains Mono',monospace; font-size:9px;
-  color:var(--muted2); letter-spacing:0.5px;
+.panel-header {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(255,255,255,0.02);
 }
 
-/* ── MAIN GRID ── */
-.main-grid {
-  display:grid;
-  grid-template-columns:1.6fr 1fr;
-  gap:10px; margin-bottom:10px;
-}
-.side-stack { display:flex; flex-direction:column; gap:10px; }
-
-/* ── BASE CARD ── */
-.card {
-  background:var(--glass); border:1px solid var(--border);
-  border-radius:var(--radius); position:relative; overflow:hidden;
-  text-decoration:none; color:inherit; display:block;
-  transition:border-color 0.25s, background 0.25s, transform 0.2s;
-  cursor:pointer;
-}
-.card:hover { border-color:var(--border2); background:var(--glass2); }
-
-/* ── ARENA CARD ── */
-.card.arena {
-  min-height:380px; padding:28px;
-  display:flex; flex-direction:column;
-  background: linear-gradient(135deg, rgba(74,158,255,0.03) 0%, transparent 60%), var(--glass);
-}
-.card.arena:hover {
-  border-color:rgba(74,158,255,0.25);
-  transform:translateY(-1px);
-  box-shadow:0 8px 40px rgba(74,158,255,0.06);
+.panel-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px; letter-spacing: 2px;
+  color: var(--muted); text-transform: uppercase;
 }
 
-/* Animated scan line */
-.scan-line {
-  position:absolute; left:0; right:0; top:0; height:1px;
-  background:linear-gradient(90deg,transparent,rgba(74,158,255,0.5),transparent);
-  animation:scanline 3s linear infinite; opacity:0; transition:opacity 0.3s;
-}
-.card.arena:hover .scan-line { opacity:1; }
-@keyframes scanline { 0%{top:0%} 100%{top:100%} }
-
-/* Corner accent */
-.card.arena::after {
-  content:''; position:absolute; top:0; right:0;
-  width:120px; height:120px; pointer-events:none;
-  background:radial-gradient(circle at top right, rgba(74,158,255,0.08), transparent 70%);
+.panel-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; color: var(--blue);
 }
 
-.arena-top {
-  display:flex; align-items:center; justify-content:space-between;
-  margin-bottom:20px;
-}
-.arena-badge {
-  font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1px;
-  color:var(--muted); border:1px solid var(--border2); border-radius:3px;
-  padding:4px 10px; cursor:pointer; transition:all 0.2s; background:none;
-}
-.arena-badge:hover { color:var(--silver); border-color:var(--border3); }
-.online-pill {
-  font-family:'JetBrains Mono',monospace; font-size:9px;
-  color:var(--blue); display:flex; align-items:center; gap:5px;
-}
-.online-pip {
-  width:5px; height:5px; border-radius:50%; background:var(--blue);
-  animation:pipblink 2s ease infinite;
-}
-@keyframes pipblink { 0%,100%{opacity:0.8} 50%{opacity:0.3} }
-
-.card-eyebrow {
-  font-family:'JetBrains Mono',monospace; font-size:8px;
-  letter-spacing:2px; color:var(--muted); text-transform:uppercase;
-  margin-bottom:6px;
-}
-.arena-name {
-  font-family:'Barlow Condensed',sans-serif; font-weight:900;
-  font-size:48px; letter-spacing:1px; color:var(--white);
-  line-height:0.95; margin-bottom:6px;
-}
-.arena-sub {
-  font-family:'JetBrains Mono',monospace; font-size:9px;
-  letter-spacing:1.5px; color:var(--muted); margin-bottom:auto;
+/* ══════════════════════════════
+   ARENA HERO — spans full width
+══════════════════════════════ */
+.arena-hero {
+  grid-column: 1 / -1;
+  min-height: 200px;
+  background: #000;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 32px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
 }
 
-/* Player card */
-.player-card {
-  margin-top:24px; padding:16px;
-  background:rgba(0,0,0,0.5); border:1px solid var(--border);
-  border-radius:var(--radius);
+/* Animated scan grid */
+.arena-hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(rgba(74,158,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74,158,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: gridscroll 20s linear infinite;
 }
-.player-row {
-  display:flex; align-items:center; justify-content:space-between;
-  margin-bottom:10px;
+@keyframes gridscroll { 0%{background-position:0 0} 100%{background-position:40px 40px} }
+
+/* Scan beam */
+.arena-hero::after {
+  content: '';
+  position: absolute; left: 0; right: 0; top: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(74,158,255,0.6), transparent);
+  animation: herobeam 3s ease-in-out infinite;
 }
-.player-left { display:flex; align-items:center; gap:8px; }
+@keyframes herobeam { 0%{top:0%;opacity:1} 100%{top:100%;opacity:0} }
+
+.arena-hero-left {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+.arena-status {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 2px; color: var(--blue);
+}
+
+.arena-status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--blue);
+  box-shadow: 0 0 8px var(--blue);
+  animation: statusblink 1.5s ease infinite;
+}
+@keyframes statusblink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.arena-hero-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900; font-size: 72px;
+  line-height: 0.9; letter-spacing: 2px;
+  color: var(--white);
+  text-shadow: 0 0 60px rgba(74,158,255,0.15);
+}
+
+.arena-hero-title span { color: var(--blue); }
+
+.arena-hero-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 3px;
+  color: var(--muted); margin-top: 4px;
+}
+
+.arena-hero-metrics {
+  display: flex; gap: 24px; margin-top: 12px;
+}
+
+.ahm-item {
+  display: flex; flex-direction: column; gap: 2px;
+}
+
+.ahm-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px; letter-spacing: 2px;
+  color: var(--muted2); text-transform: uppercase;
+}
+
+.ahm-val {
+  font-family: 'Barlow Condensed', monospace;
+  font-weight: 700; font-size: 20px;
+  color: var(--white); line-height: 1;
+}
+
+.ahm-val.blue { color: var(--blue); }
+.ahm-val.green { color: var(--green); }
+
+.arena-hero-right {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column;
+  align-items: flex-end; gap: 12px;
+}
+
+.arena-enter-btn {
+  padding: 14px 32px;
+  background: rgba(74,158,255,0.08);
+  border: 1px solid rgba(74,158,255,0.3);
+  border-radius: 3px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 18px;
+  letter-spacing: 4px; color: var(--blue);
+  cursor: pointer; transition: all 0.2s;
+  text-decoration: none;
+}
+
+.arena-enter-btn:hover {
+  background: rgba(74,158,255,0.15);
+  box-shadow: 0 0 30px rgba(74,158,255,0.15);
+}
+
+.how-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 1px;
+  color: var(--muted); border: 1px solid var(--border2);
+  border-radius: 3px; padding: 5px 12px;
+  background: none; cursor: pointer; transition: all 0.2s;
+}
+.how-btn:hover { color: var(--silver); border-color: var(--border3); }
+
+/* ELO display in hero */
+.hero-elo-block {
+  text-align: right;
+}
+.hero-elo-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900; font-size: 48px;
+  color: var(--blue); line-height: 1;
+  text-shadow: 0 0 30px rgba(74,158,255,0.3);
+}
+.hero-elo-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px; letter-spacing: 2px;
+  color: var(--muted);
+}
+
+/* ══════════════════════════════
+   PLAYER PANEL
+══════════════════════════════ */
+.player-panel {
+  padding: 14px;
+}
+
+.player-id-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px; padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
 .player-avatar {
-  width:28px; height:28px; border-radius:50%;
-  background:var(--bg4); border:1px solid var(--border2);
-  display:flex; align-items:center; justify-content:center;
-  font-size:12px; overflow:hidden; flex-shrink:0;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--bg4); border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; overflow: hidden; flex-shrink: 0;
 }
-.player-avatar img { width:100%; height:100%; object-fit:cover; }
+.player-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
 .player-name {
-  font-family:'Space Grotesk',sans-serif; font-weight:600;
-  font-size:13px; color:var(--silver);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600; font-size: 14px; color: var(--white);
 }
-.player-tier {
-  font-family:'JetBrains Mono',monospace; font-size:8px;
-  color:var(--muted); letter-spacing:0.5px;
+.player-tier-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px; letter-spacing: 1px;
+  color: var(--blue); padding: 2px 6px;
+  border: 1px solid rgba(74,158,255,0.2);
+  border-radius: 2px; background: var(--blue-dim);
 }
-.player-elo {
-  font-family:'Barlow Condensed',sans-serif; font-weight:700;
-  font-size:20px; color:var(--blue); letter-spacing:0.5px;
+
+.stat-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px; margin-bottom: 12px;
 }
-.player-stats {
-  display:grid; grid-template-columns:1fr 1fr 1fr;
-  gap:6px; margin-bottom:10px;
+
+.stat-item {
+  display: flex; flex-direction: column; gap: 2px;
 }
-.pstat-label {
-  font-family:'JetBrains Mono',monospace; font-size:7px;
-  letter-spacing:1px; color:var(--muted2); margin-bottom:2px;
-  text-transform:uppercase;
+
+.stat-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px; letter-spacing: 1.5px;
+  color: var(--muted2); text-transform: uppercase;
 }
-.pstat-val {
-  font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted);
+
+.stat-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 18px;
+  color: var(--silver); line-height: 1;
 }
-.pstat-val.hi { color:var(--blue); }
+
+.stat-val.blue { color: var(--blue); }
+.stat-val.green { color: var(--green); }
+
 .elo-bar {
-  height:2px; background:var(--bg4); border-radius:999px;
-  overflow:hidden; margin-bottom:4px;
+  height: 2px; background: var(--bg4);
+  border-radius: 999px; overflow: hidden; margin-bottom: 4px;
 }
 .elo-bar-fill {
-  height:100%; width:0%; border-radius:999px;
-  background:linear-gradient(90deg, var(--blue-dim), var(--blue));
-  transition:width 1s cubic-bezier(0.34,1.56,0.64,1);
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, rgba(74,158,255,0.3), var(--blue));
+  border-radius: 999px;
+  transition: width 1.2s cubic-bezier(0.34,1.56,0.64,1);
 }
 .elo-bar-labels {
-  display:flex; justify-content:space-between;
-  font-family:'JetBrains Mono',monospace; font-size:8px;
-  color:var(--muted2); letter-spacing:0.5px;
+  display: flex; justify-content: space-between;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px; color: var(--muted2);
 }
 
-/* Enter CTA */
-.arena-cta {
-  margin-top:16px; padding:12px;
-  background:rgba(74,158,255,0.06); border:1px solid rgba(74,158,255,0.15);
-  border-radius:4px; text-align:center;
-  font-family:'Barlow Condensed',sans-serif; font-weight:700;
-  font-size:15px; letter-spacing:3px; color:var(--blue);
-  transition:all 0.2s;
-}
-.card.arena:hover .arena-cta {
-  background:rgba(74,158,255,0.12); border-color:rgba(74,158,255,0.3);
+/* ══════════════════════════════
+   LAB PANEL
+══════════════════════════════ */
+.lab-panel {
+  padding: 16px;
+  display: flex; flex-direction: column; gap: 10px;
 }
 
-/* ── SMALL CARDS ── */
-.card.small {
-  padding:20px; display:flex;
-  flex-direction:column; align-items:flex-start;
+.lab-scan-preview {
+  background: #000; border: 1px solid var(--border);
+  border-radius: 3px; padding: 20px;
+  text-align: center; position: relative; overflow: hidden;
 }
-.card.small:hover { transform:translateY(-1px); }
 
-.card-title {
-  font-family:'Space Grotesk',sans-serif; font-weight:700;
-  font-size:17px; color:var(--white); margin-bottom:4px;
+.lab-scan-preview::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, rgba(74,158,255,0.05) 0%, transparent 70%);
 }
-.card-desc { font-size:12px; color:var(--muted); line-height:1.6; }
 
-/* Lab card */
-.card.lab { min-height:140px; }
-.card.lab:hover { border-color:rgba(13,242,200,0.15); }
-.lab-pulse {
-  position:absolute; top:16px; right:16px;
-  display:flex; align-items:center; gap:6px;
-  font-family:'JetBrains Mono',monospace; font-size:8px;
-  letter-spacing:1px; color:var(--muted2);
+.lab-face-icon {
+  font-size: 40px; opacity: 0.15;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--blue);
+  position: relative; z-index: 1;
 }
-.lab-pulse-dot {
-  width:5px; height:5px; border-radius:50%;
-  background:#0df2c8; opacity:0.6;
-  animation:labpulse 2s ease infinite;
-}
-@keyframes labpulse { 0%,100%{opacity:0.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.3)} }
 
-/* Rank card */
-.tier-list { width:100%; margin-top:10px; }
+.lab-face-grid {
+  position: relative; z-index: 1;
+  width: 60px; height: 80px; margin: 0 auto 8px;
+}
+
+.lab-face-grid svg { width: 100%; height: 100%; opacity: 0.3; }
+
+.lab-coming {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px; letter-spacing: 2px;
+  color: var(--blue); position: relative; z-index: 1;
+  animation: labpulse 2s ease infinite;
+}
+@keyframes labpulse { 0%,100%{opacity:0.6} 50%{opacity:1} }
+
+.lab-metrics {
+  display: flex; flex-direction: column; gap: 5px;
+}
+
+.lab-metric-row {
+  display: flex; align-items: center; gap: 8px;
+}
+
+.lab-metric-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px; letter-spacing: 1px;
+  color: var(--muted2); width: 80px; flex-shrink: 0;
+}
+
+.lab-metric-bar {
+  flex: 1; height: 2px; background: var(--bg4);
+  border-radius: 999px; overflow: hidden;
+}
+
+.lab-metric-fill {
+  height: 100%; border-radius: 999px;
+  background: var(--blue); opacity: 0.4;
+}
+
+.lab-metric-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px; color: var(--muted);
+  width: 32px; text-align: right; flex-shrink: 0;
+}
+
+/* ══════════════════════════════
+   RANK PANEL
+══════════════════════════════ */
+.rank-panel { padding: 14px; }
+
+.tier-list { display: flex; flex-direction: column; gap: 0; }
+
 .tier-row {
-  display:flex; justify-content:space-between; align-items:center;
-  padding:3px 0; border-bottom:1px solid var(--border);
-  font-family:'JetBrains Mono',monospace; font-size:8px;
-  letter-spacing:0.3px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 8px; border-radius: 3px;
+  transition: background 0.15s;
+  cursor: pointer; text-decoration: none; color: inherit;
 }
-.tier-row:last-child { border-bottom:none; }
-.tier-row-name { color:var(--muted); }
-.tier-row-elo { color:var(--muted2); }
-.tier-row.active .tier-row-name { color:var(--blue); }
-.tier-row.active .tier-row-elo { color:var(--blue); }
 
-/* Private card */
-.code-cta {
-  margin-top:auto; padding:7px 12px;
-  border:1px solid var(--border2); border-radius:3px;
-  font-family:'JetBrains Mono',monospace; font-size:9px;
-  letter-spacing:1px; color:var(--muted);
-  text-align:center; width:100%; transition:all 0.2s;
-}
-.card:hover .code-cta { border-color:rgba(74,158,255,0.2); color:var(--blue); }
+.tier-row:hover { background: var(--glass2); }
+.tier-row.current { background: var(--blue-dim); border: 1px solid rgba(74,158,255,0.15); }
 
-/* ── BOTTOM GRID ── */
-.bottom-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
-.section-box { background:var(--glass); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
-.section-head {
-  padding:12px 16px; border-bottom:1px solid var(--border);
-  display:flex; align-items:center; justify-content:space-between;
+.tier-left { display: flex; align-items: center; gap: 7px; }
+.tier-emoji { font-size: 12px; width: 16px; text-align: center; }
+.tier-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 0.5px; color: var(--muted);
 }
-.section-head-title { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:12px; color:var(--silver); }
-.section-head-link { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); text-decoration:none; transition:color 0.2s; }
-.section-head-link:hover { color:var(--blue); }
-.section-body { padding:12px 14px; }
-.live-indicator { display:flex; align-items:center; gap:6px; }
-.live-dot { width:4px;height:4px;border-radius:50%;background:var(--red);animation:livepulse 1.5s ease infinite; }
-@keyframes livepulse { 0%,100%{opacity:0.8}50%{opacity:0.3} }
-#activityFeed { display:flex; flex-direction:column; gap:5px; }
+.tier-row.current .tier-name { color: var(--blue); }
+.tier-elo {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px; color: var(--muted2);
+}
+.tier-row.current .tier-elo { color: rgba(74,158,255,0.6); }
+
+/* ══════════════════════════════
+   PRIVATE ROOM PANEL
+══════════════════════════════ */
+.private-panel { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+.code-input-display {
+  background: #000; border: 1px solid var(--border2);
+  border-radius: 3px; padding: 12px 16px;
+  font-family: 'Barlow Condensed', monospace;
+  font-size: 28px; font-weight: 700;
+  color: var(--blue); letter-spacing: 8px;
+  text-align: center; opacity: 0.4;
+}
+
+/* ══════════════════════════════
+   ACTIVITY + LEADERBOARD
+══════════════════════════════ */
+.activity-panel { padding: 12px; }
+#activityFeed { display: flex; flex-direction: column; gap: 5px; }
 .activity-item {
-  font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2);
-  padding:5px 8px; background:var(--bg3); border-radius:3px; letter-spacing:0.3px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; color: var(--muted2);
+  padding: 5px 8px; background: var(--bg3);
+  border-radius: 2px; letter-spacing: 0.3px;
 }
-.activity-name { color:var(--silver); }
-.activity-elo { color:var(--green); }
+.activity-name { color: var(--silver); }
+.activity-elo { color: var(--green); }
 
-/* ── SOCIAL ── */
-.social-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:24px; }
+.lb-panel { padding: 0; }
+
+/* ══════════════════════════════
+   SEASON BAR
+══════════════════════════════ */
+.season-bar {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.season-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 1px; color: var(--blue);
+  border: 1px solid rgba(74,158,255,0.2); border-radius: 2px;
+  padding: 3px 8px; background: var(--blue-dim);
+}
+
+.season-timer {
+  display: flex; align-items: center; gap: 3px;
+}
+
+.t-block { text-align: center; }
+.t-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 18px;
+  line-height: 1; color: var(--white);
+}
+.t-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px; letter-spacing: 1px; color: var(--muted2);
+}
+.t-sep {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px; color: var(--muted2);
+  padding: 0 1px; margin-bottom: 6px;
+}
+
+.season-right {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px; color: var(--muted2); letter-spacing: 0.5px;
+}
+
+/* ══════════════════════════════
+   SOCIAL
+══════════════════════════════ */
+.social-grid {
+  grid-column: 1 / -1;
+  display: grid; grid-template-columns: repeat(6,1fr); gap: 6px;
+}
+
 .social-card {
-  background:var(--glass); border:1px solid var(--border); border-radius:var(--radius);
-  padding:12px 14px; display:flex; align-items:center; gap:10px;
-  text-decoration:none; color:inherit; transition:all 0.2s;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 4px; padding: 10px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  text-decoration: none; color: inherit; transition: all 0.2s;
 }
-.social-card:hover { border-color:var(--border2); background:var(--glass2); transform:translateY(-1px); }
-.social-info { flex:1; }
-.social-label { font-family:'JetBrains Mono',monospace; font-size:7px; letter-spacing:2px; color:var(--muted2); margin-bottom:2px; text-transform:uppercase; }
-.social-name { font-family:'Space Grotesk',sans-serif; font-size:12px; font-weight:500; color:var(--silver); }
-.social-arrow { font-size:12px; color:var(--muted2); transition:all 0.2s; }
-.social-card:hover .social-arrow { color:var(--blue); transform:translateX(3px); }
+.social-card:hover { border-color: var(--border2); background: var(--glass2); }
+.social-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px; letter-spacing: 2px; color: var(--muted2); margin-bottom: 2px;
+}
+.social-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px; font-weight: 500; color: var(--silver);
+}
+.social-arrow { font-size: 10px; color: var(--muted2); transition: all 0.2s; }
+.social-card:hover .social-arrow { color: var(--blue); transform: translateX(2px); }
 
-/* ── RESPONSIVE ── */
-@media(max-width:900px){
-  .main-grid{grid-template-columns:1fr;}
-  .bottom-grid{grid-template-columns:1fr;}
-  .hero-title{font-size:clamp(44px,10vw,72px);}
-  .hero-stats{gap:20px;}
+/* ══════════════════════════════
+   RESPONSIVE
+══════════════════════════════ */
+@media(max-width:1000px){
+  .dash-grid { grid-template-columns: 1fr 1fr; }
+  .arena-hero { grid-column: 1 / -1; }
+  .season-bar { grid-column: 1 / -1; }
+  .social-grid { grid-template-columns: repeat(3,1fr); }
 }
-@media(max-width:560px){
-  .social-grid{grid-template-columns:1fr 1fr;}
-  .season-strip{flex-direction:column;gap:10px;text-align:center;}
-  .hero-stats{flex-wrap:wrap;gap:16px;}
+@media(max-width:640px){
+  .dash-grid { grid-template-columns: 1fr; }
+  .arena-hero-title { font-size: 52px; }
+  .social-grid { grid-template-columns: repeat(2,1fr); }
 }
 </style>
 </head>
 <body>
 <div class="page-wrap">
+<div class="dash-grid">
 
-  <!-- HERO -->
-  <div class="hero">
-    <div class="hero-eyebrow">Facial Competition Platform</div>
-    <div class="hero-title">MOG<span>ME</span><br>.TV</div>
-    <div class="hero-sub">Rate your face. Challenge strangers.<br>Climb the ranks. Find out where you stand.</div>
-    <div class="hero-stats">
-      <div class="hero-stat">
-        <div class="hero-stat-num online-count-val">—</div>
-        <div class="hero-stat-label">Online Now</div>
-      </div>
-      <div class="hero-divider"></div>
-      <div class="hero-stat">
-        <div class="hero-stat-num" id="heroMatches">—</div>
-        <div class="hero-stat-label">Matches Today</div>
-      </div>
-      <div class="hero-divider"></div>
-      <div class="hero-stat">
-        <div class="hero-stat-num" id="heroSeason">S1</div>
-        <div class="hero-stat-label">Season</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SEASON STRIP -->
-  <div class="season-strip">
-    <div class="season-left">
-      <div class="season-badge">🏆 Season 1</div>
-      <div class="season-label">Ends Jun 6, 2026 · Ranks reset monthly</div>
-    </div>
+  <!-- SEASON BAR -->
+  <div class="season-bar">
+    <div class="season-badge">🏆 SEASON 1</div>
     <div class="season-timer">
-      <div class="t-block"><div class="t-num" id="tD">30</div><div class="t-label">D</div></div>
+      <div class="t-block"><div class="t-num" id="tD">30</div><div class="t-label">DAYS</div></div>
       <div class="t-sep">:</div>
-      <div class="t-block"><div class="t-num" id="tH">00</div><div class="t-label">H</div></div>
+      <div class="t-block"><div class="t-num" id="tH">00</div><div class="t-label">HRS</div></div>
       <div class="t-sep">:</div>
-      <div class="t-block"><div class="t-num" id="tM">00</div><div class="t-label">M</div></div>
+      <div class="t-block"><div class="t-num" id="tM">00</div><div class="t-label">MIN</div></div>
       <div class="t-sep">:</div>
-      <div class="t-block"><div class="t-num" id="tS">00</div><div class="t-label">S</div></div>
+      <div class="t-block"><div class="t-num" id="tS">00</div><div class="t-label">SEC</div></div>
     </div>
-    <div class="season-right">Top 3 get permanent badges</div>
+    <div class="season-right">RANKS RESET MONTHLY · TOP 3 GET PERMANENT BADGES</div>
   </div>
 
-  <!-- MAIN GRID -->
-  <div class="main-grid">
-
-    <!-- ARENA -->
-    <a class="card arena" href="arena.html">
-      <div class="scan-line"></div>
-      <div class="arena-top">
-        <button class="arena-badge" onclick="event.preventDefault();event.stopPropagation();openHowModal()">? How to Mog</button>
-        <div class="online-pill"><div class="online-pip"></div><span class="online-count-val">— online</span></div>
+  <!-- ARENA HERO -->
+  <a class="arena-hero" href="arena.html">
+    <div class="arena-hero-left">
+      <div class="arena-status">
+        <div class="arena-status-dot"></div>
+        <span>SYSTEM: MATCHMAKING ACTIVE</span>
+        <span style="color:var(--muted);margin-left:8px;" class="online-count-val">— ONLINE</span>
       </div>
-      <div class="card-eyebrow">Ranked Matchmaking</div>
-      <div class="arena-name">1V1<br>ARENA</div>
-      <div class="arena-sub">Peer to peer · AI scan · Live ELO</div>
-      <div class="player-card">
-        <div class="player-row">
-          <div class="player-left">
-            <div class="player-avatar" id="dashAvatar">👤</div>
-            <div>
-              <div class="player-name" id="dashName">You</div>
-              <div class="player-tier" id="dashTier">Sub3</div>
-            </div>
-          </div>
-          <div class="player-elo" id="dashElo">400 ELO</div>
+      <div class="arena-hero-title">1V1<br>ARENA<span>.</span></div>
+      <div class="arena-hero-sub">RANKED · PEER TO PEER · AI FACE SCAN · LIVE ELO</div>
+      <div class="arena-hero-metrics">
+        <div class="ahm-item">
+          <div class="ahm-label">Your ELO</div>
+          <div class="ahm-val blue" id="heroElo">400</div>
         </div>
-        <div class="player-stats">
-          <div>
-            <div class="pstat-label">Record</div>
-            <div class="pstat-val" id="dashRecord">0W — 0L</div>
-          </div>
-          <div>
-            <div class="pstat-label">Standing</div>
-            <div class="pstat-val">Unranked</div>
-          </div>
-          <div>
-            <div class="pstat-label">Next Rank</div>
-            <div class="pstat-val hi" id="dashNext">LTN</div>
-          </div>
+        <div class="ahm-item">
+          <div class="ahm-label">Record</div>
+          <div class="ahm-val" id="heroRecord">0W — 0L</div>
         </div>
-        <div class="elo-bar"><div class="elo-bar-fill" id="eloBarFill"></div></div>
-        <div class="elo-bar-labels"><span id="eloBarPct">0%</span><span id="eloBarNeeded">101 TO NEXT</span></div>
+        <div class="ahm-item">
+          <div class="ahm-label">Rank</div>
+          <div class="ahm-val green" id="heroTier">SUB3</div>
+        </div>
+        <div class="ahm-item">
+          <div class="ahm-label">Queue</div>
+          <div class="ahm-val online-count-val">—</div>
+        </div>
       </div>
-      <div class="arena-cta">ENTER THE ARENA →</div>
-    </a>
+    </div>
+    <div class="arena-hero-right">
+      <button class="how-btn" onclick="event.preventDefault();event.stopPropagation();openHowModal()">? HOW TO MOG</button>
+      <div class="arena-enter-btn">ENTER ARENA →</div>
+    </div>
+  </a>
 
-    <!-- RIGHT STACK -->
-    <div class="side-stack">
-
-      <!-- THE LAB -->
-      <div class="card small lab" onclick="openLabSoonModal()">
-        <div class="lab-pulse"><div class="lab-pulse-dot"></div>In Development</div>
-        <div class="card-eyebrow">Solo Calibration</div>
-        <div class="card-title">The Lab</div>
-        <div class="card-desc">AI facial analysis — symmetry, jaw, canthal tilt and more. Know your exact score.</div>
+  <!-- PLAYER PANEL -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-tag">// Your Profile</span>
+      <span class="panel-val" id="panelElo">400 ELO</span>
+    </div>
+    <div class="player-panel">
+      <div class="player-id-row">
+        <div class="player-avatar" id="dashAvatar">👤</div>
+        <div style="flex:1">
+          <div class="player-name" id="dashName">Anonymous</div>
+          <div class="player-tier-badge" id="dashTierBadge">SUB3</div>
+        </div>
       </div>
+      <div class="stat-grid">
+        <div class="stat-item">
+          <div class="stat-label">Wins</div>
+          <div class="stat-val green" id="dashWins">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Losses</div>
+          <div class="stat-val" id="dashLosses">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Next</div>
+          <div class="stat-val blue" id="dashNext">LTN</div>
+        </div>
+      </div>
+      <div class="elo-bar"><div class="elo-bar-fill" id="eloBarFill"></div></div>
+      <div class="elo-bar-labels">
+        <span id="eloBarPct">0%</span>
+        <span id="eloBarNeeded">101 TO NEXT</span>
+      </div>
+    </div>
+  </div>
 
-      <!-- GLOBAL RANK -->
-      <a class="card small" href="rank.html">
-        <div class="card-eyebrow">Leaderboard</div>
-        <div class="card-title">Global Rank</div>
+  <!-- LAB PANEL -->
+  <div class="panel" style="cursor:pointer;" onclick="openLabSoonModal()">
+    <div class="panel-header">
+      <span class="panel-tag">// The Lab — Solo Calibration</span>
+      <span class="panel-val" style="color:#0df2c8;animation:labpulse 2s ease infinite;">⚗ IN DEV</span>
+    </div>
+    <div class="lab-panel">
+      <div class="lab-scan-preview">
+        <svg width="80" height="100" viewBox="0 0 80 100" style="opacity:0.25;margin:0 auto;display:block;">
+          <ellipse cx="40" cy="45" rx="28" ry="36" stroke="#4A9EFF" stroke-width="0.8" fill="none"/>
+          <ellipse cx="40" cy="42" rx="18" ry="20" stroke="#4A9EFF" stroke-width="0.5" fill="none"/>
+          <line x1="40" y1="25" x2="40" y2="80" stroke="#4A9EFF" stroke-width="0.4" opacity="0.5"/>
+          <line x1="12" y1="45" x2="68" y2="45" stroke="#4A9EFF" stroke-width="0.4" opacity="0.5"/>
+          <circle cx="28" cy="38" r="3" stroke="#4A9EFF" stroke-width="0.8" fill="none"/>
+          <circle cx="52" cy="38" r="3" stroke="#4A9EFF" stroke-width="0.8" fill="none"/>
+          <path d="M33 55 Q40 60 47 55" stroke="#4A9EFF" stroke-width="0.8" fill="none"/>
+          <line x1="12" y1="45" x2="20" y2="50" stroke="#4A9EFF" stroke-width="0.4" opacity="0.3"/>
+          <line x1="68" y1="45" x2="60" y2="50" stroke="#4A9EFF" stroke-width="0.4" opacity="0.3"/>
+        </svg>
+        <div class="lab-coming">ALGORITHM CALIBRATING...</div>
+      </div>
+      <div class="lab-metrics">
+        <div class="lab-metric-row">
+          <div class="lab-metric-label">SYMMETRY</div>
+          <div class="lab-metric-bar"><div class="lab-metric-fill" style="width:72%"></div></div>
+          <div class="lab-metric-val">72%</div>
+        </div>
+        <div class="lab-metric-row">
+          <div class="lab-metric-label">JAWLINE</div>
+          <div class="lab-metric-bar"><div class="lab-metric-fill" style="width:58%"></div></div>
+          <div class="lab-metric-val">58%</div>
+        </div>
+        <div class="lab-metric-row">
+          <div class="lab-metric-label">CANTHAL TILT</div>
+          <div class="lab-metric-bar"><div class="lab-metric-fill" style="width:45%"></div></div>
+          <div class="lab-metric-val">45%</div>
+        </div>
+        <div class="lab-metric-row">
+          <div class="lab-metric-label">CHEEKBONES</div>
+          <div class="lab-metric-bar"><div class="lab-metric-fill" style="width:63%"></div></div>
+          <div class="lab-metric-val">63%</div>
+        </div>
+        <div class="lab-metric-row">
+          <div class="lab-metric-label">EYE RATIO</div>
+          <div class="lab-metric-bar"><div class="lab-metric-fill" style="width:81%"></div></div>
+          <div class="lab-metric-val">81%</div>
+        </div>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted2);text-align:center;letter-spacing:1px;">
+        CLICK TO PREVIEW — FULL ANALYSIS COMING SOON
+      </div>
+    </div>
+  </div>
+
+  <!-- RANK PANEL -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-tag">// Global Rank</span>
+      <a href="rank.html" style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted);text-decoration:none;letter-spacing:1px;" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--muted)'">VIEW ALL →</a>
+    </div>
+    <div class="rank-panel">
+      <a href="rank.html" style="text-decoration:none;">
         <div class="tier-list">
-          <div class="tier-row"><span class="tier-row-name">💀 Slayer</span><span class="tier-row-elo">5001+</span></div>
-          <div class="tier-row"><span class="tier-row-name">👑 Chad</span><span class="tier-row-elo">3501–5000</span></div>
-          <div class="tier-row"><span class="tier-row-name">🔥 Chadlite</span><span class="tier-row-elo">2001–3500</span></div>
-          <div class="tier-row"><span class="tier-row-name">⭐ HTN</span><span class="tier-row-elo">1501–2000</span></div>
-          <div class="tier-row"><span class="tier-row-name">⚡ MTN</span><span class="tier-row-elo">1001–1500</span></div>
-          <div class="tier-row"><span class="tier-row-name">🌙 LTN</span><span class="tier-row-elo">501–1000</span></div>
-          <div class="tier-row"><span class="tier-row-name">🔴 Sub3</span><span class="tier-row-elo">1–500</span></div>
-          <div class="tier-row"><span class="tier-row-name">🧪 Molecule</span><span class="tier-row-elo">≤0</span></div>
+          <div class="tier-row" id="tier-Slayer"><div class="tier-left"><span class="tier-emoji">💀</span><span class="tier-name">SLAYER</span></div><span class="tier-elo">5001+</span></div>
+          <div class="tier-row" id="tier-Chad"><div class="tier-left"><span class="tier-emoji">👑</span><span class="tier-name">CHAD</span></div><span class="tier-elo">3501–5000</span></div>
+          <div class="tier-row" id="tier-Chadlite"><div class="tier-left"><span class="tier-emoji">🔥</span><span class="tier-name">CHADLITE</span></div><span class="tier-elo">2001–3500</span></div>
+          <div class="tier-row" id="tier-HTN"><div class="tier-left"><span class="tier-emoji">⭐</span><span class="tier-name">HTN</span></div><span class="tier-elo">1501–2000</span></div>
+          <div class="tier-row" id="tier-MTN"><div class="tier-left"><span class="tier-emoji">⚡</span><span class="tier-name">MTN</span></div><span class="tier-elo">1001–1500</span></div>
+          <div class="tier-row" id="tier-LTN"><div class="tier-left"><span class="tier-emoji">🌙</span><span class="tier-name">LTN</span></div><span class="tier-elo">501–1000</span></div>
+          <div class="tier-row" id="tier-Sub3"><div class="tier-left"><span class="tier-emoji">🔴</span><span class="tier-name">SUB3</span></div><span class="tier-elo">1–500</span></div>
+          <div class="tier-row" id="tier-Molecule"><div class="tier-left"><span class="tier-emoji">🧪</span><span class="tier-name">MOLECULE</span></div><span class="tier-elo">≤0</span></div>
         </div>
       </a>
-
-      <!-- PRIVATE ROOM -->
-      <a class="card small" href="private.html">
-        <div class="card-eyebrow">Invite Only</div>
-        <div class="card-title">Private Room</div>
-        <div class="card-desc" style="margin-bottom:12px;">Challenge a friend directly with a 6-digit code.</div>
-        <div class="code-cta">Have a code? Join →</div>
-      </a>
-
     </div>
   </div>
 
-  <!-- BOTTOM GRID -->
-  <div class="bottom-grid">
-    <div class="section-box">
-      <div class="section-head">
-        <div class="section-head-title">
-          <span class="live-indicator" style="display:inline-flex;align-items:center;gap:6px;">
-            <span class="live-dot"></span>Live Activity
-          </span>
-        </div>
-      </div>
-      <div class="section-body"><div id="activityFeed"></div></div>
+  <!-- PRIVATE ROOM PANEL -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-tag">// Private Room — Invite Only</span>
     </div>
-    <div class="section-box">
-      <div class="section-head">
-        <div class="section-head-title">Top Moggers</div>
-        <a href="rank.html" class="section-head-link">View all →</a>
+    <div class="private-panel">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);line-height:1.7;letter-spacing:0.3px;">
+        Challenge a friend directly. Generate a 6-digit code and share it — cameras connect peer-to-peer.
       </div>
-      <div id="lbPreview">
-        <div style="padding:18px 16px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);">Loading...</div>
+      <div class="code-input-display">——————</div>
+      <a href="private.html" class="btn-primary" style="text-align:center;font-size:13px;padding:12px;display:block;">
+        ENTER PRIVATE ROOM →
+      </a>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted2);text-align:center;letter-spacing:0.5px;">
+        Unranked · Room expires in 10 minutes
       </div>
+    </div>
+  </div>
+
+  <!-- ACTIVITY -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-tag" style="display:flex;align-items:center;gap:6px;">
+        <span style="width:4px;height:4px;border-radius:50%;background:var(--red);animation:livepulse 1.5s ease infinite;display:inline-block;"></span>
+        // Live Activity
+      </span>
+    </div>
+    <div class="activity-panel">
+      <div id="activityFeed"></div>
+    </div>
+  </div>
+  @keyframes livepulse { 0%,100%{opacity:0.8}50%{opacity:0.3} }
+
+  <!-- TOP MOGGERS -->
+  <div class="panel" style="grid-column:span 2;">
+    <div class="panel-header">
+      <span class="panel-tag">// Top Moggers</span>
+      <a href="rank.html" style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted);text-decoration:none;letter-spacing:1px;">VIEW ALL →</a>
+    </div>
+    <div id="lbPreview">
+      <div style="padding:16px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);">Loading...</div>
     </div>
   </div>
 
   <!-- SOCIAL -->
   <div class="social-grid">
-    <a href="#" class="social-card" rel="noopener noreferrer" target="_blank">
-      <div class="social-info"><div class="social-label">Discord</div><div class="social-name">Join the server</div></div>
+    <a href="#" class="social-card" target="_blank" rel="noopener">
+      <div><div class="social-label">DISCORD</div><div class="social-name">Join the server</div></div>
       <div class="social-arrow">→</div>
     </a>
-    <a href="#" class="social-card" rel="noopener noreferrer" target="_blank">
-      <div class="social-info"><div class="social-label">TikTok</div><div class="social-name">Follow MogMe.TV</div></div>
+    <a href="#" class="social-card" target="_blank" rel="noopener">
+      <div><div class="social-label">TIKTOK</div><div class="social-name">Follow MogMe.TV</div></div>
       <div class="social-arrow">→</div>
     </a>
-    <a href="#" class="social-card" rel="noopener noreferrer" target="_blank">
-      <div class="social-info"><div class="social-label">Instagram</div><div class="social-name">Follow MogMe.TV</div></div>
+    <a href="#" class="social-card" target="_blank" rel="noopener">
+      <div><div class="social-label">INSTAGRAM</div><div class="social-name">Follow MogMe.TV</div></div>
       <div class="social-arrow">→</div>
     </a>
-    <a href="#" class="social-card" rel="noopener noreferrer" target="_blank">
-      <div class="social-info"><div class="social-label">Reddit</div><div class="social-name">Follow MogMe.TV</div></div>
+    <a href="#" class="social-card" target="_blank" rel="noopener">
+      <div><div class="social-label">REDDIT</div><div class="social-name">Follow MogMe.TV</div></div>
       <div class="social-arrow">→</div>
     </a>
-    <a href="#" class="social-card" rel="noopener noreferrer" target="_blank">
-      <div class="social-info"><div class="social-label">YouTube</div><div class="social-name">Follow MogMe.TV</div></div>
+    <a href="#" class="social-card" target="_blank" rel="noopener">
+      <div><div class="social-label">YOUTUBE</div><div class="social-name">Follow MogMe.TV</div></div>
       <div class="social-arrow">→</div>
     </a>
-    <a href="#" class="social-card" rel="noopener noreferrer" target="_blank">
-      <div class="social-info"><div class="social-label">X / Twitter</div><div class="social-name">Follow MogMe.TV</div></div>
+    <a href="#" class="social-card" target="_blank" rel="noopener">
+      <div><div class="social-label">X / TWITTER</div><div class="social-name">Follow MogMe.TV</div></div>
       <div class="social-arrow">→</div>
     </a>
   </div>
 
+</div>
 </div>
 
 <script src="shared.js"></script>
@@ -536,7 +745,7 @@ function tick(){
 }
 tick(); setInterval(tick,1000);
 
-// Load user stats
+// Load stats
 var n=localStorage.getItem('mgm_username')||localStorage.getItem('mgm_name');
 if(n) document.getElementById('dashName').textContent=n;
 
@@ -544,26 +753,27 @@ var photo=localStorage.getItem('mgm_photo');
 if(photo){ var av=document.getElementById('dashAvatar'); av.innerHTML='<img src="'+photo+'" alt="">'; }
 
 var e=parseInt(localStorage.getItem('mgm_elo')||'400');
-document.getElementById('dashElo').textContent=e+' ELO';
-document.getElementById('dashTier').textContent=getTierName(e);
-
 var w=parseInt(localStorage.getItem('mgm_wins')||'0');
 var l=parseInt(localStorage.getItem('mgm_losses')||'0');
-document.getElementById('dashRecord').textContent=w+'W \u2014 '+l+'L';
+var tierName=getTierName(e);
 
-// Highlight current tier in list
-var currentTier=getTierName(e);
-document.querySelectorAll('.tier-row').forEach(function(row){
-  if(row.querySelector('.tier-row-name').textContent.includes(currentTier)){
-    row.classList.add('active');
-  }
-});
+document.getElementById('heroElo').textContent=e;
+document.getElementById('heroRecord').textContent=w+'W — '+l+'L';
+document.getElementById('heroTier').textContent=tierName.toUpperCase();
+document.getElementById('panelElo').textContent=e+' ELO';
+document.getElementById('dashTierBadge').textContent=tierName.toUpperCase();
+document.getElementById('dashWins').textContent=w;
+document.getElementById('dashLosses').textContent=l;
 
-// ELO bar
+// Highlight current tier
+var tierRow=document.getElementById('tier-'+tierName);
+if(tierRow) tierRow.classList.add('current');
+
+// ELO progress
 var prog=calcEloProgress(e);
 document.getElementById('eloBarNeeded').textContent=prog.eloNeeded>0?prog.eloNeeded+' TO NEXT':'MAX TIER';
 document.getElementById('eloBarPct').textContent=prog.pct+'%';
-if(prog.nextTier) document.getElementById('dashNext').textContent=prog.nextTier;
+if(prog.nextTier) document.getElementById('dashNext').textContent=prog.nextTier.toUpperCase();
 setTimeout(function(){ var f=document.getElementById('eloBarFill'); if(f) f.style.width=prog.pct+'%'; },600);
 
 startActivityFeed();
