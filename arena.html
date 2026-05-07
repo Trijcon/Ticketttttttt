@@ -255,7 +255,16 @@ function startCam(){
     myStream=stream;
     var v=document.getElementById('myVid'); v.srcObject=stream;
     v.onloadedmetadata=function(){
-      var c=document.getElementById('myCanvas'); c.width=v.videoWidth; c.height=v.videoHeight;
+      var c=document.getElementById('myCanvas');
+      c.width=v.videoWidth; c.height=v.videoHeight;
+      // Sync canvas display size to video element size for mobile
+      function syncCanvasSize(){
+        var rect=v.getBoundingClientRect();
+        c.style.width=rect.width+'px';
+        c.style.height=rect.height+'px';
+      }
+      syncCanvasSize();
+      window.addEventListener('resize', syncCanvasSize);
       document.getElementById('myPH').style.display='none';
       // Show my overlay
       document.getElementById('myInfoTL').style.display='block';
