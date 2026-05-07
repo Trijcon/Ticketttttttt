@@ -3,295 +3,196 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MogMe.TV — Create Your Profile</title>
+<title>MogMe.TV — Set Up Profile</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
 <style>
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-html, body { background:#080810; color:#f2f2ff; font-family:'Barlow',sans-serif; min-height:100vh; }
-body::before {
-  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
-  background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(123,97,255,0.12) 0%, transparent 60%);
+body { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; padding-right:0; }
+.setup-box {
+  background:var(--bg2); border:1px solid var(--border2);
+  border-radius:var(--radius); padding:40px; max-width:420px; width:100%;
+  animation:fadeUp 0.3s ease;
 }
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.setup-logo { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; letter-spacing:0.5px; color:var(--muted2); margin-bottom:28px; }
+.setup-title { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:26px; color:var(--white); letter-spacing:-0.3px; margin-bottom:6px; }
+.setup-sub { font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:28px; }
 
-.setup-wrap {
-  position:relative; z-index:1;
-  min-height:100vh; display:flex; align-items:center; justify-content:center;
-  padding:24px;
+.input-group { margin-bottom:20px; }
+.input-label { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:2px; color:var(--muted2); margin-bottom:7px; display:block; text-transform:uppercase; }
+.username-wrap { position:relative; }
+.username-input {
+  width:100%; background:var(--bg3); border:1px solid var(--border2);
+  border-radius:var(--radius); padding:13px 42px 13px 16px;
+  font-family:'JetBrains Mono',monospace; font-size:15px; color:var(--white);
+  outline:none; transition:border-color 0.2s; letter-spacing:0.5px;
 }
+.username-input:focus { border-color:rgba(74,158,255,0.3); }
+.username-input.ok { border-color:rgba(34,197,94,0.3); }
+.username-input.err { border-color:rgba(239,68,68,0.3); }
+.input-status { position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:14px; }
 
-.setup-card {
-  background:#13131f; border:1px solid rgba(255,255,255,0.08);
-  border-radius:20px; padding:40px; width:100%; max-width:440px;
-  box-shadow:0 24px 60px rgba(0,0,0,0.5);
-}
+.input-hint { font-family:'JetBrains Mono',monospace; font-size:9px; margin-top:6px; letter-spacing:0.3px; }
+.hint-ok { color:var(--green); }
+.hint-err { color:var(--red); }
+.hint-neutral { color:var(--muted2); }
 
-.setup-logo {
-  font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:22px;
-  letter-spacing:2px; color:#0df2c8; text-align:center; margin-bottom:28px;
-  text-shadow:0 0 20px rgba(13,242,200,0.3);
-}
+.rules-list { margin-top:16px; display:flex; flex-direction:column; gap:5px; }
+.rule-item { display:flex; align-items:center; gap:8px; font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2); letter-spacing:0.3px; }
+.rule-dot { width:4px; height:4px; border-radius:50%; background:var(--border2); flex-shrink:0; }
 
-.setup-avatar-wrap {
-  display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:28px;
+.submit-btn {
+  width:100%; padding:14px; border:none; border-radius:var(--radius);
+  background:var(--blue); color:#000;
+  font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:600;
+  cursor:pointer; transition:opacity 0.2s; margin-top:6px;
 }
-.setup-avatar {
-  width:80px; height:80px; border-radius:50%;
-  border:2px solid rgba(13,242,200,0.3);
-  background:#1a1a28; object-fit:cover;
-  display:flex; align-items:center; justify-content:center;
-  font-size:32px; color:#6b6b8f;
-}
-.setup-google-name {
-  font-family:'JetBrains Mono',monospace; font-size:11px; color:#6b6b8f;
-}
-
-.setup-title {
-  font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:28px;
-  text-align:center; margin-bottom:6px; letter-spacing:1px;
-}
-.setup-sub {
-  font-size:13px; color:#6b6b8f; text-align:center; margin-bottom:28px; line-height:1.5;
-}
-
-.input-wrap { margin-bottom:16px; }
-.input-label {
-  font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:1px;
-  color:#6b6b8f; margin-bottom:6px; display:block;
-}
-.input-field {
-  width:100%; background:#0e0e1a; border:1px solid rgba(255,255,255,0.1);
-  border-radius:10px; padding:13px 16px;
-  font-family:'Barlow',sans-serif; font-size:15px; color:#f2f2ff;
-  outline:none; transition:border-color 0.2s;
-}
-.input-field:focus { border-color:rgba(13,242,200,0.4); }
-.input-field.error { border-color:rgba(255,61,107,0.5); }
-.input-field.success { border-color:rgba(13,242,200,0.5); }
-
-.input-hint {
-  font-family:'JetBrains Mono',monospace; font-size:10px; margin-top:6px;
-  min-height:14px; transition:all 0.2s;
-}
-.input-hint.checking { color:#6b6b8f; }
-.input-hint.available { color:#0df27a; }
-.input-hint.taken { color:#ff3d6b; }
-.input-hint.invalid { color:#f5a623; }
-
-.create-btn {
-  width:100%; padding:15px; border:none; border-radius:12px;
-  background:#0df2c8; color:#080810;
-  font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:700; letter-spacing:1px;
-  cursor:pointer; transition:all 0.2s; margin-top:8px;
-}
-.create-btn:hover { background:#2fffd8; transform:translateY(-2px); box-shadow:0 8px 24px rgba(13,242,200,0.25); }
-.create-btn:disabled { background:#1a1a28; color:#3f3f5a; cursor:not-allowed; transform:none; box-shadow:none; }
-
-.setup-rules {
-  margin-top:16px; padding:12px 16px;
-  background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05);
-  border-radius:10px;
-}
-.setup-rules-title { font-family:'JetBrains Mono',monospace; font-size:9px; color:#6b6b8f; letter-spacing:1px; margin-bottom:6px; }
-.setup-rule { font-family:'JetBrains Mono',monospace; font-size:10px; color:#3f3f5a; margin-bottom:3px; }
-.setup-rule::before { content:'· '; }
-
-.error-msg {
-  background:rgba(255,61,107,0.08); border:1px solid rgba(255,61,107,0.2);
-  border-radius:8px; padding:10px 14px; margin-bottom:14px;
-  font-family:'JetBrains Mono',monospace; font-size:11px; color:#ff3d6b;
-  display:none;
-}
-.error-msg.show { display:block; }
+.submit-btn:hover { opacity:0.85; }
+.submit-btn:disabled { background:var(--bg4); color:var(--muted2); cursor:not-allowed; opacity:1; }
 </style>
 </head>
 <body>
-<div class="setup-wrap">
-  <div class="setup-card">
-    <div class="setup-logo">MOGME.TV</div>
+<div class="setup-box">
+  <div class="setup-logo">MOGME.TV</div>
+  <div class="setup-title">Choose your name</div>
+  <div class="setup-sub">This is how you'll appear on the leaderboard and in matches. Choose wisely — this defines your identity.</div>
 
-    <div class="setup-avatar-wrap">
-      <div class="setup-avatar" id="setupAvatar">👤</div>
-      <div class="setup-google-name" id="setupGoogleName">Loading...</div>
+  <div class="input-group">
+    <label class="input-label">Username</label>
+    <div class="username-wrap">
+      <input class="username-input" id="usernameInput" type="text"
+        maxlength="20" placeholder="e.g. ApexK"
+        oninput="onInput()" autocomplete="off" autocorrect="off" spellcheck="false">
+      <div class="input-status" id="inputStatus"></div>
     </div>
-
-    <div class="setup-title">CREATE YOUR PROFILE</div>
-    <div class="setup-sub">Choose a username. This is how you'll appear on the leaderboard and in chat.</div>
-
-    <div class="error-msg" id="errorMsg"></div>
-
-    <div class="input-wrap">
-      <label class="input-label">USERNAME</label>
-      <input class="input-field" id="usernameInput" type="text" placeholder="e.g. JawGod99" maxlength="20" autocomplete="off" oninput="onUsernameInput()">
-      <div class="input-hint checking" id="usernameHint">3–20 characters, letters and numbers only</div>
-    </div>
-
-    <button class="create-btn" id="createBtn" onclick="createProfile()" disabled>CREATE PROFILE →</button>
-
-    <div class="setup-rules">
-      <div class="setup-rules-title">USERNAME RULES</div>
-      <div class="setup-rule">3 to 20 characters</div>
-      <div class="setup-rule">Letters, numbers and underscores only</div>
-      <div class="setup-rule">Cannot be changed after creation</div>
-      <div class="setup-rule">No impersonation or offensive names</div>
-    </div>
+    <div class="input-hint hint-neutral" id="inputHint">3–20 characters · letters, numbers and underscores only</div>
   </div>
+
+  <div class="rules-list">
+    <div class="rule-item"><div class="rule-dot"></div>Cannot be changed later without deleting your account</div>
+    <div class="rule-item"><div class="rule-dot"></div>No spaces or special characters</div>
+    <div class="rule-item"><div class="rule-dot"></div>Will appear publicly on the leaderboard</div>
+  </div>
+
+  <button class="submit-btn" id="submitBtn" disabled onclick="submitUsername()">Claim Username</button>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, serverTimestamp }
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const fbApp = initializeApp({
-  apiKey: "AIzaSyBpMuv59Rlhc2roSiTPBzjKKHjuwqe0TFs",
-  authDomain: "mogmetv.firebaseapp.com",
-  projectId: "mogmetv",
-  storageBucket: "mogmetv.firebasestorage.app",
-  messagingSenderId: "1067675943117",
-  appId: "1:1067675943117:web:9545a8bbfa7f68d5db2984",
+  apiKey:"AIzaSyBpMuv59Rlhc2roSiTPBzjKKHjuwqe0TFs",
+  authDomain:"mogmetv.firebaseapp.com", projectId:"mogmetv",
+  storageBucket:"mogmetv.firebasestorage.app",
+  messagingSenderId:"1067675943117",
+  appId:"1:1067675943117:web:9545a8bbfa7f68d5db2984"
 });
 const auth = getAuth(fbApp);
 const db   = getFirestore(fbApp);
 
-let currentUser = null;
-let usernameAvailable = false;
+let _user = null;
 let checkTimer = null;
+let usernameAvailable = false;
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) { window.location.href = 'index.html'; return; }
-
-  // Check if already has profile
-  const snap = await getDoc(doc(db, 'users', user.uid));
-  if (snap.exists()) { window.location.href = 'index.html'; return; }
-
-  currentUser = user;
-
-  // Show avatar
-  const avatarEl = document.getElementById('setupAvatar');
-  const nameEl   = document.getElementById('setupGoogleName');
-  if (user.photoURL) {
-    avatarEl.innerHTML = `<img src="${user.photoURL}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;">`;
+onAuthStateChanged(auth, (user) => {
+  if (!user) { window.location.href='index.html'; return; }
+  _user = user;
+  // Pre-fill suggestion from Google display name
+  const suggestion = (user.displayName||'').replace(/[^a-zA-Z0-9_]/g,'').slice(0,18);
+  if (suggestion.length >= 3) {
+    document.getElementById('usernameInput').value = suggestion;
+    onInput();
   }
-  if (nameEl) nameEl.textContent = user.displayName || user.email;
 });
 
-window.onUsernameInput = function() {
-  const val = document.getElementById('usernameInput').value.trim();
-  const hint = document.getElementById('usernameHint');
-  const btn  = document.getElementById('createBtn');
-  usernameAvailable = false;
-  btn.disabled = true;
+window.onInput = function() {
+  const val = document.getElementById('usernameInput').value;
+  const valid = /^[a-zA-Z0-9_]{3,20}$/.test(val);
+  const hint = document.getElementById('inputHint');
+  const status = document.getElementById('inputStatus');
+  const btn = document.getElementById('submitBtn');
+  const inp = document.getElementById('usernameInput');
 
-  if (val.length < 3) {
-    hint.textContent = '3–20 characters required';
-    hint.className = 'input-hint invalid';
-    document.getElementById('usernameInput').className = 'input-field';
-    return;
+  if (!val) {
+    inp.className='username-input'; hint.className='input-hint hint-neutral';
+    hint.textContent='3–20 characters · letters, numbers and underscores only';
+    status.textContent=''; btn.disabled=true; usernameAvailable=false; return;
   }
-  if (!/^[a-zA-Z0-9_]+$/.test(val)) {
-    hint.textContent = 'Letters, numbers and underscores only';
-    hint.className = 'input-hint invalid';
-    document.getElementById('usernameInput').className = 'input-field error';
-    return;
+  if (!valid) {
+    inp.className='username-input err'; hint.className='input-hint hint-err';
+    hint.textContent='Letters, numbers and underscores only (3–20 chars)';
+    status.textContent='✕'; btn.disabled=true; usernameAvailable=false; return;
   }
 
-  hint.textContent = 'Checking availability...';
-  hint.className = 'input-hint checking';
-  document.getElementById('usernameInput').className = 'input-field';
+  hint.className='input-hint hint-neutral'; hint.textContent='Checking...';
+  status.textContent='⋯'; inp.className='username-input'; btn.disabled=true; usernameAvailable=false;
 
-  if (checkTimer) clearTimeout(checkTimer);
+  clearTimeout(checkTimer);
   checkTimer = setTimeout(async () => {
     try {
-      const q = query(collection(db,'usernames'), where('username','==',val.toLowerCase()));
-      const snap = await getDocs(q);
-      if (snap.empty) {
-        hint.textContent = '✓ ' + val + ' is available!';
-        hint.className = 'input-hint available';
-        document.getElementById('usernameInput').className = 'input-field success';
-        usernameAvailable = true;
-        btn.disabled = false;
+      const snap = await getDoc(doc(db,'usernames',val.toLowerCase()));
+      if (snap.exists()) {
+        inp.className='username-input err'; hint.className='input-hint hint-err';
+        hint.textContent='Username taken — try another';
+        status.textContent='✕'; btn.disabled=true; usernameAvailable=false;
       } else {
-        hint.textContent = '✗ ' + val + ' is already taken';
-        hint.className = 'input-hint taken';
-        document.getElementById('usernameInput').className = 'input-field error';
-        usernameAvailable = false;
-        btn.disabled = true;
+        inp.className='username-input ok'; hint.className='input-hint hint-ok';
+        hint.textContent='Available';
+        status.textContent='✓'; btn.disabled=false; usernameAvailable=true;
       }
     } catch(e) {
-      hint.textContent = 'Could not check — try again';
-      hint.className = 'input-hint invalid';
+      hint.textContent='Could not check — try submitting';
+      btn.disabled=false; usernameAvailable=true;
     }
-  }, 500);
+  }, 600);
 };
 
-window.createProfile = async function() {
-  if (!currentUser || !usernameAvailable) return;
+window.submitUsername = async function() {
+  if (!_user || !usernameAvailable) return;
   const username = document.getElementById('usernameInput').value.trim();
-  const btn = document.getElementById('createBtn');
-  const errorEl = document.getElementById('errorMsg');
-  btn.disabled = true;
-  btn.textContent = 'Creating...';
-  errorEl.classList.remove('show');
+  if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) return;
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled=true; btn.textContent='Creating profile...';
 
   try {
-    const usernameKey = username.toLowerCase();
-
-    // Double-check username still available
-    const q = query(collection(db,'usernames'), where('username','==',usernameKey));
-    const snap = await getDocs(q);
-    if (!snap.empty) {
-      errorEl.textContent = 'Username was just taken — try another';
-      errorEl.classList.add('show');
-      btn.disabled = false;
-      btn.textContent = 'CREATE PROFILE →';
-      return;
-    }
-
-    // Save username reservation
-    await setDoc(doc(db,'usernames', usernameKey), {
-      username: usernameKey,
-      uid: currentUser.uid,
-      createdAt: serverTimestamp()
-    });
-
-    // Save user profile
-    await setDoc(doc(db,'users', currentUser.uid), {
-      uid:         currentUser.uid,
-      username:    username,
-      usernameLower: usernameKey,
-      displayName: username,
-      email:       currentUser.email,
-      photoURL:    currentUser.photoURL || '',
-      elo:         400,
-      wins:        0,
-      losses:      0,
-      labScore:    null,
-      matchHistory:[],
-      createdAt:   serverTimestamp(),
-      lastSeen:    serverTimestamp(),
+    // Reserve username
+    await setDoc(doc(db,'usernames',username.toLowerCase()), { uid:_user.uid, username, createdAt:serverTimestamp() });
+    // Create user profile
+    await setDoc(doc(db,'users',_user.uid), {
+      uid:       _user.uid,
+      username,
+      usernameLower: username.toLowerCase(),
+      displayName:   username,
+      email:     _user.email || '',
+      photoURL:  _user.photoURL || '',
+      elo:       400,
+      wins:      0,
+      losses:    0,
+      matchHistory: [],
+      createdAt: serverTimestamp(),
+      lastSeen:  serverTimestamp(),
     });
 
     // Save to localStorage
-    localStorage.setItem('mgm_uid',      currentUser.uid);
+    localStorage.setItem('mgm_uid',      _user.uid);
     localStorage.setItem('mgm_username', username);
     localStorage.setItem('mgm_name',     username);
     localStorage.setItem('mgm_elo',      '400');
     localStorage.setItem('mgm_wins',     '0');
     localStorage.setItem('mgm_losses',   '0');
-    localStorage.setItem('mgm_photo',    currentUser.photoURL || '');
+    localStorage.setItem('mgm_photo',    _user.photoURL || '');
 
-    // Go to dashboard
     window.location.href = 'index.html';
-
   } catch(e) {
-    console.error(e);
-    errorEl.textContent = 'Something went wrong: ' + e.message;
-    errorEl.classList.add('show');
-    btn.disabled = false;
-    btn.textContent = 'CREATE PROFILE →';
+    btn.disabled=false; btn.textContent='Claim Username';
+    alert('Setup failed: '+e.message);
   }
 };
 </script>
