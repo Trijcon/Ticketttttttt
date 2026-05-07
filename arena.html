@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 <style>
-.arena-wrap{max-width:1200px;margin:0 auto;}
+.arena-wrap{max-width:1400px;margin:0 auto;}
 .page-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:38px;letter-spacing:1px;margin-bottom:4px;color:var(--white);}
 .page-sub{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--muted);margin-bottom:20px;}
 .status-top{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
@@ -18,57 +18,60 @@
 .status-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:8px;}
 .queue-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);}
 
-/* FEEDS */
-.feeds-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px;}
-.feed-box{position:relative;border-radius:14px;overflow:hidden;background:#020208;border:1px solid var(--border);aspect-ratio:16/11;}
-.feed-video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1);}
-.feed-canvas{position:absolute;top:0;left:0;width:100%;height:100%;transform:scaleX(-1);pointer-events:none;}
-.feed-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
-.feed-ph-icon{font-size:44px;opacity:0.25;}
-.feed-ph-text{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);letter-spacing:1px;}
+/* CAMERA CHECK SCREEN */
+.cam-check{display:none;flex-direction:column;align-items:center;gap:20px;padding:40px 20px;max-width:520px;margin:0 auto;}
+.cam-check.show{display:flex;}
+.cc-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:32px;letter-spacing:3px;color:var(--white);}
+.cc-sub{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-align:center;}
+.cc-video-wrap{position:relative;width:100%;max-width:420px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:#000;}
+.cc-video-wrap video{width:100%;display:block;transform:scaleX(-1);}
+.cc-corner{position:absolute;width:20px;height:20px;border-color:var(--teal);border-style:solid;opacity:0.8;}
+.cc-corner.tl{top:10px;left:10px;border-width:2px 0 0 2px;}
+.cc-corner.tr{top:10px;right:10px;border-width:2px 2px 0 0;}
+.cc-corner.bl{bottom:10px;left:10px;border-width:0 0 2px 2px;}
+.cc-corner.br{bottom:10px;right:10px;border-width:0 2px 2px 0;}
+.cc-instruction{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:6px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--white);white-space:nowrap;}
+.cc-steps{display:flex;align-items:center;gap:0;width:100%;max-width:420px;}
+.cc-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;}
+.cc-step:not(:last-child)::after{content:'';position:absolute;right:-50%;top:10px;width:100%;height:1px;background:var(--border);}
+.cc-step-dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--border2);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--muted);transition:all 0.3s;position:relative;z-index:1;}
+.cc-step-dot.active{border-color:var(--teal);background:rgba(13,242,200,0.1);color:var(--teal);}
+.cc-step-dot.done{border-color:var(--green);background:rgba(34,197,94,0.1);color:var(--green);}
+.cc-step-label{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1px;color:var(--muted2);}
+.cc-progress{width:100%;max-width:420px;height:3px;background:var(--bg4);border-radius:999px;overflow:hidden;}
+.cc-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--teal),var(--violet));border-radius:999px;transition:width 0.5s ease;}
+.cc-disclaimer{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted2);text-align:center;line-height:1.7;max-width:380px;}
 
-/* SCAN OVERLAY */
-.scan-overlay{position:absolute;inset:0;pointer-events:none;z-index:10;}
+/* FULLSCREEN ARENA */
+.arena-main{display:none;}
+.arena-main.show{display:block;}
+.feeds-fullscreen{display:grid;grid-template-columns:1fr 1fr;gap:0;height:calc(100vh - 200px);min-height:500px;margin:0 -24px;position:relative;}
+.feed-box-full{position:relative;overflow:hidden;background:#000;}
+.feed-box-full:first-child{border-right:2px solid rgba(255,255,255,0.08);}
+.feed-video-full{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1);}
+.feed-canvas-full{position:absolute;top:0;left:0;width:100%;height:100%;transform:scaleX(-1);pointer-events:none;}
+.feed-ph-full{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;}
+.feed-ph-icon-full{font-size:56px;opacity:0.2;}
+.feed-ph-text-full{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted2);letter-spacing:2px;}
 
-/* Top-left info panel */
-.scan-info-tl{
-  position:absolute;top:10px;left:10px;
-  background:rgba(0,0,0,0.72);border:1px solid rgba(255,255,255,0.1);
-  border-radius:10px;padding:10px 12px;min-width:130px;
-  backdrop-filter:blur(4px);display:none;
-}
-.scan-score-label{font-family:'JetBrains Mono',monospace;font-size:8px;color:rgba(255,255,255,0.5);letter-spacing:1px;margin-bottom:2px;}
-.scan-score-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:36px;line-height:1;color:#fff;margin-bottom:4px;}
-.scan-tier-badge{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:1px;}
-.scan-dom-row{margin-top:6px;border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;}
-.scan-feat-label{font-family:'JetBrains Mono',monospace;font-size:8px;color:rgba(255,255,255,0.4);letter-spacing:1px;}
-.scan-feat-val{font-family:'JetBrains Mono',monospace;font-size:10px;color:#0df2c8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px;}
-.scan-flaw-val{font-family:'JetBrains Mono',monospace;font-size:10px;color:#ff3d6b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px;}
+/* VS overlay */
+.vs-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:20;pointer-events:none;}
+.vs-badge{width:48px;height:48px;border-radius:50%;background:rgba(0,0,0,0.85);border:2px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:var(--white);}
 
-/* Top-right label */
-.scan-label-tr{
-  position:absolute;top:10px;right:10px;
-  background:rgba(0,0,0,0.72);border:1px solid rgba(255,255,255,0.1);
-  border-radius:10px;padding:8px 12px;text-align:right;
-  backdrop-filter:blur(4px);display:none;
-}
-.scan-label-tag{font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:1px;margin-bottom:4px;}
-.scan-label-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:1px;color:#fff;margin-bottom:3px;}
-.scan-label-elo{font-family:'JetBrains Mono',monospace;font-size:11px;display:flex;align-items:center;gap:5px;justify-content:flex-end;}
+/* Scan overlays on fullscreen */
+.scan-info-tl{position:absolute;top:12px;left:12px;background:rgba(0,0,0,0.8);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:10px 14px;min-width:140px;backdrop-filter:blur(8px);display:none;z-index:15;}
+.scan-label-tr{position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.8);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:8px 14px;text-align:right;backdrop-filter:blur(8px);display:none;z-index:15;}
 
-/* Report button */
-.report-btn{position:absolute;bottom:10px;left:10px;background:rgba(255,61,107,0.15);border:1px solid rgba(255,61,107,0.3);border-radius:7px;padding:5px 12px;color:#ff3d6b;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;display:none;z-index:15;transition:all 0.2s;}
-.report-btn:hover{background:rgba(255,61,107,0.25);}
-
-/* VS + MOGGING BAR */
-.vs-section{display:flex;align-items:center;gap:14px;margin-bottom:10px;padding:0 4px;}
+/* Bottom controls */
+.arena-bottom{padding:10px 0;display:flex;flex-direction:column;gap:8px;}
+.mogging-section{display:flex;align-items:center;gap:12px;padding:0 4px;}
 .mogging-wrap{flex:1;}
 .mogging-label{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted2);margin-bottom:4px;}
-.mogging-bar{height:8px;background:rgba(255,255,255,0.06);border-radius:999px;overflow:hidden;position:relative;}
+.mogging-bar{height:6px;background:rgba(255,255,255,0.06);border-radius:999px;overflow:hidden;position:relative;}
 .mogging-fill{position:absolute;left:0;top:0;height:100%;width:50%;background:linear-gradient(90deg,var(--teal),var(--violet));border-radius:999px;transition:width 1s cubic-bezier(0.34,1.56,0.64,1);}
-.vs-circle{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:12px;color:var(--muted);flex-shrink:0;}
+.vs-circle{width:32px;height:32px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:11px;color:var(--muted);flex-shrink:0;}
+.controls-row{display:flex;gap:8px;}
 
-.actions-row{display:flex;gap:10px;margin-bottom:12px;}
 
 /* RESULT */
 .result-card{display:none;background:linear-gradient(135deg,#141228,#0f0d20);border:1px solid rgba(13,242,200,0.2);border-radius:16px;padding:28px;text-align:center;}
@@ -98,13 +101,65 @@
     <div class="queue-label" id="qText"></div>
   </div>
 
-  <div class="feeds-grid">
-    <!-- YOU -->
-    <div class="feed-box">
-      <video class="feed-video" id="myVid" autoplay playsinline muted></video>
-      <canvas class="feed-canvas" id="myCanvas"></canvas>
-      <!-- Overlay -->
-      <div class="scan-overlay">
+  <!-- STATUS BAR -->
+  <div class="status-top">
+    <div class="status-label">
+      <div class="status-dot" id="sDot"></div>
+      <div id="sText">Complete camera check to enter queue</div>
+    </div>
+    <div class="queue-label" id="qText"></div>
+  </div>
+
+  <!-- CAMERA CHECK SCREEN -->
+  <div class="cam-check show" id="camCheckScreen">
+    <div class="cc-title">CAMERA CHECK</div>
+    <div class="cc-sub">SHORT-LIVED SESSION CHALLENGE</div>
+    <div class="cc-video-wrap">
+      <video id="ccVid" autoplay playsinline muted style="transform:scaleX(-1);"></video>
+      <div class="cc-corner tl"></div>
+      <div class="cc-corner tr"></div>
+      <div class="cc-corner bl"></div>
+      <div class="cc-corner br"></div>
+      <div class="cc-instruction" id="ccInstruction">ALLOW CAMERA ACCESS</div>
+    </div>
+    <div class="cc-steps">
+      <div class="cc-step">
+        <div class="cc-step-dot active" id="step-align">1</div>
+        <div class="cc-step-label">ALIGN</div>
+      </div>
+      <div class="cc-step">
+        <div class="cc-step-dot" id="step-blink">2</div>
+        <div class="cc-step-label">BLINK</div>
+      </div>
+      <div class="cc-step">
+        <div class="cc-step-dot" id="step-turn">3</div>
+        <div class="cc-step-label">TURN</div>
+      </div>
+      <div class="cc-step">
+        <div class="cc-step-dot" id="step-done">✓</div>
+        <div class="cc-step-label">DONE</div>
+      </div>
+    </div>
+    <div class="cc-progress"><div class="cc-progress-fill" id="ccProgress"></div></div>
+    <div class="cc-disclaimer">
+      This camera check is a MogMe.TV session gate for anti-abuse purposes.<br>
+      It is not a government ID check or a durable proof of identity.<br>
+      Facial landmarks are processed <strong style="color:var(--silver);">locally in your browser</strong> and are never uploaded.
+    </div>
+    <div style="display:flex;gap:10px;width:100%;max-width:420px;">
+      <button class="btn-outline" onclick="window.location.href='index.html'" style="flex:0 0 100px;">← EXIT</button>
+      <button class="btn-amber" id="ccStartBtn" onclick="startCameraCheck()" style="flex:1;font-size:15px;padding:13px;">START CAMERA CHECK →</button>
+    </div>
+  </div>
+
+  <!-- ARENA MAIN -->
+  <div class="arena-main" id="arenaMain">
+    <!-- FULLSCREEN FEEDS -->
+    <div class="feeds-fullscreen" id="feedsFullscreen">
+      <!-- YOU -->
+      <div class="feed-box-full" id="myFeedBox">
+        <video class="feed-video-full" id="myVid" autoplay playsinline muted></video>
+        <canvas class="feed-canvas-full" id="myCanvas"></canvas>
         <div class="scan-info-tl" id="myInfoTL">
           <div class="scan-score-label">OVERALL SCORE</div>
           <div class="scan-score-val" id="myScoreVal">—</div>
@@ -126,15 +181,20 @@
             <span id="myEloLabel" style="color:var(--teal);">400 ELO</span>
           </div>
         </div>
+        <div class="feed-ph-full" id="myPH">
+          <div class="feed-ph-icon-full">📷</div>
+          <div class="feed-ph-text-full">CAMERA LOADING...</div>
+        </div>
       </div>
-      <div class="feed-ph" id="myPH"><div class="feed-ph-icon">📷</div><div class="feed-ph-text">CAMERA OFF</div></div>
-    </div>
 
-    <!-- OPPONENT -->
-    <div class="feed-box">
-      <video class="feed-video" id="oppVid" autoplay playsinline style="display:none;"></video>
-      <!-- Overlay -->
-      <div class="scan-overlay">
+      <!-- VS BADGE -->
+      <div class="vs-overlay">
+        <div class="vs-badge">VS</div>
+      </div>
+
+      <!-- OPPONENT -->
+      <div class="feed-box-full" id="oppFeedBox">
+        <video class="feed-video-full" id="oppVid" autoplay playsinline style="display:none;transform:scaleX(-1);"></video>
         <div class="scan-info-tl" id="oppInfoTL">
           <div class="scan-score-label">OVERALL SCORE</div>
           <div class="scan-score-val" id="oppScoreVal">—</div>
@@ -156,42 +216,48 @@
             <span id="oppEloLabel" style="color:var(--crimson);">— ELO</span>
           </div>
         </div>
+        <button class="report-btn" id="reportBtn" onclick="reportOpponent()">REPORT</button>
+        <div class="feed-ph-full" id="oppPH">
+          <div class="feed-ph-icon-full">👤</div>
+          <div class="feed-ph-text-full" id="oppPHText">WAITING FOR OPPONENT...</div>
+        </div>
       </div>
-      <button class="report-btn" id="reportBtn" onclick="reportOpponent()">REPORT</button>
-      <div class="feed-ph" id="oppPH"><div class="feed-ph-icon">👤</div><div class="feed-ph-text" id="oppPHText">WAITING...</div></div>
     </div>
-  </div>
 
-  <!-- VS + MOGGING BAR -->
-  <div class="vs-section">
-    <div class="mogging-wrap">
-      <div class="mogging-label"><span id="myMogLabel">YOU</span><span>MOGGING</span></div>
-      <div class="mogging-bar"><div class="mogging-fill" id="moggingFill"></div></div>
+    <!-- BOTTOM CONTROLS -->
+    <div class="arena-bottom">
+      <div class="mogging-section">
+        <div class="mogging-wrap">
+          <div class="mogging-label"><span id="myMogLabel">YOU</span><span>MOGGING</span></div>
+          <div class="mogging-bar"><div class="mogging-fill" id="moggingFill"></div></div>
+        </div>
+        <div class="vs-circle">VS</div>
+        <div class="mogging-wrap">
+          <div class="mogging-label"><span>MOGGING</span><span id="oppMogLabel">OPP</span></div>
+          <div class="mogging-bar"><div class="mogging-fill" id="moggingFillR" style="background:linear-gradient(270deg,var(--crimson),var(--violet));left:auto;right:0;width:50%;"></div></div>
+        </div>
+      </div>
+      <div class="controls-row">
+        <button class="btn-outline" onclick="window.location.href='index.html'" style="flex:0 0 110px;">← HOME</button>
+        <button class="btn-outline" id="skipBtn" onclick="skipOpp()" style="display:none;flex:0 0 110px;">SKIP →</button>
+        <button class="btn-amber" id="mainBtn" onclick="findMatch()" style="flex:1;font-size:17px;padding:15px;">FIND MATCH</button>
+      </div>
     </div>
-    <div class="vs-circle">VS</div>
-    <div class="mogging-wrap">
-      <div class="mogging-label"><span>MOGGING</span><span id="oppMogLabel">OPP</span></div>
-      <div class="mogging-bar"><div class="mogging-fill" id="moggingFillR" style="background:linear-gradient(270deg,var(--crimson),var(--violet));left:auto;right:0;width:50%;"></div></div>
-    </div>
-  </div>
 
-  <div class="actions-row">
-    <button class="btn-outline" id="skipBtn" onclick="skipOpp()" style="display:none;flex:0 0 110px;">SKIP →</button>
-    <button class="btn-amber" id="mainBtn" onclick="mainAction()" style="flex:1;font-size:17px;padding:15px;">START CAMERA</button>
-  </div>
-
-  <div class="result-card" id="resultCard">
-    <div class="result-eyebrow">MATCH COMPLETE</div>
-    <div class="result-title" id="rTitle">—</div>
-    <div class="scores-row">
-      <div><div class="score-big" id="rMy">—</div><div class="score-sm">YOU</div></div>
-      <div class="score-vs">VS</div>
-      <div><div class="score-big" id="rOpp">—</div><div class="score-sm">OPPONENT</div></div>
-    </div>
-    <div class="elo-line" id="rElo"></div>
-    <div class="result-actions">
-      <button class="btn-amber" onclick="rematch()">REMATCH</button>
-      <button class="btn-outline" onclick="window.location.href='index.html'">DASHBOARD</button>
+    <!-- RESULT CARD -->
+    <div class="result-card" id="resultCard">
+      <div class="result-eyebrow">MATCH COMPLETE</div>
+      <div class="result-title" id="rTitle">—</div>
+      <div class="scores-row">
+        <div><div class="score-big" id="rMy">—</div><div class="score-sm">YOU</div></div>
+        <div class="score-vs">VS</div>
+        <div><div class="score-big" id="rOpp">—</div><div class="score-sm">OPPONENT</div></div>
+      </div>
+      <div class="elo-line" id="rElo"></div>
+      <div class="result-actions">
+        <button class="btn-amber" onclick="rematch()">REMATCH</button>
+        <button class="btn-outline" onclick="window.location.href='index.html'">HOME</button>
+      </div>
     </div>
   </div>
 </div>
@@ -206,7 +272,6 @@ var peerConn=null,oppSocketId=null,myRole=null;
 var myLastScore=0,oppLastScore=0;
 var ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]};
 
-// Load user info
 var _name  = localStorage.getItem('mgm_username')||localStorage.getItem('mgm_name')||'YOU';
 var _elo   = parseInt(localStorage.getItem('mgm_elo')||'400');
 var _photo = localStorage.getItem('mgm_photo')||'';
@@ -217,6 +282,75 @@ document.getElementById('myTierName').textContent  = getTierName(_elo);
 document.getElementById('myMogLabel').textContent  = _name;
 
 injectSharedUI();
+
+/* ═══════════════════════════
+   CAMERA CHECK
+═══════════════════════════ */
+var ccStream=null, ccStep=0, ccDone=false;
+var ccSteps=['align','blink','turn','done'];
+var ccInstructions=['CENTER YOUR FACE IN FRAME','BLINK TWICE','TURN HEAD SLIGHTLY RIGHT','CHECK COMPLETE ✓'];
+var ccDurations=[3000,2500,3000,1000];
+
+function startCameraCheck(){
+  var btn=document.getElementById('ccStartBtn');
+  btn.textContent='STARTING...'; btn.disabled=true;
+  navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'},audio:false})
+  .then(function(stream){
+    ccStream=stream; myStream=stream;
+    document.getElementById('ccVid').srcObject=stream;
+    btn.style.display='none';
+    setS('searching','Camera check in progress...');
+    runCCStep(0);
+  }).catch(function(){
+    btn.textContent='CAMERA DENIED — TRY AGAIN'; btn.disabled=false;
+    setS('','Camera access denied — allow camera to continue');
+  });
+}
+
+function runCCStep(step){
+  if(step>=ccSteps.length-1){
+    completeCameraCheck(); return;
+  }
+  // Update UI
+  for(var i=0;i<ccSteps.length;i++){
+    var dot=document.getElementById('step-'+ccSteps[i]);
+    if(i<step) dot.className='cc-step-dot done';
+    else if(i===step) dot.className='cc-step-dot active';
+    else dot.className='cc-step-dot';
+  }
+  document.getElementById('ccInstruction').textContent=ccInstructions[step];
+  var pct=((step+1)/ccSteps.length)*100;
+  document.getElementById('ccProgress').style.width=pct+'%';
+  setTimeout(function(){ runCCStep(step+1); }, ccDurations[step]);
+}
+
+function completeCameraCheck(){
+  // All steps done
+  document.getElementById('step-done').className='cc-step-dot done';
+  document.getElementById('ccInstruction').textContent=ccInstructions[3];
+  document.getElementById('ccProgress').style.width='100%';
+  setS('connected','Camera check passed — entering arena...');
+  setTimeout(function(){
+    // Switch to arena
+    document.getElementById('camCheckScreen').classList.remove('show');
+    document.getElementById('arenaMain').classList.add('show');
+    // Transfer stream to arena video
+    var v=document.getElementById('myVid');
+    v.srcObject=myStream;
+    v.onloadedmetadata=function(){
+      var c=document.getElementById('myCanvas');
+      c.width=v.videoWidth; c.height=v.videoHeight;
+      function syncCanvas(){var r=v.getBoundingClientRect();c.style.width=r.width+'px';c.style.height=r.height+'px';}
+      syncCanvas(); window.addEventListener('resize',syncCanvas);
+      document.getElementById('myPH').style.display='none';
+      document.getElementById('myInfoTL').style.display='block';
+      document.getElementById('myLabelTR').style.display='block';
+      state='camera';
+      setS('connected','Camera ready — find a match!');
+      initFM(v,c);
+    };
+  },800);
+}
 connectWS(onMsg);
 
 function onMsg(msg){
@@ -246,24 +380,7 @@ function onMsg(msg){
   }
 }
 
-function mainAction(){ if(state==='idle')startCam(); else if(state==='camera')findMatch(); }
-
-function startCam(){
-  navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'},audio:false})
-  .then(function(stream){
-    myStream=stream;
-    var v=document.getElementById('myVid'); v.srcObject=stream;
-    v.onloadedmetadata=function(){
-      var c=document.getElementById('myCanvas'); c.width=v.videoWidth; c.height=v.videoHeight;
-      document.getElementById('myPH').style.display='none';
-      // Show my overlay
-      document.getElementById('myInfoTL').style.display='block';
-      document.getElementById('myLabelTR').style.display='block';
-      state='camera'; setBtnFind(); setS('','Camera active — find a match!');
-      initFM(v,c);
-    };
-  }).catch(function(){ setS('','Camera denied — allow access to continue'); });
-}
+function findMatch(){ if(!myStream){setS('','Complete camera check first');return;} wsSend({type:'join_queue'}); }
 
 function initFM(v,c){
   faceMesh=new FaceMesh({locateFile:function(f){return 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/'+f;}});
@@ -566,11 +683,143 @@ function runScan(){
   },2400);
 }
 
+/* ── SOUND ENGINE — MAXIMUM HYPE ── */
+function playVictorySound(){
+  try {
+    var ctx=new(window.AudioContext||window.webkitAudioContext)();
+    var master=ctx.createGain();
+    master.gain.value=0.7;
+    master.connect(ctx.destination);
+
+    // Bass kick drum hits
+    function kick(t){
+      var osc=ctx.createOscillator();
+      var g=ctx.createGain();
+      osc.connect(g); g.connect(master);
+      osc.type='sine';
+      osc.frequency.setValueAtTime(150,t);
+      osc.frequency.exponentialRampToValueAtTime(0.001,t+0.4);
+      g.gain.setValueAtTime(1,t);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.4);
+      osc.start(t); osc.stop(t+0.4);
+    }
+
+    // Snare hit
+    function snare(t){
+      var buf=ctx.createBuffer(1,ctx.sampleRate*0.15,ctx.sampleRate);
+      var data=buf.getChannelData(0);
+      for(var i=0;i<data.length;i++) data[i]=(Math.random()*2-1);
+      var src=ctx.createBufferSource();
+      src.buffer=buf;
+      var g=ctx.createGain();
+      var filt=ctx.createBiquadFilter();
+      filt.type='highpass'; filt.frequency.value=1000;
+      src.connect(filt); filt.connect(g); g.connect(master);
+      g.gain.setValueAtTime(0.4,t);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.15);
+      src.start(t); src.stop(t+0.15);
+    }
+
+    // Melody note
+    function note(freq,t,dur,type,vol){
+      var osc=ctx.createOscillator();
+      var g=ctx.createGain();
+      osc.connect(g); g.connect(master);
+      osc.type=type||'square';
+      osc.frequency.value=freq;
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(vol||0.3,t+0.02);
+      g.gain.setValueAtTime(vol||0.3,t+dur-0.05);
+      g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+      osc.start(t); osc.stop(t+dur);
+    }
+
+    var T=ctx.currentTime;
+
+    // Beat pattern — 2 bars
+    kick(T); kick(T+0.5); kick(T+0.75);
+    kick(T+1.0); kick(T+1.5); kick(T+1.75);
+    snare(T+0.25); snare(T+0.75);
+    snare(T+1.25); snare(T+1.75);
+
+    // Victory melody — ascending hype riff
+    // Bar 1
+    note(523,T+0.0,0.18,'square',0.25);   // C5
+    note(659,T+0.2,0.18,'square',0.25);   // E5
+    note(784,T+0.4,0.18,'square',0.25);   // G5
+    note(1047,T+0.6,0.35,'square',0.3);   // C6
+    note(988,T+1.0,0.18,'square',0.25);   // B5
+    note(1047,T+1.2,0.55,'square',0.35);  // C6 held
+
+    // Harmony layer (sawtooth underneath)
+    note(262,T+0.0,0.18,'sawtooth',0.1);
+    note(330,T+0.2,0.18,'sawtooth',0.1);
+    note(392,T+0.4,0.18,'sawtooth',0.1);
+    note(523,T+0.6,0.9,'sawtooth',0.12);
+
+    // Final big chord hit at end
+    [523,659,784,1047].forEach(function(f){
+      note(f,T+1.85,0.8,'sine',0.2);
+    });
+
+    // Reverb-style delay echoes on final chord
+    [523,659,784].forEach(function(f,i){
+      note(f,T+2.1+i*0.08,0.4,'sine',0.08);
+    });
+
+  } catch(e){}
+}
+
+function playDefeatSound(){
+  try {
+    var ctx=new(window.AudioContext||window.webkitAudioContext)();
+    var master=ctx.createGain();
+    master.gain.value=0.6;
+    master.connect(ctx.destination);
+
+    function note(freq,t,dur,type,vol){
+      var osc=ctx.createOscillator();
+      var g=ctx.createGain();
+      osc.connect(g); g.connect(master);
+      osc.type=type||'sine';
+      osc.frequency.value=freq;
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(vol||0.25,t+0.04);
+      g.gain.setValueAtTime(vol||0.25,t+dur-0.08);
+      g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+      osc.start(t); osc.stop(t+dur);
+    }
+
+    var T=ctx.currentTime;
+
+    // Slow descending sad melody
+    note(392,T+0.0,0.4,'sine',0.3);   // G4
+    note(370,T+0.4,0.4,'sine',0.28);  // F#4
+    note(330,T+0.8,0.4,'sine',0.26);  // E4
+    note(294,T+1.2,0.8,'sine',0.24);  // D4 — held
+
+    // Dark harmony underneath
+    note(196,T+0.0,0.4,'sawtooth',0.08);
+    note(185,T+0.4,0.4,'sawtooth',0.08);
+    note(165,T+0.8,0.4,'sawtooth',0.08);
+    note(147,T+1.2,0.8,'sawtooth',0.08);
+
+    // Final low thud
+    var osc=ctx.createOscillator();
+    var g=ctx.createGain();
+    osc.connect(g); g.connect(master);
+    osc.type='sine'; osc.frequency.value=60;
+    g.gain.setValueAtTime(0.5,T+2.1);
+    g.gain.exponentialRampToValueAtTime(0.001,T+2.8);
+    osc.start(T+2.1); osc.stop(T+2.8);
+
+  } catch(e){}
+}
+
 function onResult(msg){
   state='result';
   myLastScore=msg.myScore||0; oppLastScore=msg.opponentScore||0;
   updateMoggingBar(myLastScore,oppLastScore);
-  // Show opp score on overlay
   document.getElementById('oppScoreVal').textContent=oppLastScore.toFixed(1);
   var oppTierElo=scoreToElo(oppLastScore);
   document.getElementById('oppTierBadge').textContent=getTierEmoji(oppTierElo)+' '+getTierName(oppTierElo);
@@ -583,6 +832,8 @@ function onResult(msg){
   document.getElementById('rElo').innerHTML='ELO: <span class="'+(chg>=0?'elo-up':'elo-down')+'">'+(chg>=0?'+':'')+chg+' \u2192 '+(msg.newElo||_elo)+' total</span>';
   document.getElementById('resultCard').classList.add('show');
   document.getElementById('mainBtn').style.display='none'; document.getElementById('skipBtn').style.display='none';
+  // Play sound
+  if(msg.won) playVictorySound(); else playDefeatSound();
 }
 
 function rematch(){
