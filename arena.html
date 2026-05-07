@@ -3,97 +3,216 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MogMe.TV — 1V1 Arena Live</title>
+<title>MogMe.TV — Advanced Arena</title>
 <link rel="stylesheet" href="shared.css">
 <style>
-/* ── IMAGE 2 SPECIFIC STYLES ── */
-.feed-box {
-  position: relative;
-  background: #000;
-  border: 1px solid var(--border);
-  border-radius: 16px; /* Matching Image 2's rounded aesthetic */
-  overflow: hidden;
-  aspect-ratio: 16/11;
-}
+  /* Core UI - Match 2 Aesthetic */
+  body { background: #000; color: #fff; font-family: 'Space Grotesk', sans-serif; margin: 0; padding: 20px; }
+  .match-timer { text-align: center; font-family: 'JetBrains Mono'; font-size: 28px; letter-spacing: 6px; margin-bottom: 20px; font-weight: 700; }
+  
+  .arena-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }
+  
+  .feed-container {
+    position: relative;
+    background: #080808;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    overflow: hidden;
+    aspect-ratio: 4/3;
+  }
 
-/* The Scanning Overlay from Image 2 */
-.scanning-active::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: #0df2c8; /* Teal scan line */
-  box-shadow: 0 0 15px #0df2c8;
-  animation: scanMove 2.5s linear infinite;
-  z-index: 20;
-}
+  video, canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+  canvas { z-index: 2; mix-blend-mode: screen; }
 
-@keyframes scanMove {
-  0% { top: 0; }
-  100% { top: 100%; }
-}
+  /* HUD Overlays */
+  .hud-box {
+    position: absolute; top: 20px; 
+    background: rgba(10, 10, 15, 0.85); 
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px; padding: 12px 16px;
+    z-index: 10; backdrop-filter: blur(4px);
+  }
+  .hud-left { left: 20px; }
+  .hud-right { right: 20px; text-align: right; }
+  
+  .label-sm { font-family: 'JetBrains Mono'; font-size: 9px; color: #888; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px;}
+  .score-val { font-size: 38px; font-weight: 800; color: #fff; line-height: 1; }
+  .name-val { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 2px;}
 
-.match-timer {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 24px;
-  color: var(--white);
-  text-align: center;
-  margin: 10px 0;
-  letter-spacing: 4px;
-}
+  /* Error / Status Overlay */
+  .status-warning {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(239, 68, 68, 0.9); color: white;
+    padding: 10px 20px; border-radius: 8px; font-family: 'JetBrains Mono';
+    font-size: 12px; font-weight: 700; z-index: 20; display: none; text-align: center;
+  }
 
-/* Status Labels for "SCANNING..." state */
-.scan-status-overlay {
-  position: absolute;
-  top: 15px; left: 15px;
-  background: rgba(0,0,0,0.7);
-  padding: 5px 12px;
-  border-radius: 8px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  color: var(--teal);
-  display: none;
-  z-index: 25;
-}
+  /* Teal Scan Line Animation */
+  .scanning-active::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: #0df2c8; box-shadow: 0 0 25px #0df2c8;
+    animation: scanPulse 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite; z-index: 15;
+  }
+  @keyframes scanPulse { 0% { top: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
 
-.getmog-bar {
-  height: 8px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 999px;
-  margin: 20px auto;
-  max-width: 600px;
-  position: relative;
-  overflow: hidden;
-}
-
-.getmog-fill {
-  height: 100%;
-  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
+  /* Mogging Comparison Bar */
+  .mog-wrapper { max-width: 600px; margin: 40px auto; text-align: center; }
+  .mog-track { height: 8px; background: rgba(255, 255, 255, 0.05); border-radius: 999px; position: relative; overflow: hidden; }
+  .mog-fill { height: 100%; background: linear-gradient(90deg, #0df2c8, #7b61ff); transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .mog-text { font-family: 'JetBrains Mono'; font-size: 11px; color: #666; margin-top: 12px; letter-spacing: 2px; }
+  
+  .controls { text-align: center; margin-top: 20px; }
+  .btn-scan { background: #4A9EFF; color: #000; border: none; padding: 16px 40px; font-size: 16px; font-weight: 700; font-family: 'Space Grotesk'; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+  .btn-scan:disabled { background: #333; color: #666; cursor: not-allowed; }
 </style>
 </head>
 <body>
-<div class="page-wrap">
-  <div class="match-timer" id="matchTimer">00:00</div>
 
-  <div class="feeds-grid">
-    <div class="feed-box" id="myFeed">
-      <div class="scan-status-overlay" id="myScanLabel">SCANNING...</div>
-      <video class="feed-video" id="myVid" autoplay playsinline muted></video>
-      <div class="scan-label-tr">
-        <div id="myLabelName">YOU</div>
-        <div id="myEloLabel">400 ELO</div>
-      </div>
+<div class="match-timer" id="matchTimer">00:00</div>
+
+<div class="arena-grid">
+  <div class="feed-container" id="localFeed">
+    <video id="localVideo" autoplay playsinline muted></video>
+    <canvas id="localCanvas"></canvas>
+    
+    <div class="hud-box hud-left">
+      <div class="label-sm">OVERALL SCORE</div>
+      <div class="score-val" id="myScoreText">--</div>
+      <div class="label-sm" id="myTraitText" style="color: #0df2c8; margin-top: 8px;">AWAITING SCAN</div>
+    </div>
+    
+    <div class="hud-box hud-right">
+      <div class="name-val">YOU</div>
+      <div class="label-sm">400 ELO</div>
     </div>
 
-    <div class="feed-box" id="oppFeed">
-      <video class="feed-video" id="oppVid" autoplay playsinline></video>
-      <div class="scan-label-tr">
-        <div id="oppLabelName">OPPONENT</div>
-        <div id="oppEloLabel">--- ELO</div>
-      </div>
-    </div>
+    <div class="status-warning" id="poseWarning">⚠ FACE THE CAMERA DIRECTLY</div>
   </div>
 
-  <div class="getmog-bar">
-    <div class="getmog-fill" id="mogFill" style="width: 50%; background
+  <div class="feed-container" id="oppFeed">
+    <video id="oppVideo" autoplay playsinline></video>
+    <div class="hud-box hud-left">
+      <div class="label-sm">ENEMY SCORE</div>
+      <div class="score-val" id="oppScoreText">--</div>
+    </div>
+    <div class="hud-box hud-right">
+      <div class="name-val">OPPONENT</div>
+      <div class="label-sm">SEARCHING...</div>
+    </div>
+  </div>
+</div>
+
+<div class="mog-wrapper">
+  <div class="mog-track">
+    <div class="mog-fill" id="mogFill" style="width: 50%;"></div>
+  </div>
+  <div class="mog-text" id="mogStatusText">-- EVEN MATCH --</div>
+</div>
+
+<div class="controls">
+  <button class="btn-scan" id="scanBtn" onclick="executeScan()">INITIATE SCAN</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+
+<script>
+/**
+ * ADVANCED FACIAL ANALYSIS ENGINE
+ * -------------------------------
+ * Uses absolute normalization (Rule of Fifths/Thirds) and Gaussian penalties
+ * to eliminate arbitrary scaling and distance errors.
+ */
+
+class AestheticsEngine {
+  constructor() {
+    this.history = [];
+    this.bufferSize = 15; // Temporal smoothing window
+  }
+
+  // Gaussian decay function: Returns 1.0 at target, drops exponentially as it deviates
+  _gaussian(value, target, variance) {
+    return Math.exp(-Math.pow(value - target, 2) / (2 * Math.pow(variance, 2)));
+  }
+
+  // Calculate Euclidean distance between two landmarks
+  _dist(p1, p2) {
+    return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+  }
+
+  evaluate(landmarks) {
+    if (!landmarks || landmarks.length < 468) return null;
+
+    // 1. Core Bounding Metrics (For Normalization)
+    const topHead = landmarks[10];
+    const chin = landmarks[152];
+    const leftCheek = landmarks[234];
+    const rightCheek = landmarks[454];
+    
+    const faceHeight = this._dist(topHead, chin);
+    const faceWidth = this._dist(leftCheek, rightCheek);
+    if (faceHeight <= 0 || faceWidth <= 0) return null;
+
+    // 2. POSE GATEKEEPER (Fail fast if angle is bad)
+    const nose = landmarks[1];
+    const eyeCenter = { x: (landmarks[33].x + landmarks[263].x)/2, y: (landmarks[33].y + landmarks[263].y)/2 };
+    
+    // Yaw (Left/Right rotation)
+    const yawDeviation = Math.abs(nose.x - eyeCenter.x) / faceWidth;
+    // Pitch (Up/Down rotation)
+    const pitchDeviation = Math.abs(nose.y - eyeCenter.y) / faceHeight;
+
+    if (yawDeviation > 0.08 || pitchDeviation > 0.25) {
+      return { valid: false, error: "BAD_POSE" };
+    }
+
+    // 3. NORMALIZED RATIO CALCULATIONS
+    let score = 0;
+    let traits = [];
+
+    // A. Golden Ratio (Height to Width) - Target: 1.618
+    const hwRatio = faceHeight / faceWidth;
+    const phiScore = this._gaussian(hwRatio, 1.618, 0.15) * 10;
+    score += phiScore * 0.25; // 25% weight
+    if (phiScore > 9.0) traits.push("Golden Proportions");
+
+    // B. Eye Spacing (Rule of Fifths) - Target: Inter-canthal distance should be exactly 1 eye width
+    const leftEyeWidth = this._dist(landmarks[33], landmarks[133]);
+    const rightEyeWidth = this._dist(landmarks[362], landmarks[263]);
+    const avgEyeWidth = (leftEyeWidth + rightEyeWidth) / 2;
+    const interocularDist = this._dist(landmarks[133], landmarks[362]);
+    
+    const eyeSpacingRatio = interocularDist / avgEyeWidth;
+    const eyeScore = this._gaussian(eyeSpacingRatio, 1.0, 0.2) * 10;
+    score += eyeScore * 0.20;
+    if (eyeScore < 5.0) traits.push("Eye Spacing Flaw");
+
+    // C. Canthal Tilt
+    const leftTilt = landmarks[33].y - landmarks[133].y; // Positive if outer corner is higher
+    const rightTilt = landmarks[263].y - landmarks[362].y;
+    const avgTilt = (leftTilt + rightTilt) / 2;
+    
+    // Target a slight positive tilt (hunter eyes) relative to face height
+    const normalizedTilt = avgTilt / faceHeight; 
+    const tiltScore = this._gaussian(normalizedTilt, 0.015, 0.01) * 10;
+    score += tiltScore * 0.15;
+    if (normalizedTilt > 0.01) traits.push("Positive Canthal Tilt");
+
+    // D. Facial Thirds (Upper, Mid, Lower should be equal)
+    const third1 = this._dist(landmarks[10], landmarks[8]);  // Hairline to brow
+    const third2 = this._dist(landmarks[8], landmarks[2]);   // Brow to nose base
+    const third3 = this._dist(landmarks[2], landmarks[152]); // Nose base to chin
+    
+    const avgThird = (third1 + third2 + third3) / 3;
+    const variance = (Math.abs(third1-avgThird) + Math.abs(third2-avgThird) + Math.abs(third3-avgThird)) / faceHeight;
+    const thirdsScore = this._gaussian(variance, 0.0, 0.05) * 10;
+    score += thirdsScore * 0.20;
+
+    // E. Jaw to Cheek Ratio - Target: Jaw should be slightly narrower than cheekbones (~85%)
+    const jawWidth = this._dist(landmarks[172], landmarks[397]);
+    const jawRatio = jawWidth / faceWidth;
+    const jawScore = this._gaussian(jawRatio, 0.85, 0.08) * 10;
+    score += jawScore * 0.20;
+    if (jawScore > 8.5) traits.push("Defined Jawline");
+
+    // 4. TEMPORAL
