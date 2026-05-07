@@ -407,7 +407,6 @@ function initFM(v,c){
 }
 
 function drawMesh(canvas,lm,dotColor){
-  // Re-sync canvas size to video display size every frame for accurate alignment
   var vid=document.getElementById('myVid');
   if(vid){
     var r=vid.getBoundingClientRect();
@@ -418,11 +417,19 @@ function drawMesh(canvas,lm,dotColor){
   }
   var ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
   ctx.clearRect(0,0,w,h);
+
+  // Mirror the canvas context to match the flipped video
+  ctx.save();
+  ctx.translate(w,0);
+  ctx.scale(-1,1);
+
   ctx.fillStyle=dotColor||'rgba(0,229,119,0.7)';
   for(var i=0;i<lm.length;i++){ctx.beginPath();ctx.arc(lm[i].x*w,lm[i].y*h,1.4,0,Math.PI*2);ctx.fill();}
   var c=[[33,7],[7,163],[163,144],[144,145],[145,153],[153,154],[154,155],[155,133],[362,382],[382,381],[381,380],[380,374],[374,373],[373,390],[390,249],[249,263],[61,185],[185,40],[40,39],[39,37],[37,0],[0,267],[267,269],[269,270],[270,409],[409,291],[291,375],[375,321],[321,405],[405,314],[314,17],[17,84],[84,181],[181,91],[91,146],[146,61],[10,338],[338,297],[297,332],[332,284],[284,251],[251,389],[389,356],[356,454],[454,323],[323,361],[361,288],[288,397],[397,365],[365,379],[379,378],[378,400],[400,377],[377,152],[152,148],[148,176],[176,149],[149,150],[150,136],[136,172]];
   ctx.strokeStyle=(dotColor||'rgba(0,229,119,0.7)').replace('0.7','0.2');ctx.lineWidth=0.8;
   for(var j=0;j<c.length;j++){var a=c[j][0],b=c[j][1];if(lm[a]&&lm[b]){ctx.beginPath();ctx.moveTo(lm[a].x*w,lm[a].y*h);ctx.lineTo(lm[b].x*w,lm[b].y*h);ctx.stroke();}}
+
+  ctx.restore();
 }
 
 /* ═══════════════════════════════════════
