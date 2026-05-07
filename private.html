@@ -162,7 +162,7 @@ function onMsg(msg){
 
 function startMyCam(){
   navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'},audio:false})
-  .then(function(stream){myStream=stream;var v=document.getElementById('myVid');v.srcObject=stream;v.onloadedmetadata=function(){var c=document.getElementById('myCanvas');c.width=v.videoWidth;c.height=v.videoHeight;document.getElementById('myPH').style.display='none';initFM(v,c);};})
+  .then(function(stream){myStream=stream;var v=document.getElementById('myVid');v.srcObject=stream;v.onloadedmetadata=function(){var c=document.getElementById('myCanvas');c.width=v.videoWidth;c.height=v.videoHeight;function syncCanvasSize(){var rect=v.getBoundingClientRect();c.style.width=rect.width+'px';c.style.height=rect.height+'px';}syncCanvasSize();window.addEventListener('resize',syncCanvasSize);document.getElementById('myPH').style.display='none';initFM(v,c);};})
   .catch(function(){document.getElementById('myPH').querySelector('.feed-ph-text').textContent='Camera denied';});
 }
 
