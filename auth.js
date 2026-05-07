@@ -155,8 +155,10 @@ function escHtml(s) {
 function updateNavForUser(user, profile) {
   const btn    = document.getElementById('navClaimBtn');
   const banner = document.getElementById('guestBanner');
-  const chatInput = document.getElementById('chatMsgIn');
-  const chatName  = document.getElementById('chatNameIn');
+  const chatInputRow = document.getElementById('chatInputRow');
+  const chatSignin   = document.getElementById('chatSigninPrompt');
+  const chatInput    = document.getElementById('chatMsgIn');
+  const chatName     = document.getElementById('chatNameIn');
 
   if (user && profile) {
     // Logged in
@@ -172,9 +174,11 @@ function updateNavForUser(user, profile) {
     if (banner) banner.style.display = 'none';
     document.body.style.paddingTop = 'var(--nav-h)';
 
-    // Enable chat
-    if (chatInput) { chatInput.disabled = false; chatInput.placeholder = 'Say something...'; }
-    if (chatName)  { chatName.value = profile.username||user.displayName; chatName.disabled = true; }
+    // Show real chat input, hide sign-in prompt
+    if (chatInputRow) chatInputRow.style.display = 'flex';
+    if (chatSignin)   chatSignin.style.display = 'none';
+    if (chatInput)    { chatInput.disabled = false; chatInput.placeholder = 'Say something...'; }
+    if (chatName)     { chatName.value = profile.username||user.displayName; chatName.disabled = true; }
   } else {
     // Guest
     if (btn) {
@@ -185,8 +189,9 @@ function updateNavForUser(user, profile) {
     if (banner) banner.style.display = 'flex';
     document.body.style.paddingTop = 'calc(var(--nav-h) + 36px)';
 
-    // Disable chat for guests
-    if (chatInput) { chatInput.disabled = true; chatInput.placeholder = 'Sign in to chat'; }
+    // Hide chat input, show sign-in prompt
+    if (chatInputRow) chatInputRow.style.display = 'none';
+    if (chatSignin)   chatSignin.style.display = 'block';
   }
 }
 
