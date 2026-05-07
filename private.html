@@ -258,7 +258,29 @@ function showResult(msg){
   if(msg.won) playVictorySound(); else playDefeatSound();
 }
 
-function resetMatch(){document.getElementById('resultBar').classList.remove('show');document.getElementById('myScore').style.display='none';document.getElementById('oppScore').style.display='none';document.getElementById('scanBtn').disabled=false;document.getElementById('scanBtn').textContent='Run Scan';setAS('on','Ready for next round');_buf=[];}
+function resetMatch(){
+  document.getElementById('resultBar').classList.remove('show');
+  document.getElementById('myScore').style.display='none';
+  document.getElementById('oppScore').style.display='none';
+  document.getElementById('scanBtn').disabled=true;
+  document.getElementById('scanBtn').textContent='Run Scan';
+  setAS('','Ready — waiting for next opponent');
+  _buf=[];
+  myLandmarks=null;
+  // Restart face mesh loop
+  fmReady=false;
+  if(faceMesh&&myStream){
+    var v=document.getElementById('myVid');
+    var c=document.getElementById('myCanvas');
+    faceMesh.onResults(function(r){
+      var ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);
+      if(r.multiFaceLandmarks&&r.multiFaceLandmarks.length>0){myLandmarks=r.multiFaceLandmarks[0];drawMesh(c,myLandmarks);}
+      else{myLandmarks=null;}
+    });
+    fmReady=true;
+    (function loop(){if(!fmReady||!myStream)return;faceMesh.send({image:v}).then(function(){requestAnimationFrame(loop);});})();
+  }
+}
 function setAS(type,text){var d=document.getElementById('aDot');d.className='a-dot'+(type?' '+type:'');document.getElementById('aLabel').textContent=text;}
 </script>
 </body>
