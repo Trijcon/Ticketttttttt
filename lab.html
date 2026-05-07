@@ -1,783 +1,548 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MOGME.TV — The Lab</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <style>
-    .lab-inner {
-      padding: 36px 40px 60px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MogMe.TV — The Lab</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.lab-wrap{max-width:1080px;margin:0 auto;}
+.lab-eyebrow{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--blue);margin-bottom:6px;text-transform:uppercase;}
+.lab-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:32px;color:var(--white);letter-spacing:-0.5px;margin-bottom:4px;}
+.lab-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.5px;margin-bottom:22px;}
 
-    .lab-header {
-      margin-bottom: 28px;
-    }
+.lab-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
 
-    .lab-tag {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 4px;
-      color: var(--gold-dim);
-      margin-bottom: 6px;
-    }
+/* CAMERA */
+.cam-box{position:relative;border-radius:6px;overflow:hidden;background:#000;border:1px solid var(--border);aspect-ratio:4/3;}
+.cam-video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1);opacity:0.3;}
+.cam-canvas{position:absolute;top:0;left:0;width:100%;height:100%;transform:scaleX(-1);pointer-events:none;}
+.bracket{position:absolute;width:18px;height:18px;}
+.bracket.tl{top:10px;left:10px;border-top:1.5px solid var(--blue);border-left:1.5px solid var(--blue);}
+.bracket.tr{top:10px;right:10px;border-top:1.5px solid var(--blue);border-right:1.5px solid var(--blue);}
+.bracket.bl{bottom:10px;left:10px;border-bottom:1.5px solid var(--blue);border-left:1.5px solid var(--blue);}
+.bracket.br{bottom:10px;right:10px;border-bottom:1.5px solid var(--blue);border-right:1.5px solid var(--blue);}
+.scan-sweep{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(74,158,255,0.7),transparent);animation:sweep 2.5s linear infinite;display:none;}
+@keyframes sweep{0%{top:0;opacity:1}95%{opacity:0.6}100%{top:100%;opacity:0}}
+.cam-tag{position:absolute;top:12px;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.5px;color:rgba(74,158,255,0.7);background:rgba(0,0,0,0.65);padding:3px 10px;border-radius:2px;white-space:nowrap;}
+.cam-indicators{position:absolute;bottom:10px;right:12px;display:flex;flex-direction:column;gap:4px;align-items:flex-end;}
+.ci-row{display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted2);}
+.ci-dot{width:4px;height:4px;border-radius:50%;background:var(--muted2);transition:background 0.2s;flex-shrink:0;}
+.ci-dot.on{background:var(--green);}
+.cam-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
+.cam-ph-text{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);letter-spacing:1px;}
 
-    .lab-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 52px;
-      letter-spacing: 5px;
-      color: var(--text);
-      line-height: 1;
-    }
+/* HOLOGRAM */
+.holo-box{position:relative;border-radius:6px;overflow:hidden;background:#000000;border:1px solid rgba(74,158,255,0.12);aspect-ratio:4/3;}
+#holoCanvas{display:block;width:100%;height:100%;}
+.holo-tag{position:absolute;top:12px;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.5px;color:rgba(74,158,255,0.5);white-space:nowrap;}
+.hbracket{position:absolute;width:12px;height:12px;}
+.hbracket.tl{top:8px;left:8px;border-top:1px solid rgba(74,158,255,0.25);border-left:1px solid rgba(74,158,255,0.25);}
+.hbracket.tr{top:8px;right:8px;border-top:1px solid rgba(74,158,255,0.25);border-right:1px solid rgba(74,158,255,0.25);}
+.hbracket.bl{bottom:8px;left:8px;border-bottom:1px solid rgba(74,158,255,0.25);border-left:1px solid rgba(74,158,255,0.25);}
+.hbracket.br{bottom:8px;right:8px;border-bottom:1px solid rgba(74,158,255,0.25);border-right:1px solid rgba(74,158,255,0.25);}
+.holo-metrics{position:absolute;bottom:10px;left:12px;display:flex;flex-direction:column;gap:3px;}
+.hm-row{font-family:'JetBrains Mono',monospace;font-size:8px;color:rgba(74,158,255,0.5);letter-spacing:0.5px;}
+.hm-val{color:rgba(74,158,255,0.85);}
 
-    .lab-body {
-      display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 24px;
-      align-items: start;
-    }
+/* BIOMETRICS */
+.bio-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;}
+.bio-card{background:var(--glass);border:1px solid var(--border);border-radius:6px;padding:14px 16px;text-align:center;transition:border-color 0.3s;}
+.bio-card.active{border-color:rgba(74,158,255,0.2);}
+.bio-icon-row{font-size:18px;margin-bottom:6px;}
+.bio-label{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1px;color:var(--muted2);margin-bottom:4px;text-transform:uppercase;}
+.bio-val{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--muted);transition:color 0.2s;}
+.bio-val.on{color:var(--green);}
+.bio-val.blue{color:var(--blue);}
+.bio-val.warn{color:var(--amber);}
 
-    /* CAM SECTION */
-    .cam-section {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
+/* METRICS */
+.metrics-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;}
+.mc{background:var(--glass);border:1px solid var(--border);border-radius:6px;padding:14px 16px;transition:border-color 0.3s;}
+.mc.lit{border-color:rgba(74,158,255,0.18);}
+.mc-label{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.5px;color:var(--muted2);margin-bottom:6px;text-transform:uppercase;}
+.mc-val{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:24px;color:var(--blue);line-height:1;margin-bottom:3px;}
+.mc-sub{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted2);letter-spacing:0.3px;}
+.mc-bar{height:2px;background:var(--bg4);border-radius:999px;margin-top:8px;overflow:hidden;}
+.mc-fill{height:100%;background:var(--blue);border-radius:999px;width:0%;transition:width 0.6s ease;}
 
-    .cam-wrap {
-      position: relative;
-      background: #000;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-      aspect-ratio: 4/3;
-      max-height: 480px;
-    }
+/* CONTROLS */
+.ctrl-row{display:flex;gap:8px;margin-bottom:10px;align-items:center;}
+.stage-pill{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted2);background:var(--glass);border:1px solid var(--border);border-radius:4px;padding:8px 14px;display:flex;align-items:center;gap:6px;flex:1;}
+.stage-blink{width:5px;height:5px;border-radius:50%;background:var(--blue);animation:bl 1s infinite;display:none;}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:0.1}}
 
-    #lab-video {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transform: scaleX(-1);
-    }
+/* RESULT */
+.result-panel{background:var(--glass);border:1px solid var(--border);border-radius:6px;padding:20px;display:none;}
+.result-panel.show{display:block;animation:fU 0.3s ease;}
+@keyframes fU{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.rp-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px;}
+.rp-item{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:12px 8px;text-align:center;}
+.rp-label{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1px;color:var(--muted2);margin-bottom:4px;}
+.rp-val{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;color:var(--blue);}
+.rp-final{text-align:center;}
+.rp-score{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:60px;color:var(--white);line-height:1;}
+.rp-tier{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue);letter-spacing:1px;margin-bottom:12px;}
+.rp-bar{height:2px;background:var(--bg4);border-radius:999px;overflow:hidden;}
+.rp-bar-fill{height:100%;background:var(--blue);border-radius:999px;transition:width 1.5s cubic-bezier(0.34,1.56,0.64,1);}
 
-    #lab-canvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      transform: scaleX(-1);
-    }
-
-    .cam-overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-    }
-
-    .cam-placeholder {
-      text-align: center;
-      font-family: 'Share Tech Mono', monospace;
-      color: var(--text-dim);
-      font-size: 13px;
-      letter-spacing: 2px;
-    }
-
-    .cam-placeholder div:first-child {
-      font-size: 40px;
-      margin-bottom: 12px;
-    }
-
-    #face-detected-tag {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 2px;
-      padding: 4px 10px;
-      border: 1px solid #4caf50;
-      color: #4caf50;
-      border-radius: 2px;
-      display: none;
-    }
-
-    .cam-btns {
-      display: flex;
-      gap: 10px;
-    }
-
-    #start-cam-btn { flex: 1; }
-    #scan-btn { flex: 2; }
-
-    /* LOADING BAR */
-    #loading-wrap {
-      display: none;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .loading-status {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 12px;
-      letter-spacing: 2px;
-      color: var(--gold);
-      min-height: 18px;
-    }
-
-    .loading-bar-outer {
-      height: 3px;
-      background: var(--bg3);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-
-    .loading-bar-inner {
-      height: 100%;
-      background: linear-gradient(90deg, var(--gold-dim), var(--gold));
-      width: 0%;
-      transition: width 0.4s ease;
-      border-radius: 2px;
-      position: relative;
-    }
-
-    .loading-bar-inner::after {
-      content: '';
-      position: absolute;
-      right: 0; top: 0;
-      width: 30px; height: 100%;
-      background: rgba(255,255,255,0.4);
-      animation: shimmer 1s infinite;
-    }
-
-    @keyframes shimmer {
-      0% { opacity: 0; transform: scaleX(0); }
-      50% { opacity: 1; transform: scaleX(1); }
-      100% { opacity: 0; transform: scaleX(0); }
-    }
-
-    /* METRICS */
-    .metrics-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .metric-item {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .metric-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .metric-label {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 2px;
-      color: var(--text-dim);
-    }
-
-    .metric-score {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 18px;
-      color: var(--gold);
-    }
-
-    .metric-bar {
-      height: 3px;
-      background: var(--bg3);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-
-    .metric-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--gold-dim), var(--gold));
-      border-radius: 2px;
-      width: 0%;
-      transition: width 1.2s ease;
-    }
-
-    /* RESULTS PANEL */
-    .results-panel {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .results-score-block {
-      text-align: center;
-      padding: 20px 0;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .results-score-label {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 3px;
-      color: var(--text-dim);
-      margin-bottom: 8px;
-    }
-
-    .results-score-number {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 72px;
-      color: var(--gold);
-      line-height: 1;
-      text-shadow: 0 0 40px var(--gold-glow);
-    }
-
-    .results-tier {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 24px;
-      letter-spacing: 4px;
-      margin-top: 6px;
-    }
-
-    .results-ai-block {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .results-ai-title {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 3px;
-      color: var(--gold-dim);
-    }
-
-    #ai-analysis-text {
-      font-size: 13px;
-      color: var(--text-dim);
-      line-height: 1.6;
-      white-space: pre-wrap;
-    }
-
-    .flaws-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .flaw-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-    }
-
-    .flaw-severity {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 9px;
-      padding: 2px 6px;
-      border-radius: 2px;
-      font-weight: 700;
-    }
-
-    .sev-high { background: rgba(244,67,54,0.15); color: #f44336; border: 1px solid #f44336; }
-    .sev-mid  { background: rgba(255,152,0,0.15); color: #ff9800; border: 1px solid #ff9800; }
-    .sev-low  { background: rgba(76,175,80,0.15); color: #4caf50; border: 1px solid #4caf50; }
-
-    .placeholder-panel {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 40px 24px;
-      text-align: center;
-      color: var(--text-dim);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 2px;
-      line-height: 2;
-    }
-  </style>
+@media(max-width:800px){.lab-grid{grid-template-columns:1fr;}.bio-bar{grid-template-columns:1fr 1fr;}.metrics-row{grid-template-columns:1fr 1fr;}.rp-grid{grid-template-columns:repeat(3,1fr);}}
+</style>
 </head>
 <body>
+<div class="page-wrap">
+<div class="lab-wrap">
+  <div class="lab-eyebrow">Solo Calibration</div>
+  <div class="lab-title">The Lab</div>
+  <div class="lab-sub">Real-time AI facial analysis · Processing is 100% local · Camera never leaves your browser</div>
 
-<div class="lab-inner">
-  <div class="lab-header">
-    <div class="lab-tag">// AI FACIAL ANALYSIS</div>
-    <div class="lab-title">THE LAB</div>
-  </div>
-
-  <div class="lab-body">
-    <!-- LEFT: Camera -->
-    <div class="cam-section">
-      <div class="cam-wrap" id="cam-wrap">
-        <video id="lab-video" autoplay playsinline></video>
-        <canvas id="lab-canvas"></canvas>
-        <div id="face-detected-tag">FACE DETECTED</div>
-        <div class="cam-overlay" id="cam-placeholder">
-          <div class="cam-placeholder">
-            <div>◉</div>
-            <div>CAMERA OFF</div>
-            <div style="margin-top:8px;font-size:11px;opacity:0.5">CLICK START TO BEGIN</div>
-          </div>
-        </div>
+  <div class="lab-grid">
+    <!-- CAMERA FEED -->
+    <div class="cam-box">
+      <video id="camVid" class="cam-video" autoplay playsinline muted></video>
+      <canvas id="camCanvas" class="cam-canvas"></canvas>
+      <div class="scan-sweep" id="scanSweep"></div>
+      <div class="bracket tl"></div><div class="bracket tr"></div>
+      <div class="bracket bl"></div><div class="bracket br"></div>
+      <div class="cam-tag" id="camTag">OFFLINE</div>
+      <div class="cam-indicators" id="camIndicators" style="display:none;">
+        <div class="ci-row"><span>Face</span><div class="ci-dot" id="ciDot"></div></div>
+        <div class="ci-row"><span>Eyes</span><div class="ci-dot" id="ciEyes"></div></div>
+        <div class="ci-row"><span>Mouth</span><div class="ci-dot" id="ciMouth"></div></div>
       </div>
-
-      <!-- Metrics -->
-      <div class="metrics-list" id="live-metrics">
-        <div class="metric-item">
-          <div class="metric-row">
-            <span class="metric-label">SYMMETRY</span>
-            <span class="metric-score" id="m-sym">—</span>
-          </div>
-          <div class="metric-bar"><div class="metric-bar-fill" id="mb-sym"></div></div>
-        </div>
-        <div class="metric-item">
-          <div class="metric-row">
-            <span class="metric-label">JAW DEFINITION</span>
-            <span class="metric-score" id="m-jaw">—</span>
-          </div>
-          <div class="metric-bar"><div class="metric-bar-fill" id="mb-jaw"></div></div>
-        </div>
-        <div class="metric-item">
-          <div class="metric-row">
-            <span class="metric-label">CHEEKBONES</span>
-            <span class="metric-score" id="m-chk">—</span>
-          </div>
-          <div class="metric-bar"><div class="metric-bar-fill" id="mb-chk"></div></div>
-        </div>
-        <div class="metric-item">
-          <div class="metric-row">
-            <span class="metric-label">EYE SCORE</span>
-            <span class="metric-score" id="m-eye">—</span>
-          </div>
-          <div class="metric-bar"><div class="metric-bar-fill" id="mb-eye"></div></div>
-        </div>
-        <div class="metric-item">
-          <div class="metric-row">
-            <span class="metric-label">NOSE RATIO</span>
-            <span class="metric-score" id="m-nos">—</span>
-          </div>
-          <div class="metric-bar"><div class="metric-bar-fill" id="mb-nos"></div></div>
-        </div>
-        <div class="metric-item">
-          <div class="metric-row">
-            <span class="metric-label">LIP RATIO</span>
-            <span class="metric-score" id="m-lip">—</span>
-          </div>
-          <div class="metric-bar"><div class="metric-bar-fill" id="mb-lip"></div></div>
-        </div>
-      </div>
-
-      <!-- Loading -->
-      <div id="loading-wrap">
-        <div class="loading-status" id="loading-status">Initializing scan...</div>
-        <div class="loading-bar-outer">
-          <div class="loading-bar-inner" id="loading-bar"></div>
-        </div>
-      </div>
-
-      <div class="cam-btns">
-        <button class="btn-gold" id="start-cam-btn">START CAMERA</button>
-        <button class="btn-gold-solid" id="scan-btn" disabled>SCAN MY FACE</button>
+      <div class="cam-ph" id="camPH">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" stroke="#222" stroke-width="1.5"/><circle cx="20" cy="15" r="6" stroke="#222" stroke-width="1.5"/><path d="M7 36c0-7.18 5.82-13 13-13s13 5.82 13 13" stroke="#222" stroke-width="1.5"/></svg>
+        <div class="cam-ph-text">Camera Off</div>
       </div>
     </div>
 
-    <!-- RIGHT: Results -->
-    <div id="right-panel">
-      <div class="placeholder-panel" id="placeholder-panel">
-        START CAMERA<br>
-        THEN CLICK<br>
-        "SCAN MY FACE"<br>
-        <br>
-        AI WILL ANALYZE<br>
-        YOUR FACIAL STRUCTURE<br>
-        AND SCORE EVERY FEATURE
+    <!-- HOLOGRAM -->
+    <div class="holo-box">
+      <canvas id="holoCanvas"></canvas>
+      <div class="holo-tag" id="holoTag">HOLOGRAM · STANDBY</div>
+      <div class="hbracket tl"></div><div class="hbracket tr"></div>
+      <div class="hbracket bl"></div><div class="hbracket br"></div>
+      <div class="holo-metrics" id="holoMetrics" style="display:none;">
+        <div class="hm-row">YAW: <span class="hm-val" id="hmYaw">0°</span></div>
+        <div class="hm-row">PITCH: <span class="hm-val" id="hmPitch">0°</span></div>
+        <div class="hm-row">ROLL: <span class="hm-val" id="hmRoll">0°</span></div>
+        <div class="hm-row">MOUTH: <span class="hm-val" id="hmMouth">—</span></div>
       </div>
-      <div class="results-panel" id="results-panel" style="display:none">
-        <div class="results-score-block">
-          <div class="results-score-label">OVERALL SCORE</div>
-          <div class="results-score-number" id="res-score">0</div>
-          <div class="results-tier" id="res-tier">SUB3</div>
-        </div>
-        <div class="results-ai-block">
-          <div class="results-ai-title">// AI ANALYSIS</div>
-          <div id="ai-analysis-text">Analyzing...</div>
-        </div>
-        <div class="results-ai-block">
-          <div class="results-ai-title">// DETECTED FLAWS</div>
-          <div class="flaws-list" id="flaws-list"></div>
-        </div>
-      </div>
+    </div>
+  </div>
+
+  <!-- BIOMETRICS -->
+  <div class="bio-bar">
+    <div class="bio-card" id="bcLEye"><div class="bio-icon-row">👁</div><div class="bio-label">Left Eye</div><div class="bio-val" id="bvLEye">—</div></div>
+    <div class="bio-card" id="bcREye"><div class="bio-icon-row">👁</div><div class="bio-label">Right Eye</div><div class="bio-val" id="bvREye">—</div></div>
+    <div class="bio-card" id="bcMouth"><div class="bio-icon-row">👄</div><div class="bio-label">Mouth</div><div class="bio-val" id="bvMouth">—</div></div>
+    <div class="bio-card" id="bcTilt"><div class="bio-icon-row">🎯</div><div class="bio-label">Head Tilt</div><div class="bio-val" id="bvTilt">—</div></div>
+  </div>
+
+  <!-- LIVE METRICS -->
+  <div class="metrics-row">
+    <div class="mc" id="mcSym"><div class="mc-label">Symmetry</div><div class="mc-val" id="mvSym">—</div><div class="mc-sub" id="msSym">Awaiting scan</div><div class="mc-bar"><div class="mc-fill" id="mfSym"></div></div></div>
+    <div class="mc" id="mcJaw"><div class="mc-label">FWHR Ratio</div><div class="mc-val" id="mvJaw">—</div><div class="mc-sub" id="msJaw">Awaiting scan</div><div class="mc-bar"><div class="mc-fill" id="mfJaw"></div></div></div>
+    <div class="mc" id="mcCanthal"><div class="mc-label">Canthal Tilt</div><div class="mc-val" id="mvCanthal">—</div><div class="mc-sub" id="msCanthal">Awaiting scan</div><div class="mc-bar"><div class="mc-fill" id="mfCanthal"></div></div></div>
+    <div class="mc" id="mcEye"><div class="mc-label">Eye Spacing</div><div class="mc-val" id="mvEye">—</div><div class="mc-sub" id="msEye">Awaiting scan</div><div class="mc-bar"><div class="mc-fill" id="mfEye"></div></div></div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="ctrl-row">
+    <div class="stage-pill"><div class="stage-blink" id="stageBlink"></div><span id="stageText">Start camera to begin</span></div>
+    <button class="btn-primary" id="scanBtn" onclick="runScan()" style="padding:12px 28px;font-size:14px;" disabled>Run Full Scan</button>
+    <button class="btn-ghost" id="camBtn" onclick="toggleCamera()" style="padding:12px 20px;font-size:13px;">Start Camera</button>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-panel" id="resultPanel">
+    <div class="mc-label" style="margin-bottom:16px;letter-spacing:2px;">Full Analysis Complete</div>
+    <div class="rp-grid">
+      <div class="rp-item"><div class="rp-label">Symmetry</div><div class="rp-val" id="rpSym">—</div></div>
+      <div class="rp-item"><div class="rp-label">Jawline</div><div class="rp-val" id="rpJaw">—</div></div>
+      <div class="rp-item"><div class="rp-label">Canthal</div><div class="rp-val" id="rpCanthal">—</div></div>
+      <div class="rp-item"><div class="rp-label">Eye Set</div><div class="rp-val" id="rpEye">—</div></div>
+      <div class="rp-item"><div class="rp-label">Cheekbones</div><div class="rp-val" id="rpCheek">—</div></div>
+    </div>
+    <div class="rp-final">
+      <div class="rp-score" id="rpScore">—</div>
+      <div class="rp-tier" id="rpTier">—</div>
+      <div class="rp-bar"><div class="rp-bar-fill" id="rpBarFill" style="width:0%;"></div></div>
     </div>
   </div>
 </div>
+</div>
 
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="shared.js"></script>
+<script type="module" src="auth.js"></script>
 <script>
-  initSharedLayout('lab');
+/* ══ STATE ══ */
+var camStream=null, faceMesh=null, fmRunning=false, lm=null;
+var sYaw=0,sPitch=0,sRoll=0; // smoothed head pose
+var scanFrames=[], scanActive=false;
+var mouthOpen=false, lBlink=false, rBlink=false;
 
-  const GEMINI_API_KEY = 'AIzaSyB2fwZw-nvBjRdYt1vLGImJ7Wo5FZ3l25o';
+/* ══ THREE.JS HOLOGRAM ══ */
+var renderer,scene,camera,faceGroup;
+var idleT=0;
 
-  const video = document.getElementById('lab-video');
-  const canvas = document.getElementById('lab-canvas');
-  const ctx = canvas.getContext('2d');
-  const startBtn = document.getElementById('start-cam-btn');
-  const scanBtn = document.getElementById('scan-btn');
+(function initHolo(){
+  var c=document.getElementById('holoCanvas');
+  var pw=c.parentElement.offsetWidth||480, ph=c.parentElement.offsetHeight||360;
+  renderer=new THREE.WebGLRenderer({canvas:c,antialias:true,alpha:false});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(pw,ph);
+  renderer.setClearColor(0x000000,1);
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(48,pw/ph,0.1,100);
+  camera.position.z=2.0;
+  faceGroup=new THREE.Group();
+  scene.add(faceGroup);
+  // Floor grid
+  var gv=[]; var gs=10,gd=0.16;
+  for(var i=-gs;i<=gs;i++){gv.push(-gs*gd,-1.05,i*gd,gs*gd,-1.05,i*gd);gv.push(i*gd,-1.05,-gs*gd,i*gd,-1.05,gs*gd);}
+  var gg=new THREE.BufferGeometry();gg.setAttribute('position',new THREE.Float32BufferAttribute(gv,3));
+  scene.add(new THREE.LineSegments(gg,new THREE.LineBasicMaterial({color:0x4A9EFF,transparent:true,opacity:0.05})));
+  // Ambient
+  scene.add(new THREE.AmbientLight(0x4A9EFF,0.4));
+  var pt=new THREE.PointLight(0x4A9EFF,1.2,8); pt.position.set(0,0,3); scene.add(pt);
+  // Resize
+  new ResizeObserver(function(){
+    var w=c.parentElement.offsetWidth,h=c.parentElement.offsetHeight;
+    renderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix();
+  }).observe(c.parentElement);
+  buildDefaultFace();
+  animLoop();
+})();
 
-  let currentLandmarks = null;
-  let cameraRunning = false;
-  let faceMesh = null;
-  let mpCamera = null;
-
-  // ---- Face Mesh Setup ----
-  function setupFaceMesh() {
-    faceMesh = new FaceMesh({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}` });
-    faceMesh.setOptions({
-      maxNumFaces: 1,
-      refineLandmarks: true,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5
-    });
-    faceMesh.onResults(onResults);
+function animLoop(){
+  requestAnimationFrame(animLoop);
+  idleT+=0.01;
+  if(lm){
+    // Real tracking - update mesh periodically
+    if(Math.round(idleT*100)%8===0) buildLiveFace();
+    faceGroup.rotation.y=sYaw*1.2;
+    faceGroup.rotation.x=sPitch*0.85;
+    faceGroup.rotation.z=-sRoll*0.7;
+    faceGroup.position.y=Math.sin(idleT*0.7)*0.008;
+  }else{
+    faceGroup.rotation.y=Math.sin(idleT*0.35)*0.45;
+    faceGroup.rotation.x=Math.sin(idleT*0.25)*0.07;
+    faceGroup.rotation.z=0;
+    faceGroup.position.y=Math.sin(idleT*0.55)*0.025;
   }
+  renderer.render(scene,camera);
+}
 
-  function onResults(results) {
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+function clearFaceGroup(){while(faceGroup.children.length)faceGroup.remove(faceGroup.children[0]);}
 
-    if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-      const lm = results.multiFaceLandmarks[0];
-      currentLandmarks = lm;
-      document.getElementById('face-detected-tag').style.display = 'block';
-      scanBtn.disabled = false;
-      drawLandmarks(lm);
-      updateLiveMetrics(lm);
-    } else {
-      currentLandmarks = null;
-      document.getElementById('face-detected-tag').style.display = 'none';
-      scanBtn.disabled = true;
-    }
+function addLine(pts,opacity,color){
+  var g=new THREE.BufferGeometry().setFromPoints(pts);
+  faceGroup.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:color||0x4A9EFF,transparent:true,opacity:opacity||0.5})));
+}
+
+function buildDefaultFace(){
+  clearFaceGroup();
+  // Face oval
+  var oval=[]; for(var i=0;i<=80;i++){var a=(i/80)*Math.PI*2;oval.push(new THREE.Vector3(Math.cos(a)*0.44,Math.sin(a)*0.58,0));}
+  addLine(oval,0.45);
+  // Scan lines
+  for(var y=-0.52;y<=0.52;y+=0.065){
+    var hw=Math.sqrt(Math.max(0,1-Math.pow(y/0.58,2)))*0.44;
+    addLine([new THREE.Vector3(-hw,y,0),new THREE.Vector3(hw,y,0)],0.1);
   }
-
-  function drawLandmarks(lm) {
-    const W = canvas.width, H = canvas.height;
-
-    // TESSELLATION lines
-    const TESS = [
-      [10,338],[338,297],[297,332],[332,284],[284,251],[251,389],[389,356],
-      [356,454],[454,323],[323,361],[361,288],[288,397],[397,365],[365,379],
-      [379,378],[378,400],[400,377],[377,152],[152,148],[148,176],[176,149],
-      [149,150],[150,136],[136,172],[172,58],[58,132],[132,93],[93,234],[234,127],
-      [127,162],[162,21],[21,54],[54,103],[103,67],[67,109],[109,10],
-      [10,151],[151,9],[9,8],[8,168],[168,6],[6,197],[197,195],[195,5],
-      [5,4],[4,1],[1,19],[19,94],[94,2],[2,164],[164,0],[0,11],[11,12],
-      [12,13],[13,14],[14,15],[15,16],[16,17],[17,18],[18,200],[200,199],
-      [199,175],[175,152],[152,377],[377,400],[400,378],[378,379],[379,365],
-      [365,397],[397,288],[288,361],[361,323],[323,454],[454,356],[356,389],
-      [389,251],[251,284],[284,332],[332,297],[297,338],[338,10],
-      // Eyes
-      [33,7],[7,163],[163,144],[144,145],[145,153],[153,154],[154,155],[155,133],
-      [133,173],[173,157],[157,158],[158,159],[159,160],[160,161],[161,246],[246,33],
-      [362,382],[382,381],[381,380],[380,374],[374,373],[373,390],[390,249],[249,263],
-      [263,466],[466,388],[388,387],[387,386],[386,385],[385,384],[384,398],[398,362],
-      // Lips
-      [61,185],[185,40],[40,39],[39,37],[37,0],[0,267],[267,269],[269,270],[270,409],
-      [409,291],[291,375],[375,321],[321,405],[405,314],[314,17],[17,84],[84,181],
-      [181,91],[91,146],[146,61]
-    ];
-
-    ctx.strokeStyle = 'rgba(212,175,55,0.12)';
-    ctx.lineWidth = 0.5;
-    TESS.forEach(([a, b]) => {
-      if (lm[a] && lm[b]) {
-        ctx.beginPath();
-        ctx.moveTo(lm[a].x * W, lm[a].y * H);
-        ctx.lineTo(lm[b].x * W, lm[b].y * H);
-        ctx.stroke();
-      }
-    });
-
-    // Feature zones with brighter gold
-    const featureZones = {
-      eyes: [33,7,163,144,145,153,154,155,133,173,157,158,159,160,161,246,
-             362,382,381,380,374,373,390,249,263,466,388,387,386,385,384,398],
-      lips: [61,185,40,39,37,0,267,269,270,409,291,375,321,405,314,17,84,181,91,146],
-      nose: [1,2,3,4,5,6,168,197,195,94,19,125,141,235,64,60,94,2,326,327,
-             328,94,129,102,49,129],
-      cheeks: [116,117,118,119,120,121,128,234,127,162,21,54,103,67,109,10,
-               338,297,332,284,251,389,356,454,323,361,288,397],
-      jaw: [58,172,136,150,149,176,148,152,377,400,378,379,365,397,288,361,
-            323,454,356,389,251,284,332,297,338,10,109,67,103,54,21,162,127,234]
-    };
-
-    lm.forEach((pt, i) => {
-      let inFeature = false;
-      let featureType = null;
-      for (const [zone, indices] of Object.entries(featureZones)) {
-        if (indices.includes(i)) { inFeature = true; featureType = zone; break; }
-      }
-
-      const x = pt.x * W, y = pt.y * H;
-
-      if (inFeature) {
-        ctx.shadowColor = '#d4af37';
-        ctx.shadowBlur = 8;
-        ctx.fillStyle = '#d4af37';
-        ctx.beginPath();
-        ctx.arc(x, y, 1.8, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      } else {
-        ctx.fillStyle = 'rgba(212,175,55,0.45)';
-        ctx.beginPath();
-        ctx.arc(x, y, 1.0, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    });
-  }
-
-  function px(lm, i) {
-    return { x: lm[i].x * canvas.width, y: lm[i].y * canvas.height };
-  }
-
-  function dist(a, b) {
-    return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
-  }
-
-  function calcMetrics(lm) {
-    // Symmetry: compare L/R landmark horizontal distances from nose center
-    const nose = lm[1];
-    const symPairs = [[234,454],[93,323],[132,361],[177,400],[119,348]];
-    let symDiffs = symPairs.map(([l,r]) => {
-      const ld = Math.abs(lm[l].x - nose.x);
-      const rd = Math.abs(lm[r].x - nose.x);
-      return 1 - Math.abs(ld - rd) / Math.max(ld, rd, 0.001);
-    });
-    const symmetry = symDiffs.reduce((a,b)=>a+b,0) / symDiffs.length;
-
-    // Jaw: jaw width to face height
-    const jawW = dist(px(lm,172),px(lm,397));
-    const faceH = dist(px(lm,10),px(lm,152));
-    const jaw = Math.min(1, Math.max(0, 1 - Math.abs(jawW/faceH - 0.72) / 0.25));
-
-    // Cheekbones: cheekbone width relative to jaw width
-    const cheekW = dist(px(lm,116),px(lm,345));
-    const cheekRatio = cheekW / Math.max(jawW, 1);
-    const cheekbone = Math.min(1, Math.max(0, 1 - Math.abs(cheekRatio - 1.15) / 0.3));
-
-    // Eyes: canthal tilt + inter-eye spacing
-    const leftOuter = lm[33], leftInner = lm[133];
-    const rightInner = lm[362], rightOuter = lm[263];
-    const canthalTilt = ((rightOuter.y - rightInner.y) + (leftInner.y - leftOuter.y)) / 2;
-    const eyeGap = dist(px(lm,133),px(lm,362));
-    const leftEyeW = dist(px(lm,33),px(lm,133));
-    const faceW = dist(px(lm,234),px(lm,454));
-    const goldRatio = eyeGap / Math.max(faceW, 1);
-    const eyeScore = Math.min(1, Math.max(0,
-      (canthalTilt > 0 ? 0.85 : 0.55) * (1 - Math.abs(goldRatio - 0.32) / 0.15)
-    ));
-
-    // Nose: width to face ratio (golden ratio ~0.2)
-    const noseW = dist(px(lm,129),px(lm,358));
-    const noseScore = Math.min(1, Math.max(0, 1 - Math.abs(noseW/faceW - 0.2) / 0.1));
-
-    // Lips: upper/lower ratio, width
-    const upperLip = dist(px(lm,0),px(lm,267));
-    const lowerLip = dist(px(lm,17),px(lm,314));
-    const lipW = dist(px(lm,61),px(lm,291));
-    const lipRatio = upperLip / Math.max(lowerLip, 1);
-    const lipScore = Math.min(1, Math.max(0,
-      (1 - Math.abs(lipRatio - 0.85) / 0.3) * 0.7 +
-      (1 - Math.abs(lipW/faceW - 0.43) / 0.15) * 0.3
-    ));
-
-    return { symmetry, jaw, cheekbone, eyeScore, noseScore, lipScore };
-  }
-
-  function updateLiveMetrics(lm) {
-    const m = calcMetrics(lm);
-    const set = (id, bar, val) => {
-      const pct = Math.round(val * 100);
-      document.getElementById(id).textContent = pct;
-      document.getElementById(bar).style.width = pct + '%';
-    };
-    set('m-sym','mb-sym', m.symmetry);
-    set('m-jaw','mb-jaw', m.jaw);
-    set('m-chk','mb-chk', m.cheekbone);
-    set('m-eye','mb-eye', m.eyeScore);
-    set('m-nos','mb-nos', m.noseScore);
-    set('m-lip','mb-lip', m.lipScore);
-  }
-
-  function getOverallScore(m) {
-    const weights = { symmetry:0.2, jaw:0.2, cheekbone:0.15, eyeScore:0.2, noseScore:0.1, lipScore:0.15 };
-    return Object.entries(weights).reduce((sum,[k,w]) => sum + (m[k]*w), 0) * 100;
-  }
-
-  // ---- Camera ----
-  startBtn.addEventListener('click', async () => {
-    if (cameraRunning) return;
-    setupFaceMesh();
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      video.srcObject = stream;
-      document.getElementById('cam-placeholder').style.display = 'none';
-      cameraRunning = true;
-      startBtn.textContent = 'CAMERA ON';
-      startBtn.disabled = true;
-
-      mpCamera = new Camera(video, {
-        onFrame: async () => { await faceMesh.send({ image: video }); },
-        width: 640, height: 480
-      });
-      mpCamera.start();
-    } catch(e) {
-      alert('Camera access denied. Please allow camera access.');
-    }
+  // Eyes
+  [-0.17,0.17].forEach(function(ex){
+    var ep=[]; for(var i=0;i<=40;i++){var a=(i/40)*Math.PI*2;ep.push(new THREE.Vector3(ex+Math.cos(a)*0.1,0.1+Math.sin(a)*0.048,0));}
+    addLine(ep,0.75,0x88CCFF);
+    // Pupil dot
+    var pg=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(ex,0.1,0)]);
+    faceGroup.add(new THREE.Points(pg,new THREE.PointsMaterial({color:0x88CCFF,size:0.025,transparent:true,opacity:0.9})));
   });
-
-  // ---- Scan ----
-  const LOADING_STEPS = [
-    { text: 'MAPPING BONE STRUCTURE...', pct: 10 },
-    { text: 'ANALYZING FACIAL THIRDS...', pct: 22 },
-    { text: 'MEASURING CHEEKBONE PROMINENCE...', pct: 35 },
-    { text: 'CALCULATING SYMMETRY INDEX...', pct: 48 },
-    { text: 'EVALUATING EYE STRUCTURE...', pct: 60 },
-    { text: 'SCORING NOSE PROPORTIONS...', pct: 72 },
-    { text: 'ANALYZING LIP RATIO...', pct: 83 },
-    { text: 'CROSS-REFERENCING GEOMETRIC RATIOS...', pct: 93 },
-    { text: 'FINALIZING REPORT...', pct: 100 },
-  ];
-
-  scanBtn.addEventListener('click', async () => {
-    if (!currentLandmarks) return;
-    scanBtn.disabled = true;
-    startBtn.disabled = true;
-
-    const lw = document.getElementById('loading-wrap');
-    lw.style.display = 'flex';
-    const loadStatus = document.getElementById('loading-status');
-    const loadBar = document.getElementById('loading-bar');
-
-    const metrics = calcMetrics(currentLandmarks);
-    const overallScore = Math.round(getOverallScore(metrics));
-
-    // Capture frame for Gemini
-    const snapCanvas = document.createElement('canvas');
-    snapCanvas.width = video.videoWidth;
-    snapCanvas.height = video.videoHeight;
-    const sc = snapCanvas.getContext('2d');
-    sc.scale(-1, 1);
-    sc.drawImage(video, -snapCanvas.width, 0);
-    const imageBase64 = snapCanvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-
-    // Start Gemini AI in background
-    const aiPromise = callGemini(imageBase64, metrics, overallScore);
-
-    // Run loading bar
-    for (const step of LOADING_STEPS) {
-      loadStatus.textContent = step.text;
-      loadBar.style.width = step.pct + '%';
-      await sleep(step.pct === 100 ? 800 : 1100);
-    }
-
-    const aiResult = await aiPromise;
-
-    lw.style.display = 'none';
-    showResults(overallScore, metrics, aiResult);
-    scanBtn.disabled = false;
-    startBtn.disabled = false;
+  // Nose bridge
+  addLine([new THREE.Vector3(0,0.09,0),new THREE.Vector3(-0.04,-0.08,0),new THREE.Vector3(0.04,-0.08,0),new THREE.Vector3(0,0.09,0)],0.4);
+  // Nostril circles
+  [-0.05,0.05].forEach(function(nx){
+    var np=[]; for(var i=0;i<=20;i++){var a=(i/20)*Math.PI*2;np.push(new THREE.Vector3(nx+Math.cos(a)*0.028,-0.12+Math.sin(a)*0.018,0));}
+    addLine(np,0.35);
   });
+  // Mouth
+  var mt=[]; for(var i=0;i<=40;i++){var a=(i/40)*Math.PI;mt.push(new THREE.Vector3(Math.cos(a)*0.13,-0.26+Math.sin(a)*0.035,0));}
+  addLine(mt,0.7,0x88CCFF);
+  // Lower lip
+  var ml=[]; for(var i=0;i<=20;i++){var a=Math.PI+(i/20)*Math.PI;ml.push(new THREE.Vector3(Math.cos(a)*0.1,-0.26+Math.sin(a)*0.025,0));}
+  addLine(ml,0.4,0x88CCFF);
+  // Jaw
+  var jaw=[]; for(var i=0;i<=24;i++){var a=Math.PI+(i/24)*Math.PI;jaw.push(new THREE.Vector3(Math.cos(a)*0.44,Math.sin(a)*0.58,0));}
+  addLine(jaw,0.65);
+  // Brows
+  [[-0.17,-0.07,-0.05,0.13,0.1],[0.17,0.07,0.05,0.13,0.1]].forEach(function(b){
+    var bp=[new THREE.Vector3(b[0]-b[2],0.18,0),new THREE.Vector3(b[0],0.21,0),new THREE.Vector3(b[0]+b[2],0.18,0)];
+    addLine(bp,0.5);
+  });
+  // Cheekbone lines
+  addLine([new THREE.Vector3(-0.44,0.05,0),new THREE.Vector3(-0.32,-0.1,0),new THREE.Vector3(-0.2,-0.2,0)],0.2);
+  addLine([new THREE.Vector3(0.44,0.05,0),new THREE.Vector3(0.32,-0.1,0),new THREE.Vector3(0.2,-0.2,0)],0.2);
+}
 
-  async function callGemini(imageBase64, metrics, score) {
-    try {
-      const prompt = `You are a brutally honest facial aesthetics analyst. Analyze this face based on these mathematical measurements:
+function buildLiveFace(){
+  clearFaceGroup();
+  if(!lm) return buildDefaultFace();
+  var W=640,H=480;
 
-Symmetry: ${Math.round(metrics.symmetry*100)}/100
-Jaw Definition: ${Math.round(metrics.jaw*100)}/100
-Cheekbone Prominence: ${Math.round(metrics.cheekbone*100)}/100
-Eye Score (canthal tilt + spacing): ${Math.round(metrics.eyeScore*100)}/100
-Nose Proportion: ${Math.round(metrics.noseScore*100)}/100
-Lip Ratio: ${Math.round(metrics.lipScore*100)}/100
-Overall Calculated Score: ${score}/100
+  function v3(i){var p=lm[i];return new THREE.Vector3((p.x-0.5)*1.7*(W/H),-(p.y-0.5)*1.7,-p.z*1.5);}
+  function poly(idx,op,col){if(!idx.length)return;addLine(idx.map(function(i){return v3(i);}),op,col);}
 
-Write a direct, honest 3-paragraph analysis covering: (1) overall impression and strongest features, (2) weakest areas and specific flaws, (3) what would improve this face. Be specific about what you actually see in the image. Do NOT mention any celebrities.
+  var B=0x4A9EFF, LT=0x88CCFF;
 
-Then list 3-5 specific flaws in this exact JSON format at the end:
-FLAWS_JSON:[{"flaw":"description","severity":"HIGH|MID|LOW"},...]`;
+  // Face contour
+  poly([10,338,297,332,284,251,389,356,454,323,361,288,397,365,379,378,400,377,152,148,176,149,150,136,172,58,132,93,234,127,162,21,54,103,67,109,10],0.5,B);
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { inlineData: { mimeType: 'image/jpeg', data: imageBase64 } },
-                { text: prompt }
-              ]
-            }]
-          })
-        }
-      );
-      const data = await response.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      return parseGeminiResponse(text);
-    } catch(e) {
-      return { analysis: 'AI analysis unavailable. Check your API key.', flaws: [] };
-    }
+  // Topology scan lines (horizontal)
+  var rows=[[54,103,67,109,10,338,297,332],[162,21,54,103,67,109],[234,127,162,21],[323,361,288,397,365,379],[454,323,361,288,397]];
+  rows.forEach(function(r){poly(r,0.12,B);});
+
+  // Eyes (detailed)
+  poly([33,7,163,144,145,153,154,155,133,173,157,158,159,160,161,246,33],0.85,LT);
+  poly([362,382,381,380,374,373,390,249,263,466,388,387,386,385,384,398,362],0.85,LT);
+
+  // Iris dots
+  var irisL=[468,469,470,471,472], irisR=[473,474,475,476,477];
+  var ipv=[];
+  irisL.forEach(function(i){if(lm[i]){var p=v3(i);ipv.push(p.x,p.y,p.z);}});
+  irisR.forEach(function(i){if(lm[i]){var p=v3(i);ipv.push(p.x,p.y,p.z);}});
+  if(ipv.length){
+    var ig=new THREE.BufferGeometry();ig.setAttribute('position',new THREE.Float32BufferAttribute(ipv,3));
+    faceGroup.add(new THREE.Points(ig,new THREE.PointsMaterial({color:LT,size:0.02,transparent:true,opacity:0.9})));
   }
 
-  function parseGeminiResponse(text) {
-    const flawsMatch = text.match(/FLAWS_JSON:(\[.*?\])/s);
-    let flaws = [];
-    let analysis = text;
-    if (flawsMatch) {
-      try { flaws = JSON.parse(flawsMatch[1]); } catch(e) {}
-      analysis = text.replace(/FLAWS_JSON:.*$/s, '').trim();
-    }
-    return { analysis, flaws };
+  // Eyebrows
+  poly([70,63,105,66,107],0.55,B);
+  poly([300,293,334,296,336],0.55,B);
+
+  // Nose
+  poly([168,6,197,195,5,4,1,19,94],0.45,B);
+  poly([2,326,327,328,94,98,97,2],0.4,B);
+  poly([49,220,115,218,219,49],0.3,B);
+  poly([279,294,343,281,282,279],0.3,B);
+
+  // Mouth — adapts to open/close
+  poly([61,185,40,39,37,0,267,269,270,409,291,375,321,405,314,17,84,181,91,146,61],0.8,LT);
+  if(mouthOpen){
+    poly([78,191,80,81,82,13,312,311,310,415,308,324,318,402,317,14,87,178,88,95,78],0.7,LT);
+  }else{
+    poly([78,95,308],0.35,LT);
   }
 
-  function showResults(score, metrics, aiResult) {
-    document.getElementById('placeholder-panel').style.display = 'none';
-    const panel = document.getElementById('results-panel');
-    panel.style.display = 'flex';
+  // Jaw emphasis
+  poly([234,93,132,58,172,136,150,149,176,148,152,377,400,378,379,365,397,288,361,323,454],0.7,B);
 
-    document.getElementById('res-score').textContent = score;
-    const tier = score >= 80 ? 'CHAD' : score >= 70 ? 'CHADLITE' : score >= 60 ? 'HTN' : score >= 50 ? 'MTN' : score >= 40 ? 'LTN' : 'SUB3';
-    const tierColors = { CHAD: '#d4af37', CHADLITE: '#c47a27', HTN: '#c4a827', MTN: '#5bc45b', LTN: '#4fa3e0', SUB3: '#888' };
-    const tierEl = document.getElementById('res-tier');
-    tierEl.textContent = tier;
-    tierEl.style.color = tierColors[tier];
+  // Cheekbones
+  poly([234,116,93],[0.25,B]);
+  poly([454,345,323],[0.25,B]);
 
-    document.getElementById('ai-analysis-text').textContent = aiResult.analysis;
+  // Key point dots
+  var kpts=[1,4,9,10,152,234,454,61,291,33,263,130,359];
+  var kv=[]; kpts.forEach(function(i){var p=v3(i);kv.push(p.x,p.y,p.z);});
+  var kg=new THREE.BufferGeometry();kg.setAttribute('position',new THREE.Float32BufferAttribute(kv,3));
+  faceGroup.add(new THREE.Points(kg,new THREE.PointsMaterial({color:LT,size:0.028,transparent:true,opacity:0.9})));
+}
 
-    const flawsList = document.getElementById('flaws-list');
-    flawsList.innerHTML = '';
-    aiResult.flaws.forEach(f => {
-      const div = document.createElement('div');
-      div.className = 'flaw-item';
-      const sevClass = f.severity === 'HIGH' ? 'sev-high' : f.severity === 'MID' ? 'sev-mid' : 'sev-low';
-      div.innerHTML = `<span class="flaw-severity ${sevClass}">${f.severity}</span><span>${f.flaw}</span>`;
-      flawsList.appendChild(div);
-    });
+/* ══ MEDIAPIPE ══ */
+function toggleCamera(){
+  if(camStream){stopCamera();}else{startCamera();}
+}
+
+function startCamera(){
+  navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'},audio:false})
+  .then(function(stream){
+    camStream=stream;
+    var v=document.getElementById('camVid'); v.srcObject=stream;
+    v.onloadedmetadata=function(){
+      var c=document.getElementById('camCanvas');c.width=v.videoWidth;c.height=v.videoHeight;
+      document.getElementById('camPH').style.display='none';
+      document.getElementById('scanSweep').style.display='block';
+      document.getElementById('camIndicators').style.display='flex';
+      document.getElementById('camBtn').textContent='Stop Camera';
+      document.getElementById('scanBtn').disabled=false;
+      document.getElementById('holoMetrics').style.display='flex';
+      setStage('Tracking face...',true);
+      initFaceMesh(v,c);
+    };
+  }).catch(function(){
+    document.getElementById('camTag').textContent='ACCESS DENIED';
+    setStage('Camera denied');
+  });
+}
+
+function stopCamera(){
+  if(camStream){camStream.getTracks().forEach(function(t){t.stop();});camStream=null;}
+  fmRunning=false; lm=null;
+  document.getElementById('scanSweep').style.display='none';
+  document.getElementById('camBtn').textContent='Start Camera';
+  document.getElementById('scanBtn').disabled=true;
+  document.getElementById('camTag').textContent='OFFLINE';
+  setStage('Camera offline');
+  buildDefaultFace();
+  document.getElementById('holoTag').textContent='HOLOGRAM · STANDBY';
+}
+
+function initFaceMesh(video,canvas){
+  faceMesh=new FaceMesh({locateFile:function(f){return 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/'+f;}});
+  faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.6,minTrackingConfidence:0.6});
+  faceMesh.onResults(function(r){processResults(r,video,canvas);});
+  fmRunning=true;
+  (function loop(){if(!fmRunning||!camStream)return;faceMesh.send({image:video}).then(function(){requestAnimationFrame(loop);});})();
+}
+
+function processResults(r,video,canvas){
+  var ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(!r.multiFaceLandmarks||!r.multiFaceLandmarks.length){
+    lm=null;
+    document.getElementById('ciDot').className='ci-dot';
+    document.getElementById('holoTag').textContent='HOLOGRAM · SEARCHING';
+    document.getElementById('camTag').textContent='SEARCHING';
+    return;
   }
+  lm=r.multiFaceLandmarks[0];
+  document.getElementById('ciDot').className='ci-dot on';
+  document.getElementById('holoTag').textContent='HOLOGRAM · LIVE';
+  document.getElementById('camTag').textContent='TRACKING';
 
-  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+  // Draw dots on cam canvas
+  var W=canvas.width,H=canvas.height;
+  ctx.fillStyle='rgba(74,158,255,0.5)';
+  for(var i=0;i<lm.length;i++){ctx.beginPath();ctx.arc(lm[i].x*W,lm[i].y*H,0.9,0,Math.PI*2);ctx.fill();}
+
+  // Head pose
+  var nose=lm[4],chin=lm[152],forehead=lm[10],lEar=lm[234],rEar=lm[454];
+  var tY=(nose.x-0.5)*2.0;
+  var fcy=(forehead.y+chin.y)/2;
+  var tP=(nose.y-fcy)*2.8;
+  var tR=Math.atan2(rEar.y-lEar.y,rEar.x-lEar.x);
+  var s=0.12;
+  sYaw+=(tY-sYaw)*s; sPitch+=(tP-sPitch)*s; sRoll+=(tR-sRoll)*s;
+
+  // Eye blink
+  function ear(idx){function d(a,b){return Math.sqrt(Math.pow(lm[a].x-lm[b].x,2)+Math.pow(lm[a].y-lm[b].y,2));}return(d(idx[1],idx[5])+d(idx[2],idx[4]))/(2*Math.max(d(idx[0],idx[3]),0.001));}
+  lBlink=ear([362,385,387,263,373,380])<0.21;
+  rBlink=ear([33,160,158,133,153,144])<0.21;
+  document.getElementById('ciEyes').className=(lBlink||rBlink)?'ci-dot':'ci-dot on';
+  setBioVal('LEye',lBlink?'Closed':'Open',lBlink?'':'on');
+  setBioVal('REye',rBlink?'Closed':'Open',rBlink?'':'on');
+
+  // Mouth
+  function d(a,b){return Math.sqrt(Math.pow(lm[a].x-lm[b].x,2)+Math.pow(lm[a].y-lm[b].y,2));}
+  var mor=d(13,14)/Math.max(d(61,291),0.001);
+  mouthOpen=mor>0.055;
+  document.getElementById('ciMouth').className=mouthOpen?'ci-dot on':'ci-dot';
+  setBioVal('Mouth',mouthOpen?'Open':'Closed',mouthOpen?'blue':'');
+  document.getElementById('hmMouth').textContent=mouthOpen?'OPEN':'CLOSED';
+
+  // Head tilt display
+  var td=Math.round(sRoll*180/Math.PI);
+  setBioVal('Tilt',(td>=0?'+':'')+td+'°',Math.abs(td)>12?'warn':'blue');
+
+  // Hologram rotation display
+  document.getElementById('hmYaw').textContent=Math.round(sYaw*57.3)+'°';
+  document.getElementById('hmPitch').textContent=Math.round(sPitch*57.3)+'°';
+  document.getElementById('hmRoll').textContent=Math.round(sRoll*57.3)+'°';
+
+  // Live metrics
+  if(!scanActive) updateMetrics();
+  if(scanActive) scanFrames.push(getMetrics());
+}
+
+function setBioVal(id,text,cls){
+  var el=document.getElementById('bv'+id);
+  if(!el)return;
+  el.textContent=text;
+  el.className='bio-val '+(cls||'');
+  var card=document.getElementById('bc'+id);
+  if(card) card.classList.toggle('active',!!cls);
+}
+
+function getMetrics(){
+  if(!lm)return null;
+  function d(a,b){return Math.sqrt(Math.pow(lm[a].x-lm[b].x,2)+Math.pow(lm[a].y-lm[b].y,2));}
+  var nose=lm[1];
+  var sp=[[33,263],[130,359],[159,386],[145,374],[61,291],[234,454],[58,288],[172,397]];
+  var sd=0,sc=0;
+  sp.forEach(function(p){var l=p[0],r=p[1];if(lm[l]&&lm[r]){sd+=Math.abs(Math.abs(nose.x-lm[l].x)-Math.abs(lm[r].x-nose.x));sc++;}});
+  var sym=Math.max(0,Math.min(1,1-(sd/sc)*16));
+  var fH=d(10,152),jW=d(234,454);
+  var jaw=Math.max(0,Math.min(1,1-Math.abs(jW/fH-0.75)*4));
+  var li=lm[133],lo=lm[33],ri=lm[362],ro=lm[263];
+  var tilt=li&&lo&&ri&&ro?((li.y-lo.y)+(ri.y-ro.y))/2:0;
+  var canthal=Math.max(0,Math.min(1,0.5+tilt*18));
+  var cheek=Math.max(0,Math.min(1,1-Math.abs(d(234,454)/Math.max(d(130,359),0.001)-1.05)*4));
+  var eye=Math.max(0,Math.min(1,1-Math.abs(d(133,362)/Math.max(jW,0.001)-0.32)*10));
+  return {sym,jaw,canthal,cheek,eye,fwhr:(jW/Math.max(fH,0.001)).toFixed(2)};
+}
+
+function updateMetrics(){
+  var m=getMetrics(); if(!m)return;
+  setMC('Sym',Math.round(m.sym*100)+'%',m.sym,'Facial symmetry');
+  setMC('Jaw',m.fwhr,m.jaw,'Face width-to-height ratio');
+  setMC('Canthal',m.canthal>0.5?'Positive':'Negative',m.canthal,'Outer canthus angle');
+  setMC('Eye',Math.round(m.eye*100)+'%',m.eye,'Intercanthal ratio');
+}
+
+function setMC(id,val,pct,sub){
+  var mv=document.getElementById('mv'+id),mf=document.getElementById('mf'+id),ms=document.getElementById('ms'+id),mc=document.getElementById('mc'+id);
+  if(mv)mv.textContent=val;
+  if(mf)mf.style.width=Math.round(pct*100)+'%';
+  if(ms)ms.textContent=sub;
+  if(mc)mc.classList.add('lit');
+}
+
+/* ══ FULL SCAN ══ */
+function runScan(){
+  if(!lm){setStage('No face detected — center your face');return;}
+  if(scanActive)return;
+  scanFrames=[]; scanActive=true;
+  document.getElementById('scanBtn').disabled=true;
+  document.getElementById('scanBtn').textContent='Scanning...';
+  document.getElementById('resultPanel').classList.remove('show');
+  var steps=['Stage 1/4 — Symmetry analysis','Stage 2/4 — Jaw & bone structure','Stage 3/4 — Canthal tilt & eye metrics','Stage 4/4 — Final computation'];
+  var si=0;
+  var t=setInterval(function(){setStage(steps[si],true);si++;if(si>=steps.length)clearInterval(t);},750);
+  setTimeout(function(){
+    scanActive=false;
+    if(!scanFrames.length){document.getElementById('scanBtn').disabled=false;document.getElementById('scanBtn').textContent='Run Full Scan';setStage('Scan failed — try again');return;}
+    var avg={sym:0,jaw:0,canthal:0,cheek:0,eye:0};
+    scanFrames.forEach(function(f){if(!f)return;Object.keys(avg).forEach(function(k){avg[k]+=f[k];});});
+    var n=scanFrames.length;
+    Object.keys(avg).forEach(function(k){avg[k]/=n;});
+    var total=(avg.sym*2.8+avg.jaw*2.0+avg.canthal*1.8+avg.cheek*1.2+avg.eye*0.8)/8.6;
+    var score=Math.min(10,Math.max(1,total*9+(Math.random()-0.5)*0.35));
+    showResult(avg,score);
+    document.getElementById('scanBtn').disabled=false;
+    document.getElementById('scanBtn').textContent='Rescan';
+    setStage('Analysis complete');
+  },3200);
+}
+
+function showResult(m,score){
+  document.getElementById('rpSym').textContent=Math.round(m.sym*100)+'%';
+  document.getElementById('rpJaw').textContent=Math.round(m.jaw*100)+'%';
+  document.getElementById('rpCanthal').textContent=m.canthal>0.5?'+'+Math.round((m.canthal-0.5)*200)+'°':'-'+Math.round((0.5-m.canthal)*200)+'°';
+  document.getElementById('rpEye').textContent=Math.round(m.eye*100)+'%';
+  document.getElementById('rpCheek').textContent=Math.round(m.cheek*100)+'%';
+  document.getElementById('rpScore').textContent=score.toFixed(1);
+  var e=scoreToElo(score);
+  document.getElementById('rpTier').textContent=getTierEmoji(e)+' '+getTierName(e);
+  document.getElementById('resultPanel').classList.add('show');
+  setTimeout(function(){document.getElementById('rpBarFill').style.width=Math.round((score/10)*100)+'%';},300);
+}
+
+function scoreToElo(s){if(s>=9.5)return 5001;if(s>=8.5)return 3501;if(s>=7.5)return 2001;if(s>=6.5)return 1501;if(s>=5.5)return 1001;if(s>=4.5)return 501;return 200;}
+function setStage(t,active){document.getElementById('stageText').textContent=t;document.getElementById('stageBlink').style.display=active?'block':'none';}
 </script>
 </body>
 </html>
