@@ -118,8 +118,16 @@ html,body{background:#05050d;color:#f2f2ff;font-family:'Barlow',sans-serif;min-h
     <div class="gate-logo">⚠ RESTRICTED</div>
     <div class="gate-title">ADMIN ACCESS</div>
     <div class="gate-sub">MOGME.TV DEVELOPER PANEL</div>
-    <input class="gate-input" id="gatePass" type="password" placeholder="••••••••••••" onkeydown="if(event.key==='Enter')checkGate()">
-    <button class="gate-btn" onclick="checkGate()">ENTER</button>
+    <div id="gateAuthState" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b6b8f;margin-bottom:18px;line-height:1.6;">Checking authentication...</div>
+    <button class="gate-btn" id="gateSignInBtn" onclick="gateSignIn()" style="display:none;">SIGN IN WITH GOOGLE</button>
+    <div id="gateUidBox" style="display:none;margin-top:14px;padding:12px;background:#080810;border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-align:left;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;letter-spacing:1px;margin-bottom:6px;">YOUR FIREBASE UID</div>
+      <div id="gateUidVal" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#0df2c8;word-break:break-all;margin-bottom:8px;"></div>
+      <button class="admin-btn outline" onclick="copyMyUid()" style="font-size:10px;padding:5px 10px;">📋 COPY UID</button>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;margin-top:10px;line-height:1.6;">
+        To grant yourself admin access, edit <span style="color:#f5a623;">admin.html</span> and set <span style="color:#0df2c8;">OWNER_UID</span> to this value, then push the change.
+      </div>
+    </div>
     <div class="gate-error" id="gateError">⚠ Access denied</div>
   </div>
 </div>
@@ -237,13 +245,83 @@ html,body{background:#05050d;color:#f2f2ff;font-family:'Barlow',sans-serif;min-h
         </div>
       </div>
 
+      <!-- RENAME ACCOUNT -->
+      <div class="admin-card">
+        <div class="card-head"><span class="card-head-icon">✎</span><span class="card-head-title">RENAME ACCOUNT</span></div>
+        <div class="card-body">
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;letter-spacing:1px;display:block;margin-bottom:6px;">USER UID</label>
+          <input class="admin-input" type="text" id="renameUid" placeholder="User UID...">
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;letter-spacing:1px;display:block;margin-bottom:6px;">NEW USERNAME</label>
+          <input class="admin-input" type="text" id="renameNew" placeholder="New username (3–20 alphanumeric)">
+          <button class="admin-btn teal" onclick="renameAccount()">✎ RENAME</button>
+          <div class="feedback" id="renameFeedback"></div>
+        </div>
+      </div>
+
+      <!-- ROLES -->
+      <div class="admin-card">
+        <div class="card-head"><span class="card-head-icon">🛡</span><span class="card-head-title">USER ROLES</span></div>
+        <div class="card-body">
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;letter-spacing:1px;display:block;margin-bottom:6px;">USER UID</label>
+          <input class="admin-input" type="text" id="roleUid" placeholder="User UID...">
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;letter-spacing:1px;display:block;margin-bottom:6px;">ROLE</label>
+          <select class="admin-input" id="roleSelect" style="cursor:pointer;">
+            <option value="user">user</option>
+            <option value="verified">verified</option>
+            <option value="supporter">supporter</option>
+            <option value="moderator">moderator</option>
+            <option value="staff">staff</option>
+            <option value="owner">owner</option>
+          </select>
+          <div class="btn-row">
+            <button class="admin-btn teal" onclick="setUserRole()">SET ROLE</button>
+            <button class="admin-btn outline" onclick="clearUserRole()">CLEAR</button>
+          </div>
+          <div class="feedback" id="roleFeedback"></div>
+        </div>
+      </div>
+
+      <!-- BADGES -->
+      <div class="admin-card">
+        <div class="card-head"><span class="card-head-icon">🏅</span><span class="card-head-title">BADGES</span></div>
+        <div class="card-body">
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;letter-spacing:1px;display:block;margin-bottom:6px;">USER UID</label>
+          <input class="admin-input" type="text" id="badgeUid" placeholder="User UID...">
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;letter-spacing:1px;display:block;margin-bottom:6px;">BADGE LABEL</label>
+          <input class="admin-input" type="text" id="badgeLabel" placeholder="e.g. EARLY ADOPTER">
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;letter-spacing:1px;display:block;margin-bottom:6px;">BADGE EMOJI / ICON</label>
+          <input class="admin-input" type="text" id="badgeIcon" placeholder="🏆 (optional)" maxlength="4">
+          <div class="btn-row">
+            <button class="admin-btn teal" onclick="addBadge()">+ ADD BADGE</button>
+            <button class="admin-btn outline" onclick="clearBadges()">CLEAR ALL</button>
+          </div>
+          <div class="feedback" id="badgeFeedback"></div>
+        </div>
+      </div>
+
+      <!-- FREE SUBSCRIPTION -->
+      <div class="admin-card">
+        <div class="card-head"><span class="card-head-icon">💎</span><span class="card-head-title">FREE SUBSCRIPTIONS</span></div>
+        <div class="card-body">
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;letter-spacing:1px;display:block;margin-bottom:6px;">USER UID</label>
+          <input class="admin-input" type="text" id="subUid" placeholder="User UID...">
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6b8f;letter-spacing:1px;display:block;margin-bottom:6px;">DURATION (DAYS)</label>
+          <input class="admin-input" type="number" id="subDays" placeholder="e.g. 30" min="1" value="30">
+          <div class="btn-row">
+            <button class="admin-btn teal" onclick="grantPro()">💎 GRANT PRO</button>
+            <button class="admin-btn outline" onclick="revokePro()">REVOKE</button>
+          </div>
+          <div class="feedback" id="subFeedback"></div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut }
+import { getAuth, onAuthStateChanged, signOut, signInWithPopup, GoogleAuthProvider }
   from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, collection, query, orderBy, limit, getDocs,
          doc, getDoc, updateDoc, deleteDoc, setDoc, serverTimestamp }
@@ -258,63 +336,76 @@ const FB = {
 };
 
 /* ════════════════════════════════
-   SECURITY — OWNER UID
-   Replace with YOUR Firebase UID
+   SECURITY MODEL
+   ──────────────
+   The ONLY way into this panel is to sign in with the Google
+   account whose Firebase UID matches OWNER_UID below.
+   • Anyone can view this HTML — that's fine, it doesn't grant access.
+   • The actual write protection MUST live in Firestore Security Rules.
+   • Recommended Firestore rules (paste into Firebase console):
+       match /users/{uid} {
+         allow read: if true;
+         allow write: if request.auth.uid == "<YOUR_UID>"
+                      || request.auth.uid == uid;
+       }
+       match /usernames/{name} { allow read: if true; allow write: if request.auth.uid == "<YOUR_UID>"; }
+       match /bans/{name}      { allow read: if true; allow write: if request.auth.uid == "<YOUR_UID>"; }
+   • Without those rules, ANY signed-in user could bypass this UI
+     and write directly via the browser console. Fix that first.
 ════════════════════════════════ */
 const OWNER_UID = 'wqHmlndLquOdIKgK3pLrz2WwGgI3';
-
-/* ════════════════════════════════
-   LOCAL ADMIN PASSWORD
-   Second layer of security
-════════════════════════════════ */
-const ADMIN_PASS_HASH = 'mogmetv_admin_2026_secure';
 
 const SERVER = 'https://mogmetv-production.up.railway.app';
 const fbApp  = initializeApp(FB);
 const auth   = getAuth(fbApp);
 const db     = getFirestore(fbApp);
+const gProvider = new GoogleAuthProvider();
 
 let currentAdmin = null;
-let gateUnlocked = false;
 
-/* ── GATE CHECK ── */
-window.checkGate = function() {
-  const pass = document.getElementById('gatePass').value;
-  const err  = document.getElementById('gateError');
-  // Simple hash check — obfuscated
-  const valid = btoa(pass) === btoa(ADMIN_PASS_HASH);
-  if (valid) {
-    gateUnlocked = true;
-    err.style.display = 'none';
-    // Now wait for Firebase auth
-    checkAuth();
-  } else {
-    err.style.display = 'block';
-    err.textContent = '⚠ Access denied — incorrect password';
-    document.getElementById('gatePass').value = '';
-    // Slow down brute force
-    document.querySelector('.gate-btn').disabled = true;
-    setTimeout(() => document.querySelector('.gate-btn').disabled = false, 3000);
+/* ── AUTH-ONLY GATE ── */
+window.gateSignIn = async function() {
+  try {
+    await signInWithPopup(auth, gProvider);
+    // onAuthStateChanged below fires automatically
+  } catch(e) {
+    document.getElementById('gateError').textContent = '⚠ Sign-in failed: ' + e.message;
+    document.getElementById('gateError').style.display = 'block';
   }
 };
 
-function checkAuth() {
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      document.getElementById('gateError').textContent = '⚠ You must be signed in with the owner Google account';
-      document.getElementById('gateError').style.display = 'block';
-      return;
-    }
-    if (user.uid !== OWNER_UID) {
-      document.getElementById('gateError').textContent = '⚠ This account is not authorized';
-      document.getElementById('gateError').style.display = 'block';
-      gateUnlocked = false;
-      return;
-    }
-    currentAdmin = user;
-    unlockPanel(user);
-  });
-}
+window.copyMyUid = function() {
+  const uid = document.getElementById('gateUidVal').textContent;
+  if (uid) navigator.clipboard.writeText(uid).then(() => alert('UID copied: ' + uid)).catch(() => alert(uid));
+};
+
+onAuthStateChanged(auth, (user) => {
+  const stateEl  = document.getElementById('gateAuthState');
+  const signInBtn = document.getElementById('gateSignInBtn');
+  const uidBox   = document.getElementById('gateUidBox');
+  const errEl    = document.getElementById('gateError');
+
+  if (!user) {
+    stateEl.innerHTML = 'Not signed in.<br>Sign in with the owner Google account to continue.';
+    signInBtn.style.display = 'block';
+    uidBox.style.display = 'none';
+    errEl.style.display = 'none';
+    return;
+  }
+
+  if (user.uid !== OWNER_UID) {
+    stateEl.innerHTML = 'Signed in as <span style="color:#f2f2ff;">' + user.email + '</span> — but this account is <span style="color:#ff3d6b;">not authorized</span>.';
+    signInBtn.style.display = 'none';
+    uidBox.style.display = 'block';
+    document.getElementById('gateUidVal').textContent = user.uid;
+    errEl.style.display = 'none';
+    return;
+  }
+
+  // Authorized
+  currentAdmin = user;
+  unlockPanel(user);
+});
 
 function unlockPanel(user) {
   document.getElementById('adminGate').style.display = 'none';
@@ -522,6 +613,112 @@ window.resetUserElo = async function() {
     showFeedback('eloFeedback','✓ ELO reset to '+elo,'ok');
     loadUsers();
   } catch(e) { showFeedback('eloFeedback','✗ '+e.message,'err'); }
+};
+
+/* ── RENAME ACCOUNT ── */
+window.renameAccount = async function() {
+  const uid = document.getElementById('renameUid').value.trim();
+  const newName = document.getElementById('renameNew').value.trim();
+  if (!uid || !newName) return;
+  if (!/^[a-zA-Z0-9_]{3,20}$/.test(newName)) {
+    showFeedback('renameFeedback','✗ Invalid: 3–20 alphanumeric only','err'); return;
+  }
+  try {
+    // Check the new username isn't taken
+    const taken = await getDoc(doc(db,'usernames',newName.toLowerCase()));
+    if (taken.exists() && taken.data().uid !== uid) {
+      showFeedback('renameFeedback','✗ Username already taken','err'); return;
+    }
+    // Get current user data
+    const userSnap = await getDoc(doc(db,'users',uid));
+    if (!userSnap.exists()) {
+      showFeedback('renameFeedback','✗ User not found','err'); return;
+    }
+    const oldLower = userSnap.data().usernameLower;
+    // Reserve new username, free old
+    await setDoc(doc(db,'usernames',newName.toLowerCase()), { uid, username:newName, createdAt:serverTimestamp() });
+    if (oldLower && oldLower !== newName.toLowerCase()) await deleteDoc(doc(db,'usernames',oldLower));
+    // Update user doc
+    await updateDoc(doc(db,'users',uid), {
+      username: newName,
+      usernameLower: newName.toLowerCase(),
+      displayName: newName,
+      lastSeen: serverTimestamp(),
+    });
+    showFeedback('renameFeedback','✓ Renamed to '+newName,'ok');
+    loadUsers();
+  } catch(e) { showFeedback('renameFeedback','✗ '+e.message,'err'); }
+};
+
+/* ── ROLES ── */
+window.setUserRole = async function() {
+  const uid = document.getElementById('roleUid').value.trim();
+  const role = document.getElementById('roleSelect').value;
+  if (!uid) return;
+  try {
+    await updateDoc(doc(db,'users',uid), { role, roleGrantedAt: serverTimestamp() });
+    showFeedback('roleFeedback','✓ Role "'+role+'" granted','ok');
+  } catch(e) { showFeedback('roleFeedback','✗ '+e.message,'err'); }
+};
+window.clearUserRole = async function() {
+  const uid = document.getElementById('roleUid').value.trim();
+  if (!uid) return;
+  try {
+    await updateDoc(doc(db,'users',uid), { role: 'user', roleGrantedAt: serverTimestamp() });
+    showFeedback('roleFeedback','✓ Role cleared (user)','ok');
+  } catch(e) { showFeedback('roleFeedback','✗ '+e.message,'err'); }
+};
+
+/* ── BADGES ── */
+window.addBadge = async function() {
+  const uid = document.getElementById('badgeUid').value.trim();
+  const label = document.getElementById('badgeLabel').value.trim();
+  const icon = document.getElementById('badgeIcon').value.trim();
+  if (!uid || !label) return;
+  try {
+    const snap = await getDoc(doc(db,'users',uid));
+    if (!snap.exists()) { showFeedback('badgeFeedback','✗ User not found','err'); return; }
+    const badges = Array.isArray(snap.data().badges) ? snap.data().badges : [];
+    badges.push({ label, icon: icon || '🏅', grantedAt: new Date().toISOString() });
+    await updateDoc(doc(db,'users',uid), { badges });
+    showFeedback('badgeFeedback','✓ Badge "'+label+'" added','ok');
+    document.getElementById('badgeLabel').value = '';
+    document.getElementById('badgeIcon').value = '';
+  } catch(e) { showFeedback('badgeFeedback','✗ '+e.message,'err'); }
+};
+window.clearBadges = async function() {
+  const uid = document.getElementById('badgeUid').value.trim();
+  if (!uid) return;
+  if (!confirm('Clear ALL badges for this user?')) return;
+  try {
+    await updateDoc(doc(db,'users',uid), { badges: [] });
+    showFeedback('badgeFeedback','✓ All badges cleared','ok');
+  } catch(e) { showFeedback('badgeFeedback','✗ '+e.message,'err'); }
+};
+
+/* ── FREE PRO SUBSCRIPTION ── */
+window.grantPro = async function() {
+  const uid = document.getElementById('subUid').value.trim();
+  const days = parseInt(document.getElementById('subDays').value) || 30;
+  if (!uid) return;
+  try {
+    const expiresAt = new Date(Date.now() + days*24*60*60*1000);
+    await updateDoc(doc(db,'users',uid), {
+      proActive: true,
+      proExpiresAt: expiresAt.toISOString(),
+      proGrantedBy: 'admin',
+      proGrantedAt: serverTimestamp(),
+    });
+    showFeedback('subFeedback','✓ Pro granted until '+expiresAt.toLocaleDateString(),'ok');
+  } catch(e) { showFeedback('subFeedback','✗ '+e.message,'err'); }
+};
+window.revokePro = async function() {
+  const uid = document.getElementById('subUid').value.trim();
+  if (!uid) return;
+  try {
+    await updateDoc(doc(db,'users',uid), { proActive: false, proExpiresAt: null });
+    showFeedback('subFeedback','✓ Pro revoked','ok');
+  } catch(e) { showFeedback('subFeedback','✗ '+e.message,'err'); }
 };
 
 /* ── SIGN OUT ── */
