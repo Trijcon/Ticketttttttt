@@ -185,74 +185,58 @@
 @media(max-width:560px){.social-grid{grid-template-columns:1fr 1fr}}
 
 /* ════════════════════════════════
-   ALGORITHM PREVIEW — FACE HOLOGRAM
+   ALGORITHM PREVIEW — VERTICAL HOLOGRAM CARD
 ═════════════════════════════════ */
-.holo-hero {
+.holo-card {
   position: relative;
   background: linear-gradient(180deg,#04060a 0%,#000 100%);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  margin-bottom: 14px;
   overflow: hidden;
-  height: 380px;
+  display: flex; flex-direction: column;
+  min-height: 640px;
+  padding: 16px 16px 18px;
 }
 .holo-grid-bg {
   position: absolute; inset: 0;
   background-image:
-    linear-gradient(rgba(74,158,255,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(74,158,255,0.04) 1px, transparent 1px);
-  background-size: 30px 30px;
+    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
   pointer-events: none;
 }
 .holo-glow {
   position: absolute; inset: 0;
-  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(74,158,255,0.10) 0%, transparent 60%);
+  background: radial-gradient(ellipse 70% 55% at 50% 45%, rgba(255,255,255,0.05) 0%, transparent 60%);
   pointer-events: none;
 }
-.holo-stage {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-}
-#holoCanvas, #holoFaceCanvas {
-  width: 360px; height: 360px;
-  display: block;
-}
-#holoFaceCanvas { display: none; position: absolute; }
-#holoVid { position: absolute; opacity: 0; pointer-events: none; width: 1px; height: 1px; }
-
-/* Top-left: title */
-.holo-tl {
-  position: absolute; top: 18px; left: 22px; z-index: 5;
-  pointer-events: none;
+.holo-card-head {
+  position: relative; z-index: 5;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 10px; margin-bottom: 10px;
 }
 .holo-tag {
   font-family: 'JetBrains Mono', monospace; font-size: 9px;
-  letter-spacing: 3px; color: var(--muted); margin-bottom: 4px;
+  letter-spacing: 2.5px; color: var(--muted); margin-bottom: 4px;
 }
 .holo-title {
   font-family: 'Space Grotesk', sans-serif; font-weight: 700;
-  font-size: 22px; color: var(--white); letter-spacing: 0.5px;
+  font-size: 16px; color: var(--white); letter-spacing: 0.4px;
   margin-bottom: 6px;
 }
 .holo-sub {
-  font-family: 'JetBrains Mono', monospace; font-size: 10px;
-  letter-spacing: 1.5px; color: var(--blue);
-  border: 1px solid rgba(74,158,255,0.25);
-  background: var(--blue-dim);
-  padding: 3px 8px; border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  letter-spacing: 1.2px; color: var(--silver);
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.04);
+  padding: 3px 7px; border-radius: 3px;
   display: inline-block;
 }
-
-/* Top-right: status */
-.holo-tr {
-  position: absolute; top: 18px; right: 22px; z-index: 5;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9px; letter-spacing: 1.5px;
-  color: var(--muted); text-align: right;
-}
-.holo-status {
+.holo-status-line {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  letter-spacing: 1.2px; color: var(--muted);
   display: inline-flex; align-items: center; gap: 6px;
-  margin-bottom: 5px;
+  flex-shrink: 0; margin-top: 2px;
 }
 .holo-status-dot {
   width: 5px; height: 5px; border-radius: 50%;
@@ -261,106 +245,72 @@
 }
 .holo-status-dot.live { background: var(--green); box-shadow: 0 0 6px var(--green); }
 @keyframes holo-pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-.holo-meta { color: var(--muted2); }
-.holo-meta-line { margin-bottom: 2px; }
 
-/* Side panel stats */
-.holo-stats {
-  position: absolute; z-index: 5;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9px; letter-spacing: 0.8px;
-  color: var(--muted);
-  pointer-events: none;
+.holo-stage {
+  position: relative; flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 320px;
+  z-index: 2;
 }
-.holo-stats.left { left: 22px; bottom: 22px; }
-.holo-stats.right { right: 22px; bottom: 22px; text-align: right; }
-.holo-stat-line { margin-bottom: 4px; display: flex; gap: 8px; }
-.holo-stats.right .holo-stat-line { justify-content: flex-end; }
+#holoCanvas, #holoFaceCanvas {
+  width: 100%; height: 100%; max-width: 320px; max-height: 380px;
+  display: block;
+}
+#holoFaceCanvas {
+  display: none; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  mix-blend-mode: screen;
+}
+#holoVid { position: absolute; opacity: 0; pointer-events: none; width: 1px; height: 1px; }
+
+/* Bottom stats list (vertical) */
+.holo-stats-bottom {
+  position: relative; z-index: 5;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 4px 14px;
+  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  letter-spacing: 0.7px;
+  margin-bottom: 10px;
+}
+.holo-stat-row { display: flex; justify-content: space-between; }
 .holo-stat-key { color: var(--muted2); }
-.holo-stat-val { color: var(--blue); font-weight: 700; min-width: 36px; }
-.holo-stats.right .holo-stat-val { color: var(--blue); }
+.holo-stat-val { color: var(--white); font-weight: 700; }
 
-/* Activate button (center-bottom) */
+/* Activate button */
 .holo-activate {
-  position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%);
-  z-index: 6;
-  padding: 8px 18px; border-radius: 999px;
-  background: var(--blue-dim); border: 1px solid rgba(74,158,255,0.4);
-  color: var(--blue); font-family: 'JetBrains Mono', monospace;
-  font-size: 10px; letter-spacing: 2px; cursor: pointer;
-  transition: all 0.2s; backdrop-filter: blur(8px);
+  position: relative; z-index: 6;
+  width: 100%; padding: 9px 14px; border-radius: var(--radius);
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.18);
+  color: var(--silver); font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 1.8px; cursor: pointer;
+  transition: all 0.2s;
 }
-.holo-activate:hover { background: rgba(74,158,255,0.18); color: var(--white); }
+.holo-activate:hover { background: rgba(255,255,255,0.1); color: var(--white); border-color: rgba(255,255,255,0.3); }
 .holo-activate.live {
-  background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.3); color: var(--green);
+  background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.3); color: var(--green);
 }
 
-/* Scan line effect when active */
+/* Scan line when active */
 .holo-scan {
-  position: absolute; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(74,158,255,0.6), transparent);
+  position: absolute; left: 0; right: 0; height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
   z-index: 4; pointer-events: none; opacity: 0;
-  animation: holo-scan-anim 4s linear infinite;
+  animation: holo-scan-anim 3.5s linear infinite;
 }
-.holo-hero.live .holo-scan { opacity: 1; }
+.holo-card.live .holo-scan { opacity: 1; }
 @keyframes holo-scan-anim {
   0% { top: 0; }
   100% { top: 100%; }
 }
 
-@media(max-width:760px) {
-  .holo-hero { height: 320px; }
-  #holoCanvas, #holoFaceCanvas { width: 280px; height: 280px; }
-  .holo-title { font-size: 18px; }
-  .holo-stats { font-size: 8px; }
+@media(max-width:900px) {
+  .holo-card { min-height: 520px; }
+  #holoCanvas, #holoFaceCanvas { max-height: 300px; }
 }
 </style>
 </head>
 <body>
 <div class="page-wrap">
-
-  <!-- ALGORITHM PREVIEW HOLOGRAM -->
-  <div class="holo-hero" id="holoHero">
-    <div class="holo-grid-bg"></div>
-    <div class="holo-glow"></div>
-    <div class="holo-scan"></div>
-
-    <div class="holo-tl">
-      <div class="holo-tag">// THE LAB</div>
-      <div class="holo-title">ALGORITHM PREVIEW</div>
-      <div class="holo-sub">[MAX ASCENSION REACHED]</div>
-    </div>
-
-    <div class="holo-tr">
-      <div class="holo-status"><span class="holo-status-dot" id="holoDot"></span><span id="holoStatusText">STANDBY</span></div>
-      <div class="holo-meta">
-        <div class="holo-meta-line">REAL-TIME ENGINE</div>
-        <div class="holo-meta-line">MTC-0011 7B0</div>
-      </div>
-    </div>
-
-    <div class="holo-stats left">
-      <div class="holo-stat-line"><span class="holo-stat-key">PROPORTIONS</span><span class="holo-stat-val" id="holoStat1">85%</span></div>
-      <div class="holo-stat-line"><span class="holo-stat-key">SYMMETRY</span><span class="holo-stat-val" id="holoStat2">92</span></div>
-      <div class="holo-stat-line"><span class="holo-stat-key">JAW DEF</span><span class="holo-stat-val" id="holoStat3">88</span></div>
-      <div class="holo-stat-line"><span class="holo-stat-key">CANTHAL</span><span class="holo-stat-val" id="holoStat4">+0.02</span></div>
-    </div>
-
-    <div class="holo-stats right">
-      <div class="holo-stat-line"><span class="holo-stat-key">CHEEKBONES</span><span class="holo-stat-val" id="holoStat5">90%</span></div>
-      <div class="holo-stat-line"><span class="holo-stat-key">MIDFACE</span><span class="holo-stat-val" id="holoStat6">87</span></div>
-      <div class="holo-stat-line"><span class="holo-stat-key">LIPS</span><span class="holo-stat-val" id="holoStat7">86</span></div>
-      <div class="holo-stat-line"><span class="holo-stat-key">NOSE</span><span class="holo-stat-val" id="holoStat8">91</span></div>
-    </div>
-
-    <div class="holo-stage">
-      <canvas id="holoCanvas" width="360" height="360"></canvas>
-      <canvas id="holoFaceCanvas" width="640" height="480"></canvas>
-      <video id="holoVid" autoplay playsinline muted></video>
-    </div>
-
-    <button class="holo-activate" id="holoActivate" onclick="toggleHolo()">⚡ ACTIVATE LIVE SCAN</button>
-  </div>
 
   <!-- SEASON -->
   <div class="season-bar">
@@ -419,6 +369,39 @@
 
     <!-- RIGHT STACK -->
     <div class="side-stack">
+
+      <!-- ALGORITHM PREVIEW HOLOGRAM (vertical) -->
+      <div class="holo-card" id="holoHero">
+        <div class="holo-grid-bg"></div>
+        <div class="holo-glow"></div>
+        <div class="holo-scan"></div>
+
+        <div class="holo-card-head">
+          <div>
+            <div class="holo-tag">// THE LAB</div>
+            <div class="holo-title">ALGORITHM PREVIEW</div>
+            <div class="holo-sub">[MAX ASCENSION REACHED]</div>
+          </div>
+          <div class="holo-status-line"><span class="holo-status-dot" id="holoDot"></span><span id="holoStatusText">STANDBY</span></div>
+        </div>
+
+        <div class="holo-stage">
+          <canvas id="holoCanvas" width="320" height="380"></canvas>
+          <canvas id="holoFaceCanvas" width="320" height="380"></canvas>
+          <video id="holoVid" autoplay playsinline muted></video>
+        </div>
+
+        <div class="holo-stats-bottom">
+          <div class="holo-stat-row"><span class="holo-stat-key">PROPORTIONS</span><span class="holo-stat-val" id="holoStat1">85%</span></div>
+          <div class="holo-stat-row"><span class="holo-stat-key">SYMMETRY</span><span class="holo-stat-val" id="holoStat2">92</span></div>
+          <div class="holo-stat-row"><span class="holo-stat-key">JAW DEF</span><span class="holo-stat-val" id="holoStat3">88</span></div>
+          <div class="holo-stat-row"><span class="holo-stat-key">CHEEKBONES</span><span class="holo-stat-val" id="holoStat5">90%</span></div>
+          <div class="holo-stat-row"><span class="holo-stat-key">MIDFACE</span><span class="holo-stat-val" id="holoStat6">87</span></div>
+          <div class="holo-stat-row"><span class="holo-stat-key">NOSE</span><span class="holo-stat-val" id="holoStat8">91</span></div>
+        </div>
+
+        <button class="holo-activate" id="holoActivate" onclick="toggleHolo()">⚡ ACTIVATE LIVE SCAN</button>
+      </div>
 
       <!-- THE LAB -->
       <div class="card small" onclick="openLabSoonModal()" style="min-height:160px;">
@@ -500,58 +483,58 @@ var _holo = { scene:null, camera:null, renderer:null, head:null, inner:null, rin
 function initHolo(){
   var canvas = document.getElementById('holoCanvas');
   if (!canvas || !window.THREE) return;
-  var W = canvas.width = canvas.offsetWidth || 360;
-  var H = canvas.height = canvas.offsetHeight || 360;
+  // Use intrinsic canvas attribute size (320x380) — Three.js renders at this resolution
+  var W = canvas.width;
+  var H = canvas.height;
 
   _holo.scene  = new THREE.Scene();
-  _holo.camera = new THREE.PerspectiveCamera(45, W/H, 0.1, 100);
-  _holo.camera.position.z = 4;
-  _holo.renderer = new THREE.WebGLRenderer({canvas:canvas, alpha:true, antialias:true});
+  _holo.camera = new THREE.PerspectiveCamera(42, W/H, 0.1, 100);
+  _holo.camera.position.z = 3.6;
+  // antialias OFF for perf; pixelRatio capped at 1.25
+  _holo.renderer = new THREE.WebGLRenderer({canvas:canvas, alpha:true, antialias:false, powerPreference:'low-power'});
   _holo.renderer.setSize(W, H, false);
-  _holo.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  _holo.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
 
-  // Stretched wireframe head
-  var headGeom = new THREE.SphereGeometry(1.25, 32, 26);
+  // Lower-poly head (was 32x26 → 22x18) — significant perf gain
+  var headGeom = new THREE.SphereGeometry(1.25, 22, 18);
   var pos = headGeom.attributes.position;
   for (var i = 0; i < pos.count; i++) {
     var x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-    pos.setY(i, y * 1.2);
-    // Push out front for nose bridge area, indent eye sockets slightly
-    if (z > 0.5 && y > -0.3 && y < 0.4) pos.setZ(i, z * 1.04);
-    if (z > 0.5 && Math.abs(x) > 0.35 && Math.abs(x) < 0.7 && y > 0.05 && y < 0.35) pos.setZ(i, z * 0.92);
+    // Whole-head proportions: taller crown, narrower at chin
+    var ny = y * 1.18;
+    pos.setY(i, ny);
+    // Slight back-of-head bulge for full-head look
+    if (z < -0.5 && Math.abs(ny) < 0.6) pos.setZ(i, z * 1.05);
+    // Eye-socket indent
+    if (z > 0.55 && Math.abs(x) > 0.32 && Math.abs(x) < 0.68 && ny > 0.05 && ny < 0.35) pos.setZ(i, z * 0.93);
   }
   pos.needsUpdate = true;
   headGeom.computeVertexNormals();
-  _holo.head = new THREE.Mesh(headGeom, new THREE.MeshBasicMaterial({wireframe:true, color:0x4A9EFF, transparent:true, opacity:0.55}));
+  _holo.head = new THREE.Mesh(headGeom, new THREE.MeshBasicMaterial({wireframe:true, color:0xFFFFFF, transparent:true, opacity:0.55}));
   _holo.scene.add(_holo.head);
 
-  // Inner glow shell
-  var innerGeom = new THREE.SphereGeometry(1.18, 18, 14);
-  var ipos = innerGeom.attributes.position;
-  for (var j=0;j<ipos.count;j++) ipos.setY(j, ipos.getY(j)*1.2);
-  ipos.needsUpdate = true;
-  _holo.inner = new THREE.Mesh(innerGeom, new THREE.MeshBasicMaterial({color:0x4A9EFF, transparent:true, opacity:0.05}));
-  _holo.scene.add(_holo.inner);
-
-  // Outer rotating ring
-  var ringGeom = new THREE.TorusGeometry(1.7, 0.005, 6, 80);
-  _holo.ring = new THREE.Mesh(ringGeom, new THREE.MeshBasicMaterial({color:0x4A9EFF, transparent:true, opacity:0.4}));
+  // Outer slow ring (single, low-poly)
+  var ringGeom = new THREE.TorusGeometry(1.8, 0.004, 4, 60);
+  _holo.ring = new THREE.Mesh(ringGeom, new THREE.MeshBasicMaterial({color:0xFFFFFF, transparent:true, opacity:0.35}));
   _holo.ring.rotation.x = Math.PI/2;
   _holo.scene.add(_holo.ring);
 
-  function animate(){
-    if (_holo.head) _holo.head.rotation.y += 0.005;
-    if (_holo.inner) _holo.inner.rotation.y -= 0.003;
-    if (_holo.ring) _holo.ring.rotation.z += 0.003;
-    if (_holo.renderer) _holo.renderer.render(_holo.scene, _holo.camera);
+  // Throttled rAF render — 30fps instead of 60fps
+  var lastFrame = 0;
+  function animate(t){
     _holo.animId = requestAnimationFrame(animate);
+    if (t - lastFrame < 33) return; // ~30fps cap
+    lastFrame = t;
+    if (_holo.head) _holo.head.rotation.y += 0.012;
+    if (_holo.ring) _holo.ring.rotation.z += 0.008;
+    if (_holo.renderer) _holo.renderer.render(_holo.scene, _holo.camera);
   }
-  animate();
+  animate(0);
 
-  // Animate side stats subtly
+  // Slower stat updates (was 750ms → 1500ms)
   setInterval(function(){
     if (_holo.active) return;
-    var ids = ['holoStat1','holoStat2','holoStat3','holoStat5','holoStat6','holoStat7','holoStat8'];
+    var ids = ['holoStat1','holoStat2','holoStat3','holoStat5','holoStat6','holoStat8'];
     var id = ids[Math.floor(Math.random()*ids.length)];
     var el = document.getElementById(id);
     if (!el) return;
@@ -561,7 +544,7 @@ function initHolo(){
     if (isNaN(n)) return;
     n = Math.max(78, Math.min(99, n + (Math.random()<0.5?-1:1)));
     el.textContent = hasPct ? n+'%' : n;
-  }, 750);
+  }, 1500);
 }
 
 window.toggleHolo = async function(){
@@ -573,7 +556,6 @@ window.toggleHolo = async function(){
   if (_holo.active) {
     if (_holo.stream) { _holo.stream.getTracks().forEach(function(t){t.stop();}); _holo.stream = null; }
     _holo.mpRunning = false;
-    document.getElementById('holoCanvas').style.display = 'block';
     document.getElementById('holoFaceCanvas').style.display = 'none';
     btn.textContent = '⚡ ACTIVATE LIVE SCAN';
     btn.classList.remove('live');
@@ -586,24 +568,30 @@ window.toggleHolo = async function(){
 
   try {
     btn.textContent = 'REQUESTING CAMERA...';
-    _holo.stream = await navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'},audio:false});
+    _holo.stream = await navigator.mediaDevices.getUserMedia({video:{width:480,height:360,facingMode:'user'},audio:false});
     var v = document.getElementById('holoVid');
     v.srcObject = _holo.stream;
 
+    // Show face canvas OVER the rotating Three.js head (whole head stays visible)
     var fc = document.getElementById('holoFaceCanvas');
     fc.style.display = 'block';
-    document.getElementById('holoCanvas').style.display = 'none';
 
     if (!_holo.faceMesh && window.FaceMesh) {
       _holo.faceMesh = new FaceMesh({locateFile:function(f){return 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/'+f;}});
-      _holo.faceMesh.setOptions({maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.6, minTrackingConfidence:0.6});
+      _holo.faceMesh.setOptions({maxNumFaces:1, refineLandmarks:false, minDetectionConfidence:0.5, minTrackingConfidence:0.5});
       _holo.faceMesh.onResults(holoOnResults);
     }
 
+    // Throttle mediapipe to ~15fps for perf
     _holo.mpRunning = true;
+    var lastSend = 0;
     (async function loop(){
       if (!_holo.mpRunning) return;
-      try { await _holo.faceMesh.send({image:v}); } catch(e){}
+      var now = performance.now();
+      if (now - lastSend > 66) {
+        lastSend = now;
+        try { await _holo.faceMesh.send({image:v}); } catch(e){}
+      }
       requestAnimationFrame(loop);
     })();
 
@@ -619,6 +607,8 @@ window.toggleHolo = async function(){
   }
 };
 
+// Reduced connection set for cleaner overlay on top of 3D head
+var _HOLO_CONNS = [[33,133],[362,263],[61,291],[78,308],[10,152],[234,454],[152,234],[152,454]];
 function holoOnResults(r){
   var c = document.getElementById('holoFaceCanvas');
   if (!c) return;
@@ -630,22 +620,20 @@ function holoOnResults(r){
     var W = c.width, H = c.height;
     ctx.save();
     ctx.translate(W,0); ctx.scale(-1,1);
-    // Glow dots
-    ctx.shadowColor = '#4A9EFF';
-    ctx.shadowBlur = 4;
-    ctx.fillStyle = 'rgba(74,158,255,0.85)';
-    for (var i=0;i<lm.length;i++) {
+    ctx.shadowColor = '#FFFFFF';
+    ctx.shadowBlur = 3;
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    // Sparser dot draw — every 3rd landmark for perf + cleaner look
+    for (var i=0;i<lm.length;i+=3) {
       ctx.beginPath();
-      ctx.arc(lm[i].x*W, lm[i].y*H, 1.2, 0, Math.PI*2);
+      ctx.arc(lm[i].x*W, lm[i].y*H, 1, 0, Math.PI*2);
       ctx.fill();
     }
-    // Connection lines
-    var conns = [[33,7],[7,163],[163,144],[144,145],[145,153],[153,154],[154,155],[155,133],[362,382],[382,381],[381,380],[380,374],[374,373],[373,390],[390,249],[249,263],[61,185],[185,40],[40,39],[39,37],[37,0],[0,267],[267,269],[269,270],[270,409],[409,291],[291,375],[375,321],[321,405],[405,314],[314,17],[17,84],[84,181],[181,91],[91,146],[146,61],[10,338],[338,297],[297,332],[332,284],[284,251],[251,389],[389,356],[356,454],[454,323],[323,361],[361,288],[288,397],[397,365],[365,379],[379,378],[378,400],[400,377],[377,152],[152,148],[148,176],[176,149],[149,150],[150,136],[136,172]];
     ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(74,158,255,0.35)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
     ctx.lineWidth = 0.7;
-    for (var k=0;k<conns.length;k++) {
-      var a = conns[k][0], b = conns[k][1];
+    for (var k=0;k<_HOLO_CONNS.length;k++) {
+      var a = _HOLO_CONNS[k][0], b = _HOLO_CONNS[k][1];
       if (lm[a] && lm[b]) {
         ctx.beginPath();
         ctx.moveTo(lm[a].x*W, lm[a].y*H);

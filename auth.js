@@ -64,13 +64,17 @@ window.signInWithGoogle = async function() {
 };
 
 window.signOutUser = async function() {
-  try {
-    await signOut(auth);
-    _currentUser = null; _currentProfile = null;
-    ['mgm_name','mgm_elo','mgm_wins','mgm_losses','mgm_uid','mgm_photo','mgm_username']
-      .forEach(k => localStorage.removeItem(k));
-    window.location.href = 'index.html';
-  } catch(e) { console.error(e); }
+  console.log('[Auth] Sign out requested');
+  // 1. Clear localStorage IMMEDIATELY so we have clean local state regardless of Firebase
+  ['mgm_name','mgm_elo','mgm_wins','mgm_losses','mgm_uid','mgm_photo','mgm_username','mgm_hd_clip']
+    .forEach(k => localStorage.removeItem(k));
+  _currentUser = null;
+  _currentProfile = null;
+  // 2. Try Firebase signOut (don't let errors block redirect)
+  try { await signOut(auth); console.log('[Auth] Firebase signed out'); }
+  catch(e) { console.warn('[Auth] Firebase signOut error:', e.message); }
+  // 3. Hard redirect with cache bypass
+  window.location.replace('index.html?logout=' + Date.now());
 };
 
 /* ══════════════════════════════════

@@ -631,10 +631,13 @@ window.onPhotoPick = function(event) {
 };
 
 window.signOutUser = async function() {
-  await signOut(auth);
-  ['mgm_uid','mgm_username','mgm_name','mgm_elo','mgm_wins','mgm_losses','mgm_photo']
+  console.log('[Profile] Sign out requested');
+  // Clear localStorage first
+  ['mgm_uid','mgm_username','mgm_name','mgm_elo','mgm_wins','mgm_losses','mgm_photo','mgm_hd_clip']
     .forEach(k=>localStorage.removeItem(k));
-  window.location.href = 'index.html';
+  try { await signOut(auth); }
+  catch(e) { console.warn('[Profile] signOut error:', e.message); }
+  window.location.replace('index.html?logout=' + Date.now());
 };
 
 window.deleteAccount = async function() {

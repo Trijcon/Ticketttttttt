@@ -100,6 +100,44 @@ let _user = null;
 let checkTimer = null;
 let usernameAvailable = false;
 
+/* Profanity / slur blocklist — substring match (case-insensitive)
+   Includes common slurs, profanity, and leet variants. Conservative list. */
+const BAD_WORDS = [
+  // racial slurs and variants
+  'nigger','nigga','niger','n1gger','n1gga','chink','gook','spic','kike','wetback',
+  'beaner','towelhead','sandnigger','sandnigga','coon','cracka','cracker','jewboy',
+  // homophobic / transphobic slurs
+  'faggot','fagot','fag','f4g','f4ggot','tranny','dyke','homo','queer',
+  // misogynistic slurs
+  'bitch','b1tch','cunt','c0nt','whore','slut','hoe',
+  // ableist slurs
+  'retard','retarded','retart','ret4rd',
+  // common profanity
+  'fuck','fck','phuck','shit','sh1t','asshole','assh0le','dick','d1ck','cock','c0ck',
+  'pussy','pu55y','bastard','damn','hell',
+  // sexual / explicit
+  'porn','sex','xxx','nude','naked','rape','rapist','pedo','pedophile','molest',
+  // self-harm / extremism
+  'kys','kysrf','suicide','nazi','hitler','isis','terrorist',
+  // platform-impersonation prevention
+  'admin','mod','moderator','owner','official','staff','support','system','mogmetv','mogme'
+];
+
+function containsProfanity(name) {
+  const cleaned = name.toLowerCase()
+    .replace(/0/g, 'o')
+    .replace(/1/g, 'i')
+    .replace(/3/g, 'e')
+    .replace(/4/g, 'a')
+    .replace(/5/g, 's')
+    .replace(/7/g, 't')
+    .replace(/_/g, '');
+  for (const w of BAD_WORDS) {
+    if (cleaned.includes(w)) return w;
+  }
+  return null;
+}
+
 onAuthStateChanged(auth, (user) => {
   if (!user) { window.location.href='index.html'; return; }
   _user = user;
@@ -130,6 +168,14 @@ window.onInput = function() {
     status.textContent='✕'; btn.disabled=true; usernameAvailable=false; return;
   }
 
+  // Profanity check (also catches leet-speak variants)
+  const bad = containsProfanity(val);
+  if (bad) {
+    inp.className='username-input err'; hint.className='input-hint hint-err';
+    hint.textContent='That username contains restricted language. Please pick another.';
+    status.textContent='✕'; btn.disabled=true; usernameAvailable=false; return;
+  }
+
   hint.className='input-hint hint-neutral'; hint.textContent='Checking...';
   status.textContent='⋯'; inp.className='username-input'; btn.disabled=true; usernameAvailable=false;
 
@@ -157,6 +203,11 @@ window.submitUsername = async function() {
   if (!_user || !usernameAvailable) return;
   const username = document.getElementById('usernameInput').value.trim();
   if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) return;
+  // Backstop profanity check at submit
+  if (containsProfanity(username)) {
+    alert('Username contains restricted language. Please pick another.');
+    return;
+  }
 
   const btn = document.getElementById('submitBtn');
   btn.disabled=true; btn.textContent='Creating profile...';

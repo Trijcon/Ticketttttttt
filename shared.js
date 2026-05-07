@@ -257,9 +257,45 @@ function startActivityFeed() {
 }
 
 /* ════════════════════════════════
+   AGE GATE — 18+ confirmation
+════════════════════════════════ */
+function injectAgeGate() {
+  if (localStorage.getItem('mgm_age_ok') === '1') return;
+  // Don't show on admin or setup pages
+  const path = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  if (path === 'admin.html') return;
+
+  const gate = document.createElement('div');
+  gate.id = 'ageGate';
+  gate.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.94);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;padding:20px;';
+  gate.innerHTML = `
+    <div style="max-width:440px;width:100%;background:#0a0a14;border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:32px;text-align:center;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:#666;margin-bottom:8px;">⚠ AGE VERIFICATION</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:26px;color:#fff;margin-bottom:14px;letter-spacing:-0.3px;">Are you 18 or older?</div>
+      <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:24px;">
+        MogMe.TV is intended for adults only. By continuing you confirm that you are at least 18 years of age and agree to our Terms of Service and Privacy Policy.
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button id="ageNo" style="flex:1;padding:13px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:transparent;color:#888;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;cursor:pointer;">I'm under 18</button>
+        <button id="ageYes" style="flex:1;padding:13px;border-radius:8px;border:none;background:#4A9EFF;color:#000;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">Yes, I'm 18+</button>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#444;letter-spacing:1px;margin-top:14px;">Misrepresenting your age is a violation of our Terms of Service.</div>
+    </div>`;
+  document.body.appendChild(gate);
+  document.getElementById('ageYes').onclick = () => {
+    localStorage.setItem('mgm_age_ok', '1');
+    gate.remove();
+  };
+  document.getElementById('ageNo').onclick = () => {
+    window.location.replace('https://www.google.com');
+  };
+}
+
+/* ════════════════════════════════
    INJECT SHARED UI
 ════════════════════════════════ */
 function injectSharedUI() {
+  injectAgeGate();
   const path = window.location.pathname.split('/').pop()||'index.html';
   const isLoggedIn = !!myUid && !!myUsername;
 
