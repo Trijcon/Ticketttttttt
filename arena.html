@@ -449,18 +449,65 @@
     <button class="btn-amber" id="mainBtn" onclick="mainAction()" style="flex:1;font-size:17px;padding:15px;">START CAMERA</button>
   </div>
 
+  <!-- RESULT OVERLAY (omoggle-style) -->
   <div class="result-card" id="resultCard">
-    <div class="result-eyebrow">MATCH COMPLETE</div>
-    <div class="result-title" id="rTitle">—</div>
-    <div class="scores-row">
-      <div><div class="score-big" id="rMy">—</div><div class="score-sm">YOU</div></div>
-      <div class="score-vs">VS</div>
-      <div><div class="score-big" id="rOpp">—</div><div class="score-sm">OPPONENT</div></div>
+    <div class="result-inner">
+      <div class="result-title" id="rTitle">—</div>
+      <div class="result-by" id="rBy">BY <b>opponent</b></div>
+
+      <div class="result-cards">
+        <div class="rsc you" id="myScoreCard">
+          <div class="rsc-label">YOU</div>
+          <div class="rsc-val" id="rMy">—</div>
+          <div class="rsc-elo" id="rMyElo">+0 ELO</div>
+        </div>
+        <div class="rsc-vs">VS</div>
+        <div class="rsc opp" id="oppScoreCard">
+          <div class="rsc-label" id="rOppName">OPP</div>
+          <div class="rsc-val" id="rOpp">—</div>
+          <div class="rsc-elo" id="rOppElo">+0 ELO</div>
+        </div>
+      </div>
+
+      <div class="result-actions">
+        <button class="result-btn primary"   onclick="findMatch()">FIND NEW MATCH</button>
+        <button class="result-btn secondary" onclick="rematch()">REMATCH &amp; CHAT</button>
+        <button class="result-btn ghost"     onclick="window.location.href='index.html'">RETURN TO MENU</button>
+        <button class="result-btn danger"    onclick="reportOpponent()">REPORT OPPONENT</button>
+      </div>
+
+      <div class="rate-section">
+        <div class="rate-row">
+          <span class="rate-label">👤 RATE OPPONENT (Public Appeal)</span>
+          <span class="rate-meta">1 – 10</span>
+        </div>
+        <div class="rate-buttons" id="rateButtons">
+          <button class="rate-btn" data-r="1">1</button>
+          <button class="rate-btn" data-r="2">2</button>
+          <button class="rate-btn" data-r="3">3</button>
+          <button class="rate-btn" data-r="4">4</button>
+          <button class="rate-btn" data-r="5">5</button>
+          <button class="rate-btn" data-r="6">6</button>
+          <button class="rate-btn" data-r="7">7</button>
+          <button class="rate-btn" data-r="8">8</button>
+          <button class="rate-btn" data-r="9">9</button>
+          <button class="rate-btn" data-r="10">10</button>
+        </div>
+        <div class="rate-thanks" id="rateThanks">✓ Thanks — your rating has been recorded.</div>
+      </div>
+
+      <button class="match-analysis-btn" onclick="openAnalysis()">💎 VIEW MATCH ANALYSIS</button>
+      <div class="clip-mode-hint">Turn on Clip Mode in account settings to enable replays.</div>
     </div>
-    <div class="elo-line" id="rElo"></div>
-    <div class="result-actions">
-      <button class="btn-amber" onclick="rematch()">REMATCH</button>
-      <button class="btn-outline" onclick="window.location.href='index.html'">DASHBOARD</button>
+  </div>
+
+  <!-- MATCH ANALYSIS MODAL -->
+  <div class="modal-overlay" id="analysisModal" onclick="if(event.target===this)closeModal('analysisModal')">
+    <div class="modal-box" style="max-width:480px;">
+      <button class="modal-close" onclick="closeModal('analysisModal')">✕</button>
+      <div class="modal-title" style="font-size:20px;">📊 Match Analysis</div>
+      <div class="modal-sub">Per-metric breakdown of your final scan.</div>
+      <div id="analysisBody"></div>
     </div>
   </div>
 </div>
@@ -1003,6 +1050,8 @@ function autoRunScan(){
   }, 1000);
 }
 
+var _lastMatchOpp = null; // stash for rating + analysis
+var _lastMyMetrics = null;
 function onResult(msg){
   state='result';
   myLastScore=msg.myScore||0; oppLastScore=msg.opponentScore||0;
@@ -1012,19 +1061,70 @@ function onResult(msg){
   document.getElementById('myFeed').classList.remove('scanning');
   document.getElementById('scanCountdown').classList.remove('show');
   if (_scanTimer) { clearInterval(_scanTimer); _scanTimer = null; }
-  // Show opp score on overlay
+
+  // Opp overlay (the smaller in-feed card)
   document.getElementById('oppScoreVal').textContent=oppLastScore.toFixed(1);
   var oppTierElo=scoreToElo(oppLastScore);
   document.getElementById('oppTierBadge').textContent=getTierEmoji(oppTierElo)+' '+getTierName(oppTierElo);
   document.getElementById('oppTierBadge').style.color=getTierColor(oppLastScore);
-  document.getElementById('rMy').textContent=myLastScore.toFixed(1);
-  document.getElementById('rOpp').textContent=oppLastScore.toFixed(1);
-  document.getElementById('rTitle').textContent=msg.won?'\uD83C\uDFC6 VICTORY':'\uD83D\uDC80 DEFEATED';
-  document.getElementById('rTitle').style.color=msg.won?'var(--green)':'var(--crimson)';
-  var chg=msg.eloChange||0;
-  document.getElementById('rElo').innerHTML='ELO: <span class="'+(chg>=0?'elo-up':'elo-down')+'">'+(chg>=0?'+':'')+chg+' \u2192 '+(msg.newElo||_elo)+' total</span>';
+
+  // \u2500\u2500 Result-screen population \u2500\u2500
+  var oppName = (document.getElementById('oppLabelName').textContent || 'opponent').trim();
+  _lastMatchOpp = { name: oppName, id: oppSocketId };
+
+  var won  = !!msg.won;
+  var diff = Math.abs(myLastScore - oppLastScore);
+  var title;
+  if (won)        title = diff >= 2.5 ? 'DOMINANT'   : diff >= 1.2 ? 'VICTORY'    : 'NARROW WIN';
+  else            title = diff >= 2.5 ? 'BRUTALIZED' : diff >= 1.2 ? 'MOGGED'     : 'EDGED OUT';
+  var rTitle = document.getElementById('rTitle');
+  rTitle.textContent = title;
+  rTitle.classList.toggle('win', won);
+
+  document.getElementById('rBy').innerHTML = (won ? 'OVER ' : 'BY ') + '<b>'+escapeForResult(oppName)+'</b>';
+
+  // Score cards
+  document.getElementById('rMy').textContent  = myLastScore.toFixed(1);
+  document.getElementById('rOpp').textContent = oppLastScore.toFixed(1);
+  document.getElementById('rOppName').textContent = oppName.toUpperCase();
+  var myCard  = document.getElementById('myScoreCard');
+  var oppCard = document.getElementById('oppScoreCard');
+  myCard.classList.remove('won','lost'); oppCard.classList.remove('won','lost');
+  myCard.classList.add(won?'won':'lost');
+  oppCard.classList.add(won?'lost':'won');
+
+  // ELO change pills
+  var chg = msg.eloChange||0;
+  var myEloEl  = document.getElementById('rMyElo');
+  var oppEloEl = document.getElementById('rOppElo');
+  myEloEl.textContent  = (chg>=0?'+':'') + chg + ' ELO';
+  myEloEl.classList.remove('up','dn'); myEloEl.classList.add(chg>=0?'up':'dn');
+  // Opponent's swing is the inverse magnitude (rough estimate)
+  var oppChg = -chg;
+  oppEloEl.textContent = (oppChg>=0?'+':'') + oppChg + ' ELO';
+  oppEloEl.classList.remove('up','dn'); oppEloEl.classList.add(oppChg>=0?'up':'dn');
+
+  // Reset rating section for new match
+  var thanks = document.getElementById('rateThanks');
+  thanks.classList.remove('show');
+  document.querySelectorAll('#rateButtons .rate-btn').forEach(function(b){
+    b.classList.remove('selected');
+    b.disabled = false;
+  });
+
   document.getElementById('resultCard').classList.add('show');
-  document.getElementById('mainBtn').style.display='none'; document.getElementById('skipBtn').style.display='none';
+  document.getElementById('mainBtn').style.display='none';
+  document.getElementById('skipBtn').style.display='none';
+
+  // Stash metrics for analysis modal
+  if (myLandmarks) {
+    var detail = calcDetailedScore(myLandmarks);
+    _lastMyMetrics = detail.metrics;
+  }
+}
+
+function escapeForResult(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 function rematch(){
@@ -1032,6 +1132,8 @@ function rematch(){
   document.getElementById('mainBtn').style.display='block';
   state='camera'; setS('','Camera active — find a match!'); setBtnFind();
   oppLastScore=0; updateMoggingBar(myLastScore,0);
+  // Auto-search again
+  findMatch();
 }
 
 function skipOpp(){
@@ -1063,6 +1165,53 @@ function reportOpponent(){
     alert('Report submitted. Thank you.');
   }
 }
+
+/* ── PUBLIC APPEAL RATING ── */
+document.querySelectorAll('#rateButtons .rate-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var r = parseInt(btn.getAttribute('data-r'));
+    if (!r) return;
+    document.querySelectorAll('#rateButtons .rate-btn').forEach(function(b){
+      b.classList.remove('selected');
+      b.disabled = true;
+    });
+    btn.classList.add('selected');
+    document.getElementById('rateThanks').classList.add('show');
+    // Send rating to server (server will increment opponent's appealSum/appealCount)
+    if (oppSocketId) {
+      wsSend({ type:'rate_opponent', targetId: oppSocketId, rating: r });
+    }
+  });
+});
+
+/* ── MATCH ANALYSIS MODAL ── */
+window.openAnalysis = function(){
+  var body = document.getElementById('analysisBody');
+  if (!_lastMyMetrics) {
+    body.innerHTML = '<div style="color:var(--muted2);font-family:\'JetBrains Mono\',monospace;font-size:11px;text-align:center;padding:20px 0;">No analysis available — try again next match.</div>';
+  } else {
+    var labels = {
+      symmetry:'Symmetry', jawScore:'Jawline', canthalScore:'Canthal Tilt',
+      cheekScore:'Cheekbones', eyeScore:'Eye Quality', noseScore:'Nose',
+      lipScore:'Lips', thirdsScore:'Facial Thirds', faceShapeScore:'Face Shape',
+      browScore:'Brow Ridge', midfaceScore:'Midface', philtrumScore:'Philtrum',
+      phiScore:'Golden Ratio',
+    };
+    var rows = '';
+    for (var k in labels) {
+      var v = _lastMyMetrics[k];
+      if (v == null) continue;
+      var pct = Math.round(v * 100);
+      rows += '<div class="analysis-row">'
+        + '<div class="analysis-name">' + labels[k] + '</div>'
+        + '<div class="analysis-bar-wrap"><div class="analysis-bar-fill" style="width:' + pct + '%;"></div></div>'
+        + '<div class="analysis-score">' + pct + '</div>'
+        + '</div>';
+    }
+    body.innerHTML = rows;
+  }
+  if (typeof openModal === 'function') openModal('analysisModal');
+};
 
 function setS(type,text){
   var d=document.getElementById('sDot'); d.className='status-dot'+(type?' '+type:'');
