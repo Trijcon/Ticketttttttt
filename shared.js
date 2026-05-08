@@ -118,8 +118,16 @@ function handleShared(msg) {
         myElo = msg.newElo;
         localStorage.setItem('mgm_elo', myElo);
       }
-      if (msg.won) { myWins++;   localStorage.setItem('mgm_wins',   myWins); }
-      else         { myLosses++; localStorage.setItem('mgm_losses', myLosses); }
+      // Only ranked matches change W/L and persist to Firestore.
+      // msg.unranked is set true by server for private matches.
+      if (!msg.unranked) {
+        if (msg.won) { myWins++;   localStorage.setItem('mgm_wins',   myWins); }
+        else         { myLosses++; localStorage.setItem('mgm_losses', myLosses); }
+        // Persist to Firestore as a safety net — works even if server lacks admin SDK
+        if (typeof window.saveEloToFirestore === 'function') {
+          window.saveEloToFirestore(myElo, myWins, myLosses);
+        }
+      }
       break;
     case 'chat_error': chatSys('⚠ '+msg.error); break;
     case 'banned':

@@ -482,6 +482,57 @@ connectWS();
 ═════════════════════════════════ */
 var _holo = { scene:null, camera:null, renderer:null, head:null, inner:null, ring:null, animId:null, active:false, stream:null, faceMesh:null, mpRunning:false };
 
+// Cache the parsed canonical face geometry across reloads
+var _faceMeshGeomCache = null;
+
+function loadCanonicalFaceMesh(){
+  if (_faceMeshGeomCache) return Promise.resolve(_faceMeshGeomCache);
+  // MediaPipe's canonical face model — 468 vertices forming a real human face mesh
+  var URL = 'https://cdn.jsdelivr.net/gh/google/mediapipe@master/mediapipe/modules/face_geometry/data/canonical_face_model.obj';
+  return fetch(URL).then(function(r){ return r.text(); }).then(function(text){
+    var verts = [];     // flat array of x,y,z
+    var indices = [];   // triangle indices
+
+    var lines = text.split('\n');
+    for (var i=0; i<lines.length; i++){
+      var line = lines[i].trim();
+      if (!line) continue;
+      var parts = line.split(/\s+/);
+      if (parts[0] === 'v'){
+        verts.push(parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3]));
+      } else if (parts[0] === 'f'){
+        // Triangulate the face; OBJ may use v/vt/vn — take first index, 1-based
+        var face = [];
+        for (var j=1; j<parts.length; j++){
+          face.push(parseInt(parts[j].split('/')[0], 10) - 1);
+        }
+        for (var k=1; k+1<face.length; k++){
+          indices.push(face[0], face[k], face[k+1]);
+        }
+      }
+    }
+
+    if (verts.length < 30) throw new Error('Bad canonical face data');
+
+    var geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+    geom.setIndex(indices);
+    geom.computeVertexNormals();
+
+    // Center on origin and scale to unit-ish size
+    geom.computeBoundingBox();
+    var bb = geom.boundingBox;
+    var cx = (bb.min.x+bb.max.x)/2, cy = (bb.min.y+bb.max.y)/2, cz = (bb.min.z+bb.max.z)/2;
+    geom.translate(-cx, -cy, -cz);
+    var size = Math.max(bb.max.x-bb.min.x, bb.max.y-bb.min.y, bb.max.z-bb.min.z);
+    var scale = 2.4 / size;     // fit nicely in our 3.6-unit camera distance
+    geom.scale(scale, scale, scale);
+
+    _faceMeshGeomCache = geom;
+    return geom;
+  });
+}
+
 function initHolo(){
   var canvas = document.getElementById('holoCanvas');
   if (!canvas || !window.THREE) return;
@@ -497,79 +548,27 @@ function initHolo(){
   _holo.renderer.setSize(W, H, false);
   _holo.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
 
-  // Higher-poly head with anatomical deformations — looks like a real head
-  var headGeom = new THREE.SphereGeometry(1.2, 36, 28);
-  var pos = headGeom.attributes.position;
-  for (var i = 0; i < pos.count; i++) {
-    var x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-    // Base head proportions — taller crown, narrower at chin
-    y = y * 1.22;
-
-    var ax = Math.abs(x), front = z > 0;
-
-    // ── CHIN — taper bottom ──
-    if (y < -0.7) { x *= 0.78; z *= 0.92; }
-    if (y < -0.95) { x *= 0.7; }
-
-    // ── JAW — define jawline corners ──
-    if (y > -0.85 && y < -0.4 && ax > 0.5) {
-      x *= 0.92;
-      if (front) z *= 0.95;
-    }
-
-    // ── FOREHEAD — slight recession ──
-    if (y > 0.85 && front) z *= 0.96;
-    if (y > 1.05) { x *= 0.94; z *= 0.93; }
-
-    // ── BROW RIDGE — bump out above eyes ──
-    if (front && z > 0.45 && y > 0.32 && y < 0.55) z *= 1.08;
-
-    // ── EYE SOCKETS — recess ──
-    if (front && z > 0.5 && ax > 0.22 && ax < 0.55 && y > 0.05 && y < 0.32) {
-      z *= 0.84;
-    }
-
-    // ── NOSE BRIDGE — push forward at center ──
-    if (front && z > 0.6 && ax < 0.12 && y > 0.0 && y < 0.32) z *= 1.18;
-    // Nose tip
-    if (front && z > 0.7 && ax < 0.1 && y > -0.18 && y < 0.05) z *= 1.32;
-    // Nostril flare
-    if (front && z > 0.6 && ax > 0.08 && ax < 0.18 && y > -0.22 && y < -0.05) z *= 1.05;
-
-    // ── CHEEKBONES — push out slightly ──
-    if (front && z > 0.3 && ax > 0.42 && ax < 0.65 && y > -0.15 && y < 0.18) z *= 1.06;
-
-    // ── MOUTH — recess slightly ──
-    if (front && z > 0.55 && ax < 0.22 && y > -0.45 && y < -0.22) z *= 0.95;
-    // Lower-lip / chin curve
-    if (front && z > 0.5 && ax < 0.18 && y > -0.65 && y < -0.45) z *= 0.97;
-
-    // ── BACK OF HEAD — bulge for full-head silhouette ──
-    if (!front && y > -0.5 && y < 0.7) z *= 1.06;
-
-    pos.setX(i, x);
-    pos.setY(i, y);
-    pos.setZ(i, z);
-  }
-  pos.needsUpdate = true;
-  headGeom.computeVertexNormals();
-  _holo.head = new THREE.Mesh(headGeom, new THREE.MeshBasicMaterial({wireframe:true, color:0xFFFFFF, transparent:true, opacity:0.6}));
+  // Placeholder mesh while we async-load the canonical face model
+  var placeholderGeom = new THREE.SphereGeometry(1.0, 12, 8);
+  _holo.head = new THREE.Mesh(placeholderGeom, new THREE.MeshBasicMaterial({wireframe:true, color:0xFFFFFF, transparent:true, opacity:0.4}));
   _holo.scene.add(_holo.head);
 
-  // Subtle inner shell for depth
-  var inner = new THREE.Mesh(
-    headGeom.clone(),
-    new THREE.MeshBasicMaterial({color:0xFFFFFF, transparent:true, opacity:0.04})
-  );
-  inner.scale.set(0.95, 0.95, 0.95);
-  _holo.scene.add(inner);
-  _holo.inner = inner;
-
-  // Outer slow ring (single, low-poly)
+  // Outer slow ring
   var ringGeom = new THREE.TorusGeometry(1.85, 0.004, 4, 64);
   _holo.ring = new THREE.Mesh(ringGeom, new THREE.MeshBasicMaterial({color:0xFFFFFF, transparent:true, opacity:0.3}));
   _holo.ring.rotation.x = Math.PI/2;
   _holo.scene.add(_holo.ring);
+
+  // Async-load MediaPipe's canonical face mesh (468 vertices, real head topology)
+  loadCanonicalFaceMesh().then(function(geom){
+    if (!geom) return;
+    _holo.scene.remove(_holo.head);
+    _holo.head = new THREE.Mesh(geom, new THREE.MeshBasicMaterial({
+      wireframe: true, color: 0xFFFFFF, transparent: true, opacity: 0.55,
+      side: THREE.DoubleSide,
+    }));
+    _holo.scene.add(_holo.head);
+  }).catch(function(){ /* keep placeholder on failure */ });
 
   // Throttled rAF render — 30fps instead of 60fps
   // When camera is active, head rotation is driven by detected pose (smoothed)

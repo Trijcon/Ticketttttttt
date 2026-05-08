@@ -46,6 +46,32 @@
 .feed-video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1);}
 .feed-canvas{position:absolute;top:0;left:0;width:100%;height:100%;transform:scaleX(-1);pointer-events:none;}
 .feed-score{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.75);border:1px solid rgba(74,158,255,0.2);border-radius:3px;padding:4px 14px;z-index:5;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;color:var(--blue);display:none;}
+
+/* Score pill overlay (arena-style) */
+.scan-pill{
+  position:absolute;top:10px;left:10px;
+  background:rgba(0,0,0,0.85);border:1px solid rgba(255,255,255,0.1);
+  border-radius:12px;padding:8px 14px;min-width:110px;
+  backdrop-filter:blur(6px);display:none;z-index:6;
+}
+.scan-pill-label{font-family:'JetBrains Mono',monospace;font-size:8px;color:rgba(255,255,255,0.5);letter-spacing:2px;margin-bottom:3px;text-transform:uppercase;}
+.scan-pill-val{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:24px;line-height:1;color:#fff;margin-bottom:3px;}
+.scan-pill-tier{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:9px;letter-spacing:1.5px;color:var(--blue);margin-bottom:5px;}
+.scan-pill-meta{font-family:'JetBrains Mono',monospace;font-size:9px;color:#fff;margin-top:5px;border-top:1px solid rgba(255,255,255,0.08);padding-top:5px;}
+.scan-pill-meta .dom{color:#fff;}
+.scan-pill-meta .flaw{color:rgba(255,255,255,0.55);}
+
+/* SCAN tag pill (arena-style) */
+.scan-tag{
+  position:absolute;top:10px;right:10px;
+  background:rgba(0,0,0,0.85);border:1px solid rgba(255,255,255,0.1);
+  border-radius:12px;padding:8px 12px;text-align:right;
+  backdrop-filter:blur(6px);display:none;z-index:6;
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;
+  color:rgba(255,255,255,0.55);
+}
+.scan-tag-name{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;color:#fff;letter-spacing:0.3px;margin-top:3px;}
+.scan-tag.unranked{border-color:rgba(74,158,255,0.3);}
 .feed-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
 .feed-ph-text{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);letter-spacing:1px;}
 .a-status{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;display:flex;align-items:center;gap:8px;}
@@ -105,11 +131,35 @@
       <div class="feed-box">
         <video class="feed-video" id="myVid" autoplay playsinline muted></video>
         <canvas class="feed-canvas" id="myCanvas"></canvas>
+        <div class="scan-pill" id="myPill">
+          <div class="scan-pill-label">Overall Score</div>
+          <div class="scan-pill-val" id="myPillVal">—</div>
+          <div class="scan-pill-tier" id="myPillTier">—</div>
+          <div class="scan-pill-meta">
+            <div class="dom" id="myPillDom">—</div>
+            <div class="flaw" id="myPillFlaw">—</div>
+          </div>
+        </div>
+        <div class="scan-tag unranked" id="myTag">
+          <div>Your Scan</div>
+          <div class="scan-tag-name" id="myTagName">YOU</div>
+          <div style="margin-top:3px;color:var(--blue);">UNRANKED</div>
+        </div>
         <div class="feed-score" id="myScore"></div>
         <div class="feed-ph" id="myPH"><div class="feed-ph-text">Starting camera...</div></div>
       </div>
       <div class="feed-box">
         <video class="feed-video" id="oppVid" autoplay playsinline style="display:none;"></video>
+        <div class="scan-pill" id="oppPill">
+          <div class="scan-pill-label">Overall Score</div>
+          <div class="scan-pill-val" id="oppPillVal">—</div>
+          <div class="scan-pill-tier" id="oppPillTier">—</div>
+        </div>
+        <div class="scan-tag unranked" id="oppTag">
+          <div>Enemy Scan</div>
+          <div class="scan-tag-name" id="oppTagName">—</div>
+          <div style="margin-top:3px;color:var(--blue);">UNRANKED</div>
+        </div>
         <div class="feed-score" id="oppScore"></div>
         <div class="feed-ph" id="oppPH"><div class="feed-ph-text" id="oppPHText">Connecting...</div></div>
       </div>
@@ -191,8 +241,90 @@ function initFM(v,c){
 
 function drawMesh(canvas,lm){
   var ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
-  ctx.fillStyle='rgba(74,158,255,0.6)';
+  ctx.fillStyle='rgba(74,158,255,0.7)';
   for(var i=0;i<lm.length;i++){ctx.beginPath();ctx.arc(lm[i].x*w,lm[i].y*h,1.1,0,Math.PI*2);ctx.fill();}
+}
+
+/* ═══════════════════════════════════════
+   FACE ALGORITHM v3 (mirror of arena.html)
+   Used for private/unranked scoring.
+═══════════════════════════════════════ */
+var _privScoreBuffer=[], _PRIV_BUFFER=10;
+function calcDetailedScore(lm){
+  if(!lm||lm.length<468) return {score:5,dom:'—',flaw:'—'};
+  function clamp(v){return Math.max(0,Math.min(1,v));}
+  var lEye=lm[33],rEye=lm[263],chin=lm[152],fHead=lm[10];
+  if(!lEye||!rEye||!chin||!fHead) return {score:5,dom:'—',flaw:'—'};
+  var roll=Math.atan2(rEye.y-lEye.y, rEye.x-lEye.x);
+  var noseTip=lm[1]||lm[4];
+  var leftEar=lm[234],rightEar=lm[454];
+  var yaw=noseTip?((noseTip.x-leftEar.x)-(rightEar.x-noseTip.x)):0;
+  var cosR=Math.cos(-roll),sinR=Math.sin(-roll);
+  var cx=(lEye.x+rEye.x)/2,cy=(lEye.y+rEye.y)/2;
+  function rL(i){if(!lm[i])return null;var dx=lm[i].x-cx,dy=lm[i].y-cy;return{x:dx*cosR-dy*sinR+cx,y:dx*sinR+dy*cosR+cy,z:lm[i].z};}
+  function d(a,b){var pa=rL(a),pb=rL(b);if(!pa||!pb)return 0;return Math.sqrt((pa.x-pb.x)*(pa.x-pb.x)+(pa.y-pb.y)*(pa.y-pb.y));}
+  var faceW=d(234,454),faceH=d(10,152);
+  if(faceW<0.01||faceH<0.01) return {score:5,dom:'—',flaw:'—'};
+  var yawPenalty=Math.min(0.25,Math.abs(yaw)*1.5);
+  // Symmetry
+  var nose=lm[1],sym=[[33,263],[130,359],[159,386],[145,374],[61,291],[234,454],[58,288],[172,397],[70,300],[105,334],[107,336],[46,276]],sT=0,sC=0;
+  for(var i=0;i<sym.length;i++){var li=sym[i][0],ri=sym[i][1];if(lm[li]&&lm[ri]){var l=Math.abs(nose.x-lm[li].x),r=Math.abs(lm[ri].x-nose.x),a=(l+r)/2;if(a>0.005){sT+=Math.abs(l-r)/a;sC++;}}}
+  var symmetry=sC>0?clamp(1-(sT/sC)*3.5):0.5;
+  var jawW=d(172,397),jR=jawW/faceW,jRS=clamp(1-Math.abs(jR-0.78)*5);
+  var chinDepth=d(152,172)+d(152,397),cR=chinDepth>0?jawW/chinDepth:0,cS=clamp(1-Math.abs(cR-0.88)*6);
+  var jawScore=jRS*0.6+cS*0.4;
+  var lT=lm[133]&&lm[33]?(lm[133].y-lm[33].y):0,rT=lm[362]&&lm[263]?(lm[362].y-lm[263].y):0,canthal=clamp(0.5+((lT+rT)/2)*22);
+  var cheekW=d(234,454),midW=d(130,359),cheekR=midW>0?cheekW/midW:1,cheekScore=clamp(1-Math.abs(cheekR-1.10)*6);
+  var eyeDist=d(133,362),eyeR=eyeDist/faceW,eS=clamp(1-Math.abs(eyeR-0.31)*14);
+  var lH=d(159,145),rH=d(386,374),aH=(lH+rH)/2,oR=aH/faceH,oS=clamp(1-Math.abs(oR-0.055)*40);
+  var eyeScore=eS*0.55+oS*0.45;
+  var noseW=d(48,278),nR=noseW/faceW,nWS=clamp(1-Math.abs(nR-0.21)*14);
+  var noseH=d(168,2),nLR=noseH/faceH,nLS=clamp(1-Math.abs(nLR-0.32)*10);
+  var noseScore=nWS*0.6+nLS*0.4;
+  var ulH=d(0,13),llH=d(14,152),lipR=llH>0?ulH/llH:0.7,lipScore=clamp(1-Math.abs(lipR-0.7)*5);
+  var t1=d(10,168),t2=d(168,2),t3=d(2,152),tT=t1+t2+t3;
+  var thirdsScore=tT>0?clamp(1-(Math.abs(t1/tT-0.33)+Math.abs(t2/tT-0.33)+Math.abs(t3/tT-0.33))*3.5):0.5;
+  var faceShape=clamp(1-Math.abs(faceW/faceH-0.68)*6);
+  var browScore=clamp(1-Math.abs((d(105,159)+d(334,386))/2/faceH-0.04)*30);
+  var midface=clamp(1-Math.abs(d(168,2)/faceH-0.36)*7);
+  var philtrum=d(2,0),lipChin=d(13,152),pR=lipChin>0?philtrum/lipChin:0.4;
+  var philtrumScore=clamp(1-Math.abs(pR-0.32)*5);
+  var phiScore=clamp(1-Math.abs(faceH/faceW-1.618)*1.4);
+  var w={s:2.5,j:2.2,c:2.0,ck:1.6,e:1.5,n:1.1,l:0.8,t:0.7,sh:0.6,br:0.5,m:0.9,p:0.5,ph:0.6};
+  var ws=Object.values(w).reduce(function(a,b){return a+b;},0);
+  var raw=(symmetry*w.s+jawScore*w.j+canthal*w.c+cheekScore*w.ck+eyeScore*w.e+noseScore*w.n+lipScore*w.l+thirdsScore*w.t+faceShape*w.sh+browScore*w.br+midface*w.m+philtrumScore*w.p+phiScore*w.ph)/ws;
+  var pose=raw*(1-yawPenalty*0.5),scaled=Math.min(10,Math.max(1,pose*9.2+0.4));
+  _privScoreBuffer.push(scaled);
+  if(_privScoreBuffer.length>_PRIV_BUFFER) _privScoreBuffer.shift();
+  var fin=_privScoreBuffer.reduce(function(a,b){return a+b;},0)/_privScoreBuffer.length;
+  fin=Math.round(fin*10)/10;
+  var metrics=[
+    {v:symmetry,d:'Strong Symmetry',f:'Facial Asymmetry'},
+    {v:jawScore,d:'Sharp Jawline',f:'Soft Jawline'},
+    {v:canthal,d:'Hunter Eyes',f:'Downturned Eyes'},
+    {v:cheekScore,d:'High Cheekbones',f:'Flat Midface'},
+    {v:eyeScore,d:'Deep-Set Eyes',f:'Eye Proportion'},
+    {v:noseScore,d:'Refined Nose',f:'Nose Proportion'},
+    {v:lipScore,d:'Defined Lips',f:'Lip Ratio'},
+    {v:thirdsScore,d:'Balanced Thirds',f:'Uneven Thirds'},
+    {v:faceShape,d:'Oval Face',f:'Face Ratio'},
+    {v:browScore,d:'Strong Brow',f:'Weak Brow'},
+    {v:midface,d:'Compact Midface',f:'Long Midface'},
+    {v:philtrumScore,d:'Short Philtrum',f:'Long Philtrum'},
+    {v:phiScore,d:'Phi Proportions',f:'Off-Phi Geometry'},
+  ];
+  metrics.sort(function(a,b){return b.v-a.v;});
+  return {score:fin,dom:metrics[0].d,flaw:metrics[metrics.length-1].f};
+}
+function scoreToTier(s){
+  if(s>=9.5) return 'Slayer';
+  if(s>=8.5) return 'Chad';
+  if(s>=7.5) return 'Chadlite';
+  if(s>=6.5) return 'HTN';
+  if(s>=5.5) return 'MTN';
+  if(s>=4.5) return 'LTN';
+  if(s>=1)   return 'Sub3';
+  return 'Molecule';
 }
 
 function generateCode(){wsSend({type:'create_private_room'});}
@@ -206,6 +338,13 @@ function onMatchStart(msg){
   document.getElementById('arenaPanel').classList.add('show');
   document.getElementById('waitingCard').classList.remove('show');
   document.getElementById('oppPHText').textContent=(msg.opponent&&msg.opponent.name)||'Opponent';
+  // Set names + show overlay tags
+  var myName = localStorage.getItem('mgm_username') || localStorage.getItem('mgm_name') || 'YOU';
+  document.getElementById('myTagName').textContent = myName.toUpperCase();
+  document.getElementById('oppTagName').textContent = ((msg.opponent&&msg.opponent.name)||'OPP').toUpperCase();
+  document.getElementById('myPill').style.display='block';
+  document.getElementById('myTag').style.display='block';
+  document.getElementById('oppTag').style.display='block';
   setAS('searching','Connecting peer cameras...');
   startRTC();
 }
@@ -227,12 +366,32 @@ function runScan(){
   document.getElementById('scanBtn').disabled=true; document.getElementById('scanBtn').textContent='Scanning...';
   setAS('searching','Analyzing...');
   setTimeout(function(){
-    var score=+(Math.random()*3+5.5).toFixed(1);
-    document.getElementById('myScore').textContent=score; document.getElementById('myScore').style.display='block';
-    wsSend({type:'submit_score',score:score}); setAS('searching','Submitted — awaiting opponent...');
+    var result=calcDetailedScore(myLandmarks);
+    var score=result.score;
+    // Update overlay
+    document.getElementById('myPillVal').textContent=score.toFixed(1);
+    document.getElementById('myPillTier').textContent=scoreToTier(score);
+    document.getElementById('myPillDom').textContent=result.dom;
+    document.getElementById('myPillFlaw').textContent=result.flaw;
+    document.getElementById('myScore').textContent=score.toFixed(1);
+    document.getElementById('myScore').style.display='block';
+    wsSend({type:'submit_score',score:score});
+    setAS('searching','Submitted — awaiting opponent...');
   },2000);
 }
-function showResult(msg){document.getElementById('resultBar').classList.add('show');document.getElementById('resMy').textContent=(msg.myScore||0).toFixed(1);document.getElementById('resOpp').textContent=(msg.opponentScore||0).toFixed(1);document.getElementById('resTitle').textContent=msg.won?'Victory':'Defeated';document.getElementById('resTitle').style.color=msg.won?'var(--green)':'var(--red)';setAS('on','Match complete');}
+function showResult(msg){
+  document.getElementById('resultBar').classList.add('show');
+  var my=msg.myScore||0, opp=msg.opponentScore||0;
+  document.getElementById('resMy').textContent=my.toFixed(1);
+  document.getElementById('resOpp').textContent=opp.toFixed(1);
+  document.getElementById('resTitle').textContent=msg.won?'Victory · Unranked':'Defeated · Unranked';
+  document.getElementById('resTitle').style.color=msg.won?'var(--green)':'var(--red)';
+  // Show opponent's score on their side
+  document.getElementById('oppPillVal').textContent=opp.toFixed(1);
+  document.getElementById('oppPillTier').textContent=scoreToTier(opp);
+  document.getElementById('oppPill').style.display='block';
+  setAS('on','Match complete · No ELO change');
+}
 function resetMatch(){document.getElementById('resultBar').classList.remove('show');document.getElementById('myScore').style.display='none';document.getElementById('oppScore').style.display='none';document.getElementById('scanBtn').disabled=false;document.getElementById('scanBtn').textContent='Run Scan';setAS('on','Ready for next round');}
 function setAS(type,text){var d=document.getElementById('aDot');d.className='a-dot'+(type?' '+type:'');document.getElementById('aLabel').textContent=text;}
 </script>

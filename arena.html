@@ -18,47 +18,79 @@
 .status-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:8px;}
 .queue-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);}
 
-/* FEEDS */
-.feeds-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px;}
-.feed-box{position:relative;border-radius:14px;overflow:hidden;background:#020208;border:1px solid var(--border);aspect-ratio:16/11;}
+/* FEEDS — bigger 1V1 layout */
+.feeds-grid{
+  display:grid;grid-template-columns:1fr 60px 1fr;gap:0;
+  align-items:center;margin-bottom:10px;
+  position:relative;
+}
+.feeds-grid .vs-divider{
+  display:flex;align-items:center;justify-content:center;
+  height:100%;
+}
+.feed-box{
+  position:relative;border-radius:14px;overflow:hidden;
+  background:#020208;border:1px solid rgba(255,255,255,0.08);
+  aspect-ratio:4/3;width:100%;
+}
 .feed-video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1);}
 .feed-canvas{position:absolute;top:0;left:0;width:100%;height:100%;transform:scaleX(-1);pointer-events:none;}
 .feed-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
 .feed-ph-icon{font-size:44px;opacity:0.25;}
 .feed-ph-text{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);letter-spacing:1px;}
 
+@media(max-width:760px){
+  .feeds-grid{grid-template-columns:1fr;gap:10px;}
+  .feeds-grid .vs-divider{display:none;}
+}
+
 /* SCAN OVERLAY */
 .scan-overlay{position:absolute;inset:0;pointer-events:none;z-index:10;}
 
-/* Top-left info panel */
+/* Top-left score pill */
 .scan-info-tl{
-  position:absolute;top:10px;left:10px;
-  background:rgba(0,0,0,0.72);border:1px solid rgba(255,255,255,0.1);
-  border-radius:10px;padding:10px 12px;min-width:130px;
-  backdrop-filter:blur(4px);display:none;
+  position:absolute;top:14px;left:14px;
+  background:rgba(0,0,0,0.85);border:1px solid rgba(255,255,255,0.1);
+  border-radius:14px;padding:10px 16px;min-width:115px;
+  backdrop-filter:blur(8px);display:none;z-index:6;
 }
-.scan-score-label{font-family:'JetBrains Mono',monospace;font-size:8px;color:rgba(255,255,255,0.5);letter-spacing:1px;margin-bottom:2px;}
-.scan-score-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:36px;line-height:1;color:#fff;margin-bottom:4px;}
-.scan-tier-badge{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:1px;}
-.scan-dom-row{margin-top:6px;border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;}
-.scan-feat-label{font-family:'JetBrains Mono',monospace;font-size:8px;color:rgba(255,255,255,0.4);letter-spacing:1px;}
-.scan-feat-val{font-family:'JetBrains Mono',monospace;font-size:10px;color:#0df2c8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px;}
-.scan-flaw-val{font-family:'JetBrains Mono',monospace;font-size:10px;color:#ff3d6b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px;}
+.scan-score-label{font-family:'JetBrains Mono',monospace;font-size:8px;color:rgba(255,255,255,0.5);letter-spacing:2px;margin-bottom:4px;text-transform:uppercase;}
+.scan-score-val{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:28px;line-height:1;color:#fff;margin-bottom:4px;}
+.scan-tier-badge{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:10px;letter-spacing:1.5px;display:flex;align-items:center;gap:4px;}
+.scan-dom-row{margin-top:8px;border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;}
+.scan-feat-label{font-family:'JetBrains Mono',monospace;font-size:7.5px;color:rgba(255,255,255,0.35);letter-spacing:1px;display:none;}
+.scan-feat-val{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:11px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;display:block;margin-bottom:1px;}
+.scan-flaw-val{font-family:'Space Grotesk',sans-serif;font-weight:400;font-size:10px;color:rgba(255,255,255,0.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;display:block;}
 
-/* Top-right label */
+/* Top-right SCAN tag pill */
 .scan-label-tr{
-  position:absolute;top:10px;right:10px;
-  background:rgba(0,0,0,0.72);border:1px solid rgba(255,255,255,0.1);
-  border-radius:10px;padding:8px 12px;text-align:right;
-  backdrop-filter:blur(4px);display:none;
+  position:absolute;top:14px;right:14px;
+  background:rgba(0,0,0,0.85);border:1px solid rgba(255,255,255,0.1);
+  border-radius:14px;padding:9px 14px;text-align:right;
+  backdrop-filter:blur(8px);display:none;z-index:6;
 }
-.scan-label-tag{font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:1px;margin-bottom:4px;}
-.scan-label-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:1px;color:#fff;margin-bottom:3px;}
-.scan-label-elo{font-family:'JetBrains Mono',monospace;font-size:11px;display:flex;align-items:center;gap:5px;justify-content:flex-end;}
+.scan-label-tag{font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,0.55);letter-spacing:2px;margin-bottom:6px;text-transform:uppercase;
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);
+  border-radius:999px;padding:2px 8px;
+}
+.scan-label-tag::after{content:'';width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.4);}
+.scan-label-name{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;letter-spacing:0.5px;color:#fff;margin-bottom:6px;}
+.scan-label-elo{font-family:'JetBrains Mono',monospace;font-size:10px;display:inline-flex;align-items:center;gap:5px;justify-content:flex-end;
+  background:rgba(0,0,0,0.5);border:1px solid rgba(255,61,107,0.3);
+  border-radius:999px;padding:3px 10px;letter-spacing:0.5px;
+}
 
-/* Report button */
-.report-btn{position:absolute;bottom:10px;left:10px;background:rgba(255,61,107,0.15);border:1px solid rgba(255,61,107,0.3);border-radius:7px;padding:5px 12px;color:#ff3d6b;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;display:none;z-index:15;transition:all 0.2s;}
-.report-btn:hover{background:rgba(255,61,107,0.25);}
+/* Report button — under enemy score pill */
+.report-btn{
+  position:absolute;top:90px;left:14px;
+  background:rgba(255,61,107,0.18);border:1px solid rgba(255,61,107,0.3);
+  border-radius:8px;padding:6px 16px;
+  color:#ff3d6b;font-family:'JetBrains Mono',monospace;font-weight:700;
+  font-size:10px;letter-spacing:2px;cursor:pointer;
+  display:none;z-index:15;transition:all 0.2s;
+}
+.report-btn:hover{background:rgba(255,61,107,0.3);color:#ff6b8a;}
 
 /* MATCH TIMER (top-center) */
 .match-timer{
@@ -102,7 +134,24 @@
 .mogging-label{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted2);margin-bottom:4px;}
 .mogging-bar{height:8px;background:rgba(255,255,255,0.06);border-radius:999px;overflow:hidden;position:relative;}
 .mogging-fill{position:absolute;left:0;top:0;height:100%;width:50%;background:linear-gradient(90deg,var(--teal),var(--violet));border-radius:999px;transition:width 1s cubic-bezier(0.34,1.56,0.64,1);}
-.vs-circle{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:12px;color:var(--muted);flex-shrink:0;}
+.vs-circle{
+  width:46px;height:46px;border-radius:50%;
+  background:rgba(0,0,0,0.85);
+  border:1.5px solid rgba(34,197,94,0.4);
+  box-shadow:0 0 18px rgba(34,197,94,0.25);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+  font-family:'Space Grotesk',sans-serif;
+  flex-shrink:0;position:relative;
+}
+.vs-label{
+  font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.5px;
+  color:rgba(255,255,255,0.5);
+}
+.vs-count{
+  font-family:'Space Grotesk',sans-serif;font-weight:700;
+  font-size:18px;color:var(--green);line-height:1;
+  text-shadow:0 0 8px rgba(34,197,94,0.6);
+}
 
 .actions-row{display:flex;gap:10px;margin-bottom:12px;}
 
@@ -137,7 +186,7 @@
   <div class="match-timer hidden" id="matchTimer">00:00</div>
 
   <div class="feeds-grid">
-    <!-- YOU -->
+    <!-- LEFT FEED -->
     <div class="feed-box">
       <video class="feed-video" id="myVid" autoplay playsinline muted></video>
       <canvas class="feed-canvas" id="myCanvas"></canvas>
@@ -166,6 +215,14 @@
         </div>
       </div>
       <div class="feed-ph" id="myPH"><div class="feed-ph-icon">📷</div><div class="feed-ph-text">CAMERA OFF</div></div>
+    </div>
+
+    <!-- VS divider (between feeds) -->
+    <div class="vs-divider">
+      <div class="vs-circle" id="vsCircle">
+        <div class="vs-label">VS</div>
+        <div class="vs-count" id="vsCount" style="display:none;">—</div>
+      </div>
     </div>
 
     <!-- OPPONENT -->
@@ -259,16 +316,26 @@ function startMatchTimer(){
   matchStartTs=Date.now();
   var el=document.getElementById('matchTimer');
   el.classList.remove('hidden');
+  // Show countdown number in VS circle
+  var vsLabel=document.querySelector('.vs-label');
+  var vsCount=document.getElementById('vsCount');
+  if(vsLabel)vsLabel.style.display='none';
+  if(vsCount)vsCount.style.display='block';
   if(matchTimerId)clearInterval(matchTimerId);
   matchTimerId=setInterval(function(){
     var s=Math.floor((Date.now()-matchStartTs)/1000);
     var m=Math.floor(s/60),ss=s%60;
     el.textContent=String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0');
+    if(vsCount)vsCount.textContent=String(ss);
   },1000);
 }
 function stopMatchTimer(){
   if(matchTimerId){clearInterval(matchTimerId);matchTimerId=null;}
   document.getElementById('matchTimer').classList.add('hidden');
+  var vsLabel=document.querySelector('.vs-label');
+  var vsCount=document.getElementById('vsCount');
+  if(vsLabel)vsLabel.style.display='block';
+  if(vsCount)vsCount.style.display='none';
 }
 function updateGetMog(myScore,oppScore){
   var total=myScore+oppScore;
@@ -302,7 +369,7 @@ connectWS(onMsg);
 function onMsg(msg){
   switch(msg.type){
     case 'queue_joined':
-      setS('searching','Searching for opponent...');
+      setS('searching','Searching for opponent... (AI opponent in 15s if no human found)');
       document.getElementById('mainBtn').textContent='SEARCHING...';
       document.getElementById('mainBtn').disabled=true;
       document.getElementById('skipBtn').style.display='flex';
@@ -654,9 +721,13 @@ function setBtnScan(){var b=document.getElementById('mainBtn');b.textContent='RU
 function onMatchFound(msg){
   state='matched';
   var opp=msg.opponent||{}; oppSocketId=opp.id; myRole=msg.role;
-  var t=opp.tier||{name:'Sub3',emoji:'\uD83D\uDD34'};
-  setS('connected','Matched: '+(opp.name||'Opponent')+' \u00B7 '+t.emoji+' '+t.name+' \u00B7 '+(opp.elo||400)+' ELO');
-  document.getElementById('oppPHText').textContent=(opp.name||'Opponent')+' \u00B7 Connecting...';
+  var isBot = !!msg.bot;
+  var t=opp.tier||(opp.elo!=null?{name:getTierName(opp.elo),emoji:getTierEmoji(opp.elo)}:{name:'Sub3',emoji:'\uD83D\uDD34'});
+  var tagSuffix = isBot ? ' \u00B7 \uD83E\uDD16 BOT' : '';
+  setS('connected','Matched: '+(opp.name||'Opponent')+' \u00B7 '+t.emoji+' '+t.name+' \u00B7 '+(opp.elo||400)+' ELO'+tagSuffix);
+  document.getElementById('oppPHText').textContent=isBot
+    ? (opp.name||'Bot')+' \u00B7 \uD83E\uDD16 AI OPPONENT'
+    : (opp.name||'Opponent')+' \u00B7 Connecting...';
   // Update opp overlay
   document.getElementById('oppLabelName').textContent=opp.name||'Opponent';
   document.getElementById('oppTierEmoji').textContent=t.emoji||'\uD83D\uDD34';
@@ -666,7 +737,14 @@ function onMatchFound(msg){
   setBtnScan(); document.getElementById('skipBtn').style.display='flex';
   startMatchTimer();
   updateGetMog(0,0);
-  startRTC();
+  if (isBot) {
+    // Bot match \u2014 no WebRTC, no opponent video. Show "AI" placeholder.
+    document.getElementById('oppInfoTL').style.display='block';
+    document.getElementById('oppLabelTR').style.display='block';
+    setS('connected','\uD83E\uDD16 AI opponent ready \u2014 run your scan!');
+  } else {
+    startRTC();
+  }
 }
 
 function startRTC(){
