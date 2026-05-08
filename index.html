@@ -202,14 +202,43 @@
 ═════════════════════════════════ */
 .holo-card {
   position: relative;
-  background: linear-gradient(180deg,#04060a 0%,#000 100%);
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 50%, rgba(74,158,255,0.10) 0%, transparent 65%),
+    linear-gradient(180deg,#04060a 0%,#000 100%);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 14px;
   overflow: hidden;
   display: flex; flex-direction: column;
-  min-height: 440px;
-  padding: 14px 16px 16px;
+  min-height: 480px;
+  padding: 16px 16px 18px;
+  box-shadow: inset 0 0 80px rgba(74,158,255,0.04);
 }
+
+/* Concentric pulse rings behind the head */
+.holo-rings { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; }
+.holo-ring {
+  position:absolute; border-radius:50%;
+  border:1px solid rgba(74,158,255,0.18);
+  animation:holo-ring-pulse 3.6s ease-out infinite;
+}
+.holo-ring:nth-child(1){ width:160px; height:160px; animation-delay:0s; }
+.holo-ring:nth-child(2){ width:240px; height:240px; animation-delay:1.2s; }
+.holo-ring:nth-child(3){ width:330px; height:330px; animation-delay:2.4s; }
+@keyframes holo-ring-pulse {
+  0%   { opacity:0;   transform:scale(0.85); }
+  30%  { opacity:0.4; }
+  100% { opacity:0;   transform:scale(1.18); }
+}
+
+.holo-footer {
+  position:relative; z-index:5;
+  display:flex; justify-content:space-between; align-items:center;
+  font-family:'JetBrains Mono', monospace; font-size:9px; letter-spacing:1.5px;
+  color:var(--muted2); padding-top:12px;
+  border-top:1px solid rgba(255,255,255,0.05);
+}
+.holo-footer-tag { color:var(--muted); }
+.holo-footer-id { color:var(--blue); }
 .holo-grid-bg {
   position: absolute; inset: 0;
   background-image:
@@ -383,23 +412,30 @@
     <!-- RIGHT STACK — only hologram now -->
     <div class="side-stack">
 
-      <!-- ALGORITHM PREVIEW HOLOGRAM (aesthetic only) -->
+      <!-- ALGORITHM PREVIEW HOLOGRAM (cosmetic only — no camera) -->
       <div class="holo-card" id="holoHero">
         <div class="holo-grid-bg"></div>
         <div class="holo-glow"></div>
         <div class="holo-scan"></div>
+        <div class="holo-rings">
+          <div class="holo-ring"></div>
+          <div class="holo-ring"></div>
+          <div class="holo-ring"></div>
+        </div>
 
         <div class="holo-card-head">
           <div class="holo-tag">// THE LAB</div>
-          <div class="holo-status-line"><span class="holo-status-dot" id="holoDot"></span><span id="holoStatusText">STANDBY</span></div>
+          <div class="holo-status-line"><span class="holo-status-dot live" id="holoDot"></span><span id="holoStatusText">SCANNING</span></div>
         </div>
 
         <div class="holo-stage">
-          <canvas id="holoCanvas" width="320" height="380"></canvas>
-          <video id="holoVid" autoplay playsinline muted></video>
+          <canvas id="holoCanvas" width="340" height="420"></canvas>
         </div>
 
-        <button class="holo-activate" id="holoActivate" onclick="toggleHolo()">⚡ TRY IT ON YOUR FACE</button>
+        <div class="holo-footer">
+          <span class="holo-footer-tag">REAL-TIME ENGINE</span>
+          <span class="holo-footer-id">MTC-0011 · v3.1</span>
+        </div>
       </div>
 
     </div>
@@ -556,19 +592,51 @@ function initHolo(){
   _holo.ring.rotation.x = Math.PI/2;
   _holo.scene.add(_holo.ring);
 
-  // Async-load MediaPipe's canonical face mesh (468 vertices, real head topology)
+  // Async-load MediaPipe's canonical face mesh (468 vertices, real face topology)
+  // Add a back-of-head sphere so the silhouette reads as a full skull, not just a face plate.
   loadCanonicalFaceMesh().then(function(geom){
     if (!geom) return;
     _holo.scene.remove(_holo.head);
-    _holo.head = new THREE.Mesh(geom, new THREE.MeshBasicMaterial({
-      wireframe: true, color: 0xFFFFFF, transparent: true, opacity: 0.85,
+
+    // Group: face mesh + skull
+    var group = new THREE.Group();
+
+    // FACE — wireframe in pale blue with subtle glow
+    var faceMat = new THREE.MeshBasicMaterial({
+      wireframe: true, color: 0xb6d4ff, transparent: true, opacity: 0.85,
       side: THREE.DoubleSide,
+    });
+    var face = new THREE.Mesh(geom, faceMat);
+    group.add(face);
+
+    // SKULL — back-of-head sphere matched to face bounding box
+    geom.computeBoundingBox();
+    var bb = geom.boundingBox;
+    var headW = bb.max.x - bb.min.x;
+    var headH = bb.max.y - bb.min.y;
+    var radius = Math.max(headW, headH) * 0.55;
+    var skullGeom = new THREE.SphereGeometry(radius, 28, 22);
+    // Squish into a head shape and push behind the face
+    skullGeom.scale(1.0, 1.18, 1.05);
+    var skull = new THREE.Mesh(skullGeom, new THREE.MeshBasicMaterial({
+      wireframe: true, color: 0x4A9EFF, transparent: true, opacity: 0.32,
     }));
-    _holo.scene.add(_holo.head);
-    // Snapshot original vertex positions so we can restore when camera turns off
-    var pa = geom.attributes.position;
-    _holo.canonicalPositions = new Float32Array(pa.array.length);
-    _holo.canonicalPositions.set(pa.array);
+    // Center on face centroid
+    var fcx = (bb.min.x+bb.max.x)/2, fcy = (bb.min.y+bb.max.y)/2, fcz = (bb.min.z+bb.max.z)/2;
+    skull.position.set(fcx, fcy, fcz - radius*0.12);
+    group.add(skull);
+
+    // Inner glow shell
+    var innerGeom = new THREE.SphereGeometry(radius*0.92, 18, 14);
+    innerGeom.scale(1.0, 1.18, 1.05);
+    var inner = new THREE.Mesh(innerGeom, new THREE.MeshBasicMaterial({
+      color: 0x4A9EFF, transparent:true, opacity:0.04,
+    }));
+    inner.position.copy(skull.position);
+    group.add(inner);
+
+    _holo.scene.add(group);
+    _holo.head = group;
   }).catch(function(){ /* keep placeholder on failure */ });
 
   // Throttled rAF render — 30fps instead of 60fps
@@ -598,67 +666,8 @@ function initHolo(){
 
 }
 
-window.toggleHolo = async function(){
-  var btn = document.getElementById('holoActivate');
-  var dot = document.getElementById('holoDot');
-  var hero = document.getElementById('holoHero');
-  var statusText = document.getElementById('holoStatusText');
-
-  if (_holo.active) {
-    if (_holo.stream) { _holo.stream.getTracks().forEach(function(t){t.stop();}); _holo.stream = null; }
-    _holo.mpRunning = false;
-    _holo.targetPose = null;  // resume auto-rotate
-    // Restore canonical face mesh positions (they were mutated by live tracking)
-    if (_holo.head && _holo.canonicalPositions) {
-      var pa = _holo.head.geometry.attributes.position;
-      pa.array.set(_holo.canonicalPositions);
-      pa.needsUpdate = true;
-    }
-    btn.textContent = '⚡ TRY IT ON YOUR FACE';
-    btn.classList.remove('live');
-    dot.classList.remove('live');
-    hero.classList.remove('live');
-    statusText.textContent = 'STANDBY';
-    _holo.active = false;
-    return;
-  }
-
-  try {
-    btn.textContent = 'REQUESTING CAMERA...';
-    _holo.stream = await navigator.mediaDevices.getUserMedia({video:{width:480,height:360,facingMode:'user'},audio:false});
-    var v = document.getElementById('holoVid');
-    v.srcObject = _holo.stream;
-
-    if (!_holo.faceMesh && window.FaceMesh) {
-      _holo.faceMesh = new FaceMesh({locateFile:function(f){return 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/'+f;}});
-      _holo.faceMesh.setOptions({maxNumFaces:1, refineLandmarks:false, minDetectionConfidence:0.5, minTrackingConfidence:0.5});
-      _holo.faceMesh.onResults(holoOnResults);
-    }
-
-    // Throttle mediapipe to ~12fps; lerp smoothing on the render side fills the gap.
-    _holo.mpRunning = true;
-    var lastSend = 0;
-    (async function loop(){
-      if (!_holo.mpRunning) return;
-      var now = performance.now();
-      if (now - lastSend > 80) {
-        lastSend = now;
-        try { await _holo.faceMesh.send({image:v}); } catch(e){}
-      }
-      requestAnimationFrame(loop);
-    })();
-
-    btn.textContent = '◉ SCANNING — TAP TO STOP';
-    btn.classList.add('live');
-    dot.classList.add('live');
-    hero.classList.add('live');
-    statusText.textContent = 'LIVE';
-    _holo.active = true;
-  } catch(e) {
-    btn.textContent = '⚡ ACTIVATE LIVE SCAN';
-    alert('Camera access denied or unavailable.');
-  }
-};
+/* Hologram is now cosmetic-only — camera/MediaPipe activation removed. */
+window.toggleHolo = function(){};
 
 // Compute head pose (yaw / pitch / roll) from MediaPipe landmarks
 function holoComputePose(lm){
