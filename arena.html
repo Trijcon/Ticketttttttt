@@ -678,7 +678,7 @@ function initFM(v,c){
     var ctx=c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height);
     if(r.multiFaceLandmarks&&r.multiFaceLandmarks.length>0){
       myLandmarks=r.multiFaceLandmarks[0];
-      drawMesh(c,myLandmarks,'rgba(0,229,119,0.7)');
+      drawMesh(c,myLandmarks,'rgba(112,220,255,0.72)');
       // Live score preview during camera
       if(state==='camera'||state==='matched'){
         var live=calcDetailedScore(myLandmarks);
@@ -698,6 +698,84 @@ function initFM(v,c){
 
 function drawMesh(canvas,lm,dotColor){
   var ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
+  var scale=Math.max(1,w/900);
+  function pt(i){return lm[i]?{x:lm[i].x*w,y:lm[i].y*h}:null;}
+  function trace(ids, color, width, glow){
+    ctx.save();
+    ctx.strokeStyle=color;
+    ctx.lineWidth=width;
+    ctx.lineCap='round';
+    ctx.lineJoin='round';
+    ctx.shadowColor='rgba(74,158,255,0.55)';
+    ctx.shadowBlur=glow||0;
+    ctx.beginPath();
+    var started=false;
+    for(var ii=0;ii<ids.length;ii++){
+      var p=pt(ids[ii]); if(!p) continue;
+      if(!started){ctx.moveTo(p.x,p.y);started=true;}else ctx.lineTo(p.x,p.y);
+    }
+    if(started) ctx.stroke();
+    ctx.restore();
+  }
+  function node(i, r, color){
+    var p=pt(i); if(!p) return;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,r,0,Math.PI*2);
+    ctx.fillStyle=color;
+    ctx.fill();
+  }
+  ctx.save();
+  ctx.globalCompositeOperation='lighter';
+  trace([127,162,21,54,103,67,109,10,338,297,332,284,251,389,356], 'rgba(74,158,255,0.18)', 1.0*scale, 2);
+  trace([234,93,132,58,172,136,150,149,176,148,152,377,400,378,379,365,397,288,361,323,454], 'rgba(184,222,255,0.46)', 1.35*scale, 6);
+  trace([70,63,105,66,107], 'rgba(125,198,255,0.38)', 1.15*scale, 3);
+  trace([336,296,334,293,300], 'rgba(125,198,255,0.38)', 1.15*scale, 3);
+  trace([33,160,158,133], 'rgba(222,244,255,0.45)', 1.0*scale, 3);
+  trace([362,385,387,263], 'rgba(222,244,255,0.45)', 1.0*scale, 3);
+  trace([33,144,153,133], 'rgba(125,198,255,0.20)', 0.75*scale, 0);
+  trace([362,380,373,263], 'rgba(125,198,255,0.20)', 0.75*scale, 0);
+  trace([168,6,197,195,5,4,1,19,94,2], 'rgba(222,244,255,0.46)', 1.05*scale, 4);
+  trace([64,98,2,327,294], 'rgba(125,198,255,0.22)', 0.8*scale, 0);
+  trace([61,185,40,39,37,0,267,269,270,409,291], 'rgba(222,244,255,0.30)', 0.9*scale, 1);
+  trace([78,13,308], 'rgba(125,198,255,0.20)', 0.75*scale, 0);
+  ctx.shadowColor='rgba(0,229,255,0.7)';
+  ctx.shadowBlur=4;
+  ctx.fillStyle='rgba(74,210,255,0.34)';
+  for(var i=0;i<lm.length;i+=9){
+    var sp=pt(i); if(!sp) continue;
+    ctx.beginPath();
+    ctx.arc(sp.x,sp.y,0.75*scale,0,Math.PI*2);
+    ctx.fill();
+  }
+  var anchors=[10,33,133,362,263,1,4,61,291,152,234,454,172,397,70,300];
+  for(var a=0;a<anchors.length;a++) node(anchors[a],1.45*scale,dotColor||'rgba(112,220,255,0.72)');
+  if(lm[10]&&lm[152]&&lm[234]&&lm[454]){
+    var left=lm[234].x*w, right=lm[454].x*w, top=lm[10].y*h, bottom=lm[152].y*h;
+    var padX=(right-left)*0.13, padY=(bottom-top)*0.08;
+    left-=padX; right+=padX; top-=padY; bottom+=padY;
+    var len=Math.min((right-left),(bottom-top))*0.13;
+    ctx.save();
+    ctx.strokeStyle='rgba(74,210,255,0.38)';
+    ctx.lineWidth=1.4*scale;
+    ctx.shadowColor='rgba(74,158,255,0.45)';
+    ctx.shadowBlur=8;
+    [[left,top,1,1],[right,top,-1,1],[left,bottom,1,-1],[right,bottom,-1,-1]].forEach(function(corner){
+      ctx.beginPath();
+      ctx.moveTo(corner[0], corner[1]+len*corner[3]);
+      ctx.lineTo(corner[0], corner[1]);
+      ctx.lineTo(corner[0]+len*corner[2], corner[1]);
+      ctx.stroke();
+    });
+    ctx.setLineDash([5*scale,9*scale]);
+    ctx.strokeStyle='rgba(184,222,255,0.16)';
+    ctx.beginPath();
+    ctx.moveTo((left+right)/2, top+len);
+    ctx.lineTo((left+right)/2, bottom-len);
+    ctx.stroke();
+    ctx.restore();
+  }
+  ctx.restore();
+  return;
   ctx.save();
   ctx.globalCompositeOperation='lighter';
   ctx.shadowColor='rgba(74,158,255,0.85)';
