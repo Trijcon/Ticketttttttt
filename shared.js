@@ -41,6 +41,32 @@ function getTime() {
 }
 
 /* ════════════════════════════════
+   PROFANITY / SLUR BLOCKLIST
+   Used by chat, comments, usernames sitewide.
+════════════════════════════════ */
+window.MGM_BAD_WORDS = [
+  'nigger','nigga','niger','n1gger','n1gga','chink','gook','spic','kike','wetback',
+  'beaner','towelhead','sandnigger','sandnigga','coon','cracka','cracker','jewboy',
+  'faggot','fagot','fag','f4g','f4ggot','tranny','dyke','homo','queer',
+  'bitch','b1tch','cunt','c0nt','whore','slut','hoe',
+  'retard','retarded','retart','ret4rd',
+  'fuck','fck','phuck','shit','sh1t','asshole','assh0le','dick','d1ck','cock','c0ck',
+  'pussy','pu55y','bastard',
+  'porn','xxx','nude','naked','rape','rapist','pedo','pedophile','molest',
+  'kys','suicide','nazi','hitler','isis','terrorist'
+];
+window.containsProfanity = function(text) {
+  if (!text) return null;
+  var cleaned = String(text).toLowerCase()
+    .replace(/0/g,'o').replace(/1/g,'i').replace(/3/g,'e').replace(/4/g,'a')
+    .replace(/5/g,'s').replace(/7/g,'t').replace(/_/g,'').replace(/\s+/g,'');
+  for (var i=0; i<window.MGM_BAD_WORDS.length; i++) {
+    if (cleaned.indexOf(window.MGM_BAD_WORDS[i]) >= 0) return window.MGM_BAD_WORDS[i];
+  }
+  return null;
+};
+
+/* ════════════════════════════════
    WEBSOCKET
 ════════════════════════════════ */
 function connectWS(onMsg) {
@@ -58,11 +84,7 @@ function connectWS(onMsg) {
       type:'set_user',
       name:     myUsername || myName,
       username: myUsername,
-      uid:      myUid,
       photoURL: myPhoto,
-      elo:      myElo,
-      wins:     myWins,
-      losses:   myLosses,
     });
   };
   ws.onmessage = (e) => {
@@ -125,11 +147,12 @@ function handleShared(msg) {
         else         { myLosses++; localStorage.setItem('mgm_losses', myLosses); }
         // Persist to Firestore as a safety net — works even if server lacks admin SDK
         if (typeof window.saveEloToFirestore === 'function') {
-          window.saveEloToFirestore(myElo, myWins, myLosses);
+          // ELO persistence is server-authoritative.
         }
       }
       break;
     case 'chat_error': chatSys('⚠ '+msg.error); break;
+    case 'auth_error': chatSys('Auth warning: '+msg.error); break;
     case 'banned':
       alert(msg.message || 'You have been banned from MogMe.TV.');
       window.location.href = 'index.html';
@@ -201,6 +224,9 @@ function sendChat() {
   const text = msgEl.value.trim();
   if (!text) return;
   if (!myUid || !myUsername) { chatSys('Sign in to chat'); return; }
+  // Profanity filter — also reject bypasses via leet-speak
+  const bad = window.containsProfanity && window.containsProfanity(text);
+  if (bad) { chatSys('Message blocked — restricted language'); msgEl.value=''; return; }
   if (!wsSend({ type:'chat', text })) { chatSys('Reconnecting...'); connectWS(pageOnMsg); return; }
   msgEl.value = '';
 }
@@ -318,6 +344,7 @@ function injectSharedUI() {
       <span class="nav-link-disabled" onclick="window.openLabSoonModal&&window.openLabSoonModal()">🧬 LAB</span>
       <a class="nav-link" href="rank.html">🏆 RANK</a>
       <a class="nav-link" href="private.html">🔒 PRIVATE</a>
+      <a class="nav-link" href="messages.html">✉ MESSAGES</a>
     </div>
     <div class="nav-right">
       <div class="nav-online"><div class="nav-dot"></div><span class="online-count-val">— online</span></div>

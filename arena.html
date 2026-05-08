@@ -592,6 +592,12 @@ function onMsg(msg){
       state='searching'; break;
     case 'queue_update':
       document.getElementById('qText').textContent=msg.size>0?msg.size+' in queue':''; break;
+    case 'queue_error':
+      setS('', msg.error || 'Could not join queue');
+      setBtnFind();
+      document.getElementById('skipBtn').style.display='none';
+      if ((msg.error||'').toLowerCase().includes('sign in')) openClaimModal();
+      break;
     case 'match_found': onMatchFound(msg); break;
     case 'match_result': onResult(msg); break;
     case 'score_submitted': setS('searching','Score submitted — awaiting opponent...'); break;

@@ -101,17 +101,8 @@ async function loadOrCreateProfile(user) {
   return null;
 }
 
-window.saveEloToFirestore = async function(elo, wins, losses) {
-  const uid = localStorage.getItem('mgm_uid');
-  if (!uid) return;
-  try {
-    await updateDoc(doc(db, 'users', uid), {
-      elo, wins, losses, lastSeen: serverTimestamp()
-    });
-    localStorage.setItem('mgm_elo',    elo);
-    localStorage.setItem('mgm_wins',   wins);
-    localStorage.setItem('mgm_losses', losses);
-  } catch(e) { console.error('Save ELO error:', e); }
+window.saveEloToFirestore = async function() {
+  console.warn('Client-side ELO writes are disabled. The game server owns ranked results.');
 };
 
 window.getFirestoreLeaderboard = async function(containerId) {

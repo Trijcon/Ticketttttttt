@@ -431,6 +431,28 @@ const gProvider = new GoogleAuthProvider();
 
 let currentAdmin = null;
 
+async function adminFetch(path, body) {
+  if (!currentAdmin) throw new Error('Not authenticated');
+  const token = await currentAdmin.getIdToken(false);
+  const res = await fetch(SERVER + path, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token,
+    },
+    body: JSON.stringify(body || {}),
+  });
+  if (!res.ok) {
+    let message = 'Server error';
+    try {
+      const data = await res.json();
+      message = data.error || message;
+    } catch(e) {}
+    throw new Error(message);
+  }
+  return res.json();
+}
+
 /* ── AUTH-ONLY GATE ── */
 window.gateSignIn = async function() {
   try {
@@ -492,11 +514,11 @@ async function loadStats() {
   try {
     const res  = await fetch(SERVER + '/stats');
     const data = await res.json();
-    const over = localStorage.getItem('admin_online_override');
-    document.getElementById('statOnline').textContent  = over || data.onlineNow || 0;
+    document.getElementById('statOnline').textContent  = data.onlineNow || 0;
     document.getElementById('statQueue').textContent   = data.queueSize || 0;
     document.getElementById('statMatches').textContent = data.activeMatches || 0;
     document.getElementById('statTotal').textContent   = data.totalMatches || 0;
+    document.getElementById('currentOverride').textContent = data.onlineOverride == null ? 'none' : Number(data.onlineOverride).toLocaleString();
   } catch(e) {
     document.getElementById('statOnline').textContent = 'ERR';
   }
@@ -519,35 +541,36 @@ window.updateSeasonDate = function() {
 };
 
 /* ── ONLINE COUNT OVERRIDE ── */
-window.setOnlineOverride = function() {
+window.setOnlineOverride = async function() {
   const val = parseInt(document.getElementById('onlineOverride').value);
   if (isNaN(val) || val < 0) return;
-  localStorage.setItem('admin_online_override', val);
+  try {
+    await adminFetch('/admin/set-online-override', { count: val });
   document.getElementById('currentOverride').textContent = val.toLocaleString();
+  loadStats();
   showFeedback('onlineFeedback', '✓ Override set to ' + val.toLocaleString(), 'ok');
+  } catch(e) { showFeedback('onlineFeedback', e.message, 'err'); }
 };
 
-window.clearOnlineOverride = function() {
-  localStorage.removeItem('admin_online_override');
+window.clearOnlineOverride = async function() {
+  try {
+    await adminFetch('/admin/clear-override');
   document.getElementById('currentOverride').textContent = 'none';
   document.getElementById('onlineOverride').value = '';
+  loadStats();
   showFeedback('onlineFeedback', '✓ Override cleared', 'ok');
+  } catch(e) { showFeedback('onlineFeedback', e.message, 'err'); }
 };
 
 // Init override display
-const savedOverride = localStorage.getItem('admin_online_override');
-if (savedOverride) document.getElementById('currentOverride').textContent = parseInt(savedOverride).toLocaleString();
 
 /* ── BROADCAST ── */
 window.sendBroadcast = async function() {
   const msg = document.getElementById('broadcastMsg').value.trim();
   if (!msg) return;
   try {
-    const res = await fetch(SERVER + '/admin/broadcast', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ message: msg, adminKey: ADMIN_PASS_HASH })
-    });
-    if (res.ok) {
+    await adminFetch('/admin/broadcast', { message: msg });
+    if (true) {
       showFeedback('broadcastFeedback','✓ Broadcast sent to all users','ok');
       document.getElementById('broadcastMsg').value = '';
     } else { showFeedback('broadcastFeedback','✗ Server error','err'); }
@@ -556,10 +579,8 @@ window.sendBroadcast = async function() {
 
 window.forceChatReset = async function() {
   try {
-    const res = await fetch(SERVER + '/admin/reset-chat', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ adminKey: ADMIN_PASS_HASH })
-    });
+    const res = { ok: true };
+    await adminFetch('/admin/reset-chat');
     if (res.ok) showFeedback('broadcastFeedback','✓ Chat reset for all users','ok');
     else showFeedback('broadcastFeedback','✗ Server error','err');
   } catch(e) { showFeedback('broadcastFeedback','✗ Could not reach server','err'); }
@@ -658,6 +679,7 @@ window.banUser = async function() {
   if (!username) return;
   try {
     await setDoc(doc(db,'bans',username), { username, bannedAt: serverTimestamp(), bannedBy: currentAdmin?.uid });
+    await adminFetch('/admin/ban', { username });
     showFeedback('banFeedback','✓ '+username+' banned from chat','ok');
   } catch(e) { showFeedback('banFeedback','✗ '+e.message,'err'); }
 };
@@ -667,6 +689,7 @@ window.unbanUser = async function() {
   if (!username) return;
   try {
     await deleteDoc(doc(db,'bans',username));
+    await adminFetch('/admin/unban', { username });
     showFeedback('banFeedback','✓ '+username+' unbanned','ok');
   } catch(e) { showFeedback('banFeedback','✗ '+e.message,'err'); }
 };
