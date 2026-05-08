@@ -447,10 +447,19 @@ window.toggleBioEdit = function() {
   }
 };
 
-// Country toggle
-window.toggleCountryEdit = function() {
+// Country toggle — auto detect from IP if not set
+window.toggleCountryEdit = async function() {
   const row = document.getElementById('countryEditRow');
-  row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+  const showing = row.style.display !== 'none';
+  row.style.display = showing ? 'none' : 'flex';
+  if (!showing && document.getElementById('countryDisplay').textContent === 'Not set') {
+    const detected = await detectCountryFromIP();
+    if (detected) {
+      const flag = FLAG_MAP[detected] || '';
+      const formatted = flag ? flag + ' ' + detected : detected;
+      document.getElementById('countryInput').value = formatted;
+    }
+  }
 };
 
 // Socials toggle
@@ -555,10 +564,37 @@ window.toggleEdit = function() {
   document.getElementById('editBtn').textContent = _editMode ? '✕' : '✎';
 };
 
+// ── PROFANITY FILTER ──
+function containsBadWords(text) {
+  var BAD = ['nigger','nigga','faggot','fag','retard','chink','spic','kike','wetback','cunt','whore','slut','bitch'];
+  var t = text.toLowerCase().replace(/[^a-z0-9]/g,'');
+  return BAD.some(function(w){ return t.includes(w.replace(/[^a-z0-9]/g,'')); });
+}
+
+// ── IP-BASED COUNTRY DETECTION ──
+async function detectCountryFromIP() {
+  try {
+    var res = await fetch('https://ipapi.co/json/');
+    var data = await res.json();
+    return data.country_name || null;
+  } catch(e) { return null; }
+}
+
+// Country flag map
+var FLAG_MAP = {
+  'United States':'🇺🇸','United Kingdom':'🇬🇧','Canada':'🇨🇦','Australia':'🇦🇺',
+  'Germany':'🇩🇪','France':'🇫🇷','Netherlands':'🇳🇱','Sweden':'🇸🇪','Norway':'🇳🇴',
+  'Spain':'🇪🇸','Italy':'🇮🇹','Portugal':'🇵🇹','Russia':'🇷🇺','Turkey':'🇹🇷',
+  'Brazil':'🇧🇷','Mexico':'🇲🇽','Japan':'🇯🇵','South Korea':'🇰🇷','China':'🇨🇳',
+  'India':'🇮🇳','Iran':'🇮🇷','Saudi Arabia':'🇸🇦','United Arab Emirates':'🇦🇪',
+  'South Africa':'🇿🇦','Philippines':'🇵🇭','Indonesia':'🇮🇩','Malaysia':'🇲🇾','Thailand':'🇹🇭'
+};
+
 window.saveName = async function() {
   const newName = document.getElementById('nameInput').value.trim();
   if (!newName || !_user) return;
   if (newName.length < 2) { alert('Name too short'); return; }
+  if (containsBadWords(newName)) { alert('Display name contains inappropriate language.'); return; }
   try {
     await updateDoc(doc(db,'users',_user.uid), { displayName:newName, lastSeen:serverTimestamp() });
     document.getElementById('nameDisplay').textContent = newName;
@@ -571,6 +607,7 @@ window.saveName = async function() {
 window.saveBio = async function() {
   const bio = document.getElementById('bioInput').value.trim();
   if (!_user) return;
+  if (bio && containsBadWords(bio)) { alert('Bio contains inappropriate language. Please revise it.'); return; }
   try {
     await updateDoc(doc(db,'users',_user.uid), { bio, lastSeen:serverTimestamp() });
     document.getElementById('bioDisplay').textContent = bio || 'No bio yet';
@@ -592,11 +629,14 @@ window.saveCountry = async function() {
 
 window.saveSocials = async function() {
   if (!_user) return;
-  const socials = {
-    ig: document.getElementById('igInput').value.trim().replace('@',''),
-    x:  document.getElementById('xInput').value.trim().replace('@',''),
-    tt: document.getElementById('ttInput').value.trim().replace('@',''),
-  };
+  const ig = document.getElementById('igInput').value.trim().replace('@','');
+  const x  = document.getElementById('xInput').value.trim().replace('@','');
+  const tt = document.getElementById('ttInput').value.trim().replace('@','');
+  const validHandle = /^[a-zA-Z0-9._]{1,30}$/;
+  if (ig && !validHandle.test(ig)) { alert('Invalid Instagram username. Only letters, numbers, _ and . allowed.'); return; }
+  if (x  && !validHandle.test(x))  { alert('Invalid X/Twitter username. Only letters, numbers, _ and . allowed.'); return; }
+  if (tt && !validHandle.test(tt)) { alert('Invalid TikTok username. Only letters, numbers, _ and . allowed.'); return; }
+  const socials = { ig, x, tt };
   try {
     await updateDoc(doc(db,'users',_user.uid), { socials, lastSeen:serverTimestamp() });
     renderSocials(socials);
