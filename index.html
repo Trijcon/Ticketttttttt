@@ -635,13 +635,13 @@ window.toggleHolo = async function(){
       _holo.faceMesh.onResults(holoOnResults);
     }
 
-    // Throttle mediapipe to ~15fps for perf
+    // Throttle mediapipe to ~12fps; lerp smoothing on the render side fills the gap.
     _holo.mpRunning = true;
     var lastSend = 0;
     (async function loop(){
       if (!_holo.mpRunning) return;
       var now = performance.now();
-      if (now - lastSend > 66) {
+      if (now - lastSend > 80) {
         lastSend = now;
         try { await _holo.faceMesh.send({image:v}); } catch(e){}
       }
@@ -682,27 +682,35 @@ function holoComputePose(lm){
 
 /* Drive the wireframe head's vertices directly from live MediaPipe landmarks.
    Both share the same canonical 468-vertex topology so the mapping is 1:1.
-   This makes the wireframe deform as the user smiles, blinks, opens mouth, etc. */
+   ── PERFORMANCE: bulk array write + lerp smoothing so we don't write 1404
+   setXYZ calls per frame, and so motion looks natural instead of janky.
+   ── MOUTH FIX: dampened Z-scale + heavier smoothing on extreme deltas
+   prevents the canonical mesh from "tearing apart" when the user yawns. */
 function holoOnResults(r){
   if (r.multiFaceLandmarks && r.multiFaceLandmarks.length > 0) {
     var lm = r.multiFaceLandmarks[0];
     if (_holo.head && _holo.head.geometry && _holo.head.geometry.attributes && _holo.head.geometry.attributes.position) {
       var pos = _holo.head.geometry.attributes.position;
+      var arr = pos.array;
       var n = Math.min(lm.length, pos.count);
-      // Compute centroid for centering
+      // Centroid (centering)
       var cx = 0, cy = 0, cz = 0;
       for (var i=0; i<n; i++){ cx+=lm[i].x; cy+=lm[i].y; cz+=lm[i].z; }
       cx /= n; cy /= n; cz /= n;
-      // Map normalized screen coords → centered 3D in the same scale we used for canonical mesh
-      var SCALE = 5.0;
+      // Reduced Z scale eases creepy mouth-open distortion
+      var SCALE = 5.0, ZSCALE = 3.2;
+      var SMOOTH = 0.32;   // higher = snappier, lower = more buttery
       for (var k=0; k<n; k++){
-        // Mirror X (camera is mirrored) + center + scale
-        pos.setXYZ(k, -(lm[k].x - cx) * SCALE, -(lm[k].y - cy) * SCALE, -(lm[k].z - cz) * SCALE);
+        var idx = k*3;
+        var tx = -(lm[k].x - cx) * SCALE;
+        var ty = -(lm[k].y - cy) * SCALE;
+        var tz = -(lm[k].z - cz) * ZSCALE;
+        // Lerp current → target. Cheap exponential smoothing, fixes mouth jank.
+        arr[idx]   += (tx - arr[idx])   * SMOOTH;
+        arr[idx+1] += (ty - arr[idx+1]) * SMOOTH;
+        arr[idx+2] += (tz - arr[idx+2]) * SMOOTH;
       }
       pos.needsUpdate = true;
-      _holo.head.geometry.computeBoundingBox();
-      // Keep head pose tracking too — but since the geometry is now the live face,
-      // we don't need to also rotate, the geometry itself moves.
       _holo.targetPose = { yaw:0, pitch:0, roll:0 };
     }
   } else {
