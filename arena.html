@@ -406,6 +406,84 @@ body { padding-right: 0 !important; }
 .analysis-bar-fill{ height:100%; background:linear-gradient(90deg, var(--blue), #b6bcff); border-radius:999px; }
 .analysis-name{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:1px; color:var(--muted); width:120px; text-transform:uppercase; }
 .analysis-score{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--blue); width:32px; text-align:right; font-weight:700; }
+
+/* ════════════════════════════════
+   POLISH PASS — glow + smooth + searching blur
+═════════════════════════════════ */
+
+/* Reduce mesh obstruction — mesh is visible but doesn't dominate the face */
+.feed-canvas { opacity: 0.55; mix-blend-mode: screen; }
+
+/* Searching state: blur the right (opponent) feed AND dim your own feed slightly */
+.feeds-grid.searching .feed-box:nth-child(odd) .feed-video,
+.feeds-grid.searching .feed-box:nth-child(odd) .feed-canvas { filter: blur(2px) brightness(0.85); transition:filter 0.5s ease; }
+.feeds-grid.searching .feed-box:last-child {
+  background:#020208 !important;
+  filter: blur(8px) saturate(0.6);
+}
+.feeds-grid.searching .feed-box:last-child .feed-ph { filter: blur(6px); opacity:0.5; }
+.feed-box .feed-video { transition: filter 0.6s ease; }
+
+/* When match is connected, snap back to crisp */
+.feed-box .feed-video { transition: filter 0.6s ease; }
+
+/* Status banner — give it the glow + glass treatment */
+.status-top {
+  background: linear-gradient(180deg, rgba(74,158,255,0.06), rgba(255,255,255,0.02)) !important;
+  border: 1px solid rgba(74,158,255,0.18) !important;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 28px rgba(74,158,255,0.06), inset 0 0 0 1px rgba(255,255,255,0.02);
+}
+
+/* Mogging bar — animated gradient + glow */
+.mogging-bar {
+  height: 10px !important;
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(255,255,255,0.06);
+  overflow: visible !important;
+  position: relative;
+}
+.mogging-fill {
+  height: 100% !important;
+  border-radius: 999px;
+  background-size: 200% 100% !important;
+  animation: mog-shimmer 2.4s linear infinite;
+  box-shadow: 0 0 18px rgba(74,158,255,0.4), 0 0 4px rgba(255,255,255,0.6);
+}
+.mogging-fill::after {
+  content:''; position:absolute; right:-1px; top:-3px; bottom:-3px; width:3px;
+  background: rgba(255,255,255,0.95); border-radius: 999px;
+  box-shadow: 0 0 10px rgba(255,255,255,0.8);
+}
+@keyframes mog-shimmer {
+  0%   { background-position: 0% 0; }
+  100% { background-position: 200% 0; }
+}
+
+#moggingFill   { background: linear-gradient(90deg,#0df2c8,#4A9EFF,#7b61ff,#0df2c8) !important; }
+#moggingFillR  { background: linear-gradient(270deg,#ef4444,#ff8aa3,#7b61ff,#ef4444) !important; }
+
+/* GETMOG bar — bigger glow */
+.getmog-bar { box-shadow: 0 0 24px rgba(74,158,255,0.12); }
+
+/* SKIP button — kill the awkward look, just a small pill in the status row */
+#skipBtn {
+  flex: 0 0 auto !important; padding: 7px 14px !important;
+  font-size: 10px !important; letter-spacing: 1.5px !important;
+  border-radius: 999px !important;
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  color: var(--muted) !important;
+}
+#skipBtn:hover { color: var(--silver) !important; border-color: rgba(255,255,255,0.18) !important; }
+
+/* Score pill + scan tag — add glow */
+.scan-info-tl, .scan-label-tr {
+  box-shadow: 0 0 22px rgba(74,158,255,0.12), inset 0 0 0 1px rgba(255,255,255,0.04) !important;
+}
+
+/* Smooth all panels */
+.feed-box, .status-top, .mogging-bar, .getmog-bar { transition: all 0.3s ease; }
 </style>
 </head>
 <body>
@@ -1524,6 +1602,12 @@ window.openAnalysis = function(){
 function setS(type,text){
   var d=document.getElementById('sDot'); d.className='status-dot'+(type?' '+type:'');
   document.getElementById('sText').textContent=text;
+  // Toggle blur class on the feeds grid based on whether we're actively searching
+  var grid = document.querySelector('.feeds-grid');
+  if (grid) {
+    if (type === 'searching') grid.classList.add('searching');
+    else grid.classList.remove('searching');
+  }
 }
 </script>
 </body>

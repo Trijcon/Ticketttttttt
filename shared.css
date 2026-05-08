@@ -58,7 +58,7 @@ body {
   line-height: 1.6;
   min-height: 100vh;
   padding-top: calc(var(--nav-h) + 36px);
-  padding-right: var(--chat-w);
+  padding-left: var(--chat-w);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
@@ -74,7 +74,7 @@ body::before {
    NAVIGATION
 ════════════════════════════════ */
 .top-nav {
-  position: fixed; top: 0; left: 0; right: var(--chat-w);
+  position: fixed; top: 0; right: 0; left: var(--chat-w);
   height: var(--nav-h); z-index: 300;
   background: rgba(0,0,0,0.92);
   border-bottom: 1px solid var(--border);
@@ -166,7 +166,7 @@ body::before {
    GUEST BANNER
 ════════════════════════════════ */
 .guest-banner {
-  position: fixed; top: var(--nav-h); left: 0; right: var(--chat-w); z-index: 200;
+  position: fixed; top: var(--nav-h); right: 0; left: var(--chat-w); z-index: 200;
   padding: 8px 24px;
   background: rgba(74,158,255,0.06);
   border-bottom: 1px solid rgba(74,158,255,0.12);
@@ -186,10 +186,10 @@ body::before {
    CHAT SIDEBAR
 ════════════════════════════════ */
 .chat-sidebar {
-  position: fixed; top: 0; right: 0; bottom: 0;
+  position: fixed; top: 0; left: 0; bottom: 0;
   width: var(--chat-w); z-index: 250;
   background: var(--bg1);
-  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
   display: flex; flex-direction: column;
 }
 .chat-head {
@@ -450,8 +450,8 @@ body::before {
 @media(max-width:900px) {
   :root { --chat-w: 0px; }
   .chat-sidebar { display: none; }
-  body { padding-right: 0; }
-  .top-nav, .guest-banner { right: 0; }
+  body { padding-left: 0; }
+  .top-nav, .guest-banner { left: 0; }
 }
 @media(max-width:600px) { .page-wrap { padding: 20px 16px 60px; } }
 

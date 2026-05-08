@@ -215,11 +215,12 @@ async function startConversationWithUsername(unameLower){
 
 function loadInbox(){
   if (_inboxUnsub) _inboxUnsub();
-  // All conversations the user is in, ordered by recent
+  // Drop server-side orderBy to avoid composite-index requirement.
+  // Sort client-side by lastAt instead.
   const q = query(
     collection(db,'conversations'),
     where('participants','array-contains', _user.uid),
-    orderBy('lastAt','desc'), limit(50)
+    limit(50)
   );
   _inboxUnsub = onSnapshot(q, (snap) => {
     const list = document.getElementById('inboxList');
@@ -228,7 +229,13 @@ function loadInbox(){
       return;
     }
     const myUid = _user.uid;
-    list.innerHTML = snap.docs.map(d => {
+    // Sort by lastAt desc client-side
+    const docs = snap.docs.slice().sort((a,b) => {
+      const ta = a.data().lastAt?.toMillis ? a.data().lastAt.toMillis() : 0;
+      const tb = b.data().lastAt?.toMillis ? b.data().lastAt.toMillis() : 0;
+      return tb - ta;
+    });
+    list.innerHTML = docs.map(d => {
       const c = d.data();
       const other = (c.participants||[]).find(p => p !== myUid);
       const oName = (c.names && c.names[other]) || 'Unknown';

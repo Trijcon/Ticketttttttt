@@ -901,12 +901,64 @@ function initHolo(){
   _holo.renderer.setSize(W, H, false);
   _holo.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
 
-  _holo.head = createSmoothFallbackHead();
+  /* Clean humanoid build:
+     - Real MediaPipe canonical face wireframe (actual human topology)
+     - Subtle back-of-head sphere so it reads as a full skull
+     - Pale blue wireframes with low opacity so it feels like a hologram, not a corpse */
+  function buildCleanHologram(geom){
+    var group = new THREE.Group();
+
+    // Face — proper canonical topology in pale blue
+    var faceMat = new THREE.LineBasicMaterial({
+      color: 0xb6d4ff, transparent: true, opacity: 0.62,
+    });
+    var faceWire = new THREE.LineSegments(new THREE.WireframeGeometry(geom), faceMat);
+    group.add(faceWire);
+
+    // Soft solid fill behind the wireframe so it doesn't look like an empty mask
+    var faceFill = new THREE.Mesh(geom, new THREE.MeshBasicMaterial({
+      color: 0x0a1830, transparent: true, opacity: 0.35, side: THREE.DoubleSide,
+    }));
+    group.add(faceFill);
+
+    // Skull behind face — generic head shape
+    geom.computeBoundingBox();
+    var bb = geom.boundingBox;
+    var fcx = (bb.min.x+bb.max.x)/2, fcy = (bb.min.y+bb.max.y)/2, fcz = (bb.min.z+bb.max.z)/2;
+    var radius = Math.max(bb.max.x-bb.min.x, bb.max.y-bb.min.y) * 0.55;
+
+    var skullGeom = new THREE.SphereGeometry(radius, 28, 22);
+    skullGeom.scale(0.95, 1.16, 1.04);
+    var skull = new THREE.Mesh(skullGeom, new THREE.MeshBasicMaterial({
+      wireframe: true, color: 0x4A9EFF, transparent: true, opacity: 0.18,
+    }));
+    skull.position.set(fcx, fcy, fcz - radius*0.18);
+    group.add(skull);
+
+    // Soft inner glow shell
+    var innerGeom = new THREE.SphereGeometry(radius*0.9, 16, 12);
+    innerGeom.scale(0.95, 1.16, 1.04);
+    var inner = new THREE.Mesh(innerGeom, new THREE.MeshBasicMaterial({
+      color: 0x4A9EFF, transparent:true, opacity:0.05,
+    }));
+    inner.position.copy(skull.position);
+    group.add(inner);
+
+    return group;
+  }
+
+  // Placeholder until canonical face loads
+  var placeholder = new THREE.Mesh(
+    new THREE.SphereGeometry(1.1, 22, 16),
+    new THREE.MeshBasicMaterial({wireframe:true, color:0x4A9EFF, transparent:true, opacity:0.4})
+  );
+  placeholder.scale.set(1, 1.18, 1);
+  _holo.head = placeholder;
   _holo.scene.add(_holo.head);
 
   // Outer slow ring
-  var ringGeom = new THREE.TorusGeometry(1.85, 0.004, 4, 64);
-  _holo.ring = new THREE.Mesh(ringGeom, new THREE.MeshBasicMaterial({color:0xFFFFFF, transparent:true, opacity:0.3}));
+  var ringGeom = new THREE.TorusGeometry(1.95, 0.004, 4, 64);
+  _holo.ring = new THREE.Mesh(ringGeom, new THREE.MeshBasicMaterial({color:0xb6d4ff, transparent:true, opacity:0.28}));
   _holo.ring.rotation.x = Math.PI/2;
   _holo.scene.add(_holo.ring);
   var card = document.getElementById('holoHero');
@@ -916,50 +968,8 @@ function initHolo(){
   loadCanonicalFaceMesh().then(function(geom){
     if (!geom) return;
     _holo.scene.remove(_holo.head);
-    var smoothHead = createSmoothHumanHead(geom);
-    _holo.scene.add(smoothHead);
-    _holo.head = smoothHead;
-    return;
-
-    // Group: face mesh + skull
-    var group = new THREE.Group();
-
-    // FACE — wireframe in pale blue with subtle glow
-    var faceMat = new THREE.MeshBasicMaterial({
-      wireframe: true, color: 0xb6d4ff, transparent: true, opacity: 0.85,
-      side: THREE.DoubleSide,
-    });
-    var face = new THREE.Mesh(geom, faceMat);
-    group.add(face);
-
-    // SKULL — back-of-head sphere matched to face bounding box
-    geom.computeBoundingBox();
-    var bb = geom.boundingBox;
-    var headW = bb.max.x - bb.min.x;
-    var headH = bb.max.y - bb.min.y;
-    var radius = Math.max(headW, headH) * 0.55;
-    var skullGeom = new THREE.SphereGeometry(radius, 28, 22);
-    // Squish into a head shape and push behind the face
-    skullGeom.scale(1.0, 1.18, 1.05);
-    var skull = new THREE.Mesh(skullGeom, new THREE.MeshBasicMaterial({
-      wireframe: true, color: 0x4A9EFF, transparent: true, opacity: 0.32,
-    }));
-    // Center on face centroid
-    var fcx = (bb.min.x+bb.max.x)/2, fcy = (bb.min.y+bb.max.y)/2, fcz = (bb.min.z+bb.max.z)/2;
-    skull.position.set(fcx, fcy, fcz - radius*0.12);
-    group.add(skull);
-
-    // Inner glow shell
-    var innerGeom = new THREE.SphereGeometry(radius*0.92, 18, 14);
-    innerGeom.scale(1.0, 1.18, 1.05);
-    var inner = new THREE.Mesh(innerGeom, new THREE.MeshBasicMaterial({
-      color: 0x4A9EFF, transparent:true, opacity:0.04,
-    }));
-    inner.position.copy(skull.position);
-    group.add(inner);
-
-    _holo.scene.add(group);
-    _holo.head = group;
+    _holo.head = buildCleanHologram(geom);
+    _holo.scene.add(_holo.head);
   }).catch(function(){ /* keep placeholder on failure */ });
 
   // Throttled rAF render — 30fps instead of 60fps
