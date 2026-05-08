@@ -230,9 +230,86 @@
 .match-elo { font-family:'JetBrains Mono',monospace; font-size:11px; }
 .match-elo.up { color:var(--green); } .match-elo.dn { color:var(--red); }
 
+/* Refined public profile layout */
+.user-shell {
+  max-width:1080px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 340px;
+  gap:14px;
+}
+.uh-card {
+  grid-column:1/-1;
+  background:
+    radial-gradient(ellipse 55% 70% at 78% 35%, rgba(74,158,255,0.12), transparent 62%),
+    linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.018));
+  border-color:rgba(74,158,255,0.18);
+  border-radius:var(--radius);
+  box-shadow:0 28px 90px rgba(0,0,0,0.34), inset 0 0 70px rgba(74,158,255,0.04);
+}
+.uh-card::before {
+  background:
+    linear-gradient(rgba(74,158,255,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74,158,255,0.04) 1px, transparent 1px);
+  background-size:34px 34px;
+  opacity:0.52;
+}
+.uh-card::after {
+  content:'';
+  position:absolute; left:0; right:0; top:0; height:1px;
+  background:linear-gradient(90deg, transparent, rgba(74,158,255,0.72), transparent);
+  box-shadow:0 0 18px rgba(74,158,255,0.36);
+}
+.uh-top { align-items:center; }
+.uh-photo {
+  width:104px; height:104px;
+  border-color:rgba(74,158,255,0.55);
+  box-shadow:0 0 28px rgba(74,158,255,0.24), inset 0 0 28px rgba(74,158,255,0.08);
+}
+.uh-name { font-family:'Space Grotesk',sans-serif; font-size:34px; letter-spacing:-0.6px; }
+.uh-pill { border-radius:4px; background:rgba(0,0,0,0.26); }
+.uh-pill.gold { color:#f5a623; }
+.uh-pill.violet { color:#b6d4ff; border-color:rgba(74,158,255,0.28); background:rgba(74,158,255,0.08); }
+.uh-stats { grid-template-columns:repeat(4,1fr); gap:10px; }
+.uh-stat {
+  border-radius:var(--radius);
+  background:rgba(0,0,0,0.46);
+  border-color:rgba(255,255,255,0.08);
+  text-align:left;
+  position:relative;
+  overflow:hidden;
+}
+.uh-stat::after {
+  content:''; position:absolute; left:12px; right:12px; bottom:0; height:1px;
+  background:linear-gradient(90deg, rgba(74,158,255,0.65), transparent);
+}
+.uh-stat-val { color:var(--blue); font-size:22px; }
+.uh-stat:nth-child(2) .uh-stat-val { color:var(--green); }
+.uh-stat:nth-child(3) .uh-stat-val { color:#b6d4ff; }
+.uh-stat:nth-child(4) .uh-stat-val { color:#f5a623; }
+.matches-card {
+  grid-column:2;
+  grid-row:2;
+  position:sticky;
+  top:calc(var(--nav-h) + 14px);
+  border-radius:var(--radius);
+  background:rgba(255,255,255,0.028);
+}
+.comments-card {
+  grid-column:1;
+  border-radius:var(--radius);
+  background:rgba(255,255,255,0.024);
+}
+.match-row { padding:10px 0; }
+.match-result { border-radius:50%; }
+.btn-follow,.btn-msg { border-radius:var(--radius); }
+
 @media(max-width:600px){
   .uh-stats { grid-template-columns:1fr 1fr; }
   .uh-stat:nth-child(3) { grid-column:1/-1; }
+}
+@media(max-width:900px){
+  .user-shell { display:block; max-width:760px; }
+  .matches-card { position:static; }
 }
 </style>
 </head>
@@ -260,6 +337,7 @@
       <div class="uh-stat"><div class="uh-stat-lbl">ELO</div><div class="uh-stat-val" id="sElo">—</div></div>
       <div class="uh-stat"><div class="uh-stat-lbl">Wins</div><div class="uh-stat-val" id="sWins">—</div></div>
       <div class="uh-stat"><div class="uh-stat-lbl">Comments</div><div class="uh-stat-val" id="sComments">—</div></div>
+      <div class="uh-stat"><div class="uh-stat-lbl">Win Rate</div><div class="uh-stat-val" id="sWR">—</div></div>
     </div>
 
     <div class="uh-appeal" id="uAppeal" style="display:none;">
@@ -385,6 +463,9 @@ function renderProfile(p) {
   // Stats
   document.getElementById('sElo').textContent  = elo;
   document.getElementById('sWins').textContent = p.wins || 0;
+  const games = (p.wins || 0) + (p.losses || 0);
+  const wrEl = document.getElementById('sWR');
+  if (wrEl) wrEl.textContent = games ? Math.round((p.wins || 0) / games * 100) + '%' : '—';
 
   // Public Appeal — average of post-match opponent ratings (1-10)
   if (p.appealSum && p.appealCount) {

@@ -408,7 +408,7 @@ function injectSharedUI() {
     {icon:'👁',title:'EYES ON SCREEN',desc:'Keep your face centered and chin level. One face per frame only.'},
     {icon:'📈',title:'WIN TO RISE',desc:'Beat higher-ranked opponents for bigger ELO gains. Every match counts.'},
     {icon:'🚫',title:'NO BAILING',desc:'Leaving an active match forfeits the round and costs you ELO.'},
-    {icon:'🔐',title:'100% PRIVATE',desc:'Your camera never leaves your browser. Nothing is recorded or stored.'},
+    {icon:'🔐',title:'PEER-TO-PEER VIDEO',desc:'Video connects directly between players. The server handles matchmaking and scores, not recordings.'},
     {icon:'🔒',title:'LOCK IN YOUR RANK',desc:'Sign in to save your ELO, match history and leaderboard identity.'},
     {icon:'💡',title:'GOOD LIGHTING',desc:'Face the light source. Clean your lens for the most accurate scan.'},
   ];

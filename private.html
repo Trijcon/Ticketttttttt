@@ -119,7 +119,51 @@
 .res-vs{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--muted2);}
 .res-actions{display:flex;gap:8px;justify-content:center;margin-top:14px;}
 .notice{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted2);text-align:center;letter-spacing:0.3px;}
+.private-layout{grid-template-columns:1fr;max-width:980px;}
+#setupPanel{max-width:560px;margin:0 auto;width:100%;}
+.page-eyebrow{color:var(--blue);text-align:center;}
+.page-title{text-align:center;text-shadow:0 0 22px rgba(74,158,255,0.2);}
+.page-subtitle{text-align:center;margin-bottom:22px;}
+.priv-card{
+  background:
+    radial-gradient(ellipse 75% 55% at 50% 0%, rgba(74,158,255,0.11), transparent 68%),
+    linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.018));
+  border-color:rgba(74,158,255,0.18);
+  border-radius:var(--radius);
+  box-shadow:0 26px 80px rgba(0,0,0,0.32), inset 0 0 70px rgba(74,158,255,0.035);
+}
+.priv-card::before{
+  background:
+    linear-gradient(rgba(74,158,255,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74,158,255,0.04) 1px, transparent 1px);
+  background-size:34px 34px;
+}
+.priv-icon{
+  background:rgba(74,158,255,0.1);
+  border-color:rgba(74,158,255,0.28);
+  color:var(--blue);
+}
+.code-display{border-color:rgba(74,158,255,0.34);border-style:solid;background:rgba(0,0,0,0.54);}
+.code-val{color:var(--blue);text-shadow:0 0 16px rgba(74,158,255,0.52);}
+.copy-btn{color:var(--blue);border-color:rgba(74,158,255,0.3);background:rgba(74,158,255,0.1);}
+.copy-btn:hover{background:rgba(74,158,255,0.18);}
+.waiting-card{border-color:rgba(74,158,255,0.2);border-radius:var(--radius);box-shadow:inset 0 0 40px rgba(74,158,255,0.04);}
+.arena-panel{grid-column:1/-1;max-width:1180px;margin:0 auto;width:100%;grid-template-columns:1fr 1fr;display:none;}
+.arena-panel.show{display:grid;}
+.arena-panel .a-status,.arena-panel #scanBtn,.arena-panel .result-bar{grid-column:1/-1;}
+.feed-box{border-color:rgba(74,158,255,0.12);border-radius:var(--radius);box-shadow:inset 0 0 34px rgba(74,158,255,0.04);}
+.feed-box::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(rgba(74,158,255,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74,158,255,0.04) 1px, transparent 1px);
+  background-size:30px 30px;
+  opacity:0.45;z-index:4;
+}
+.scan-pill,.scan-tag{border-color:rgba(74,158,255,0.22);box-shadow:0 0 18px rgba(74,158,255,0.1);}
+.res-actions .btn-primary,.res-actions .btn-ghost{min-width:130px;}
 @media(max-width:700px){.private-layout{grid-template-columns:1fr;}}
+@media(max-width:800px){.arena-panel.show{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -134,7 +178,7 @@
       <div class="priv-card" id="mainCard">
         <div class="priv-icon">📡</div>
         <div class="priv-title">Generate a Code</div>
-        <div class="priv-sub">Create a private session. Share your 6-digit code — when your friend enters it, cameras connect peer-to-peer. Nothing is recorded.</div>
+        <div class="priv-sub">Create a private session. Share your 6-digit code. Cameras connect peer-to-peer, and the match stays unranked.</div>
         <div class="code-display" id="codeDisplay" style="display:none;">
           <div class="code-val" id="codeVal">——————</div>
           <button class="copy-btn" id="copyBtn" onclick="copyCode()">Copy</button>
@@ -243,6 +287,7 @@ function onMsg(msg){
     case 'webrtc_ice': handleIce(msg); break;
     case 'opponent_disconnected': setAS('','Opponent disconnected'); resetRTC(); document.getElementById('oppVid').style.display='none'; document.getElementById('oppPH').style.display='flex'; document.getElementById('scanBtn').disabled=true; break;
     case 'score_submitted': setAS('searching','Awaiting opponent score...'); break;
+    case 'score_error': setAS('on',msg.error||'Scan could not be submitted'); document.getElementById('scanBtn').disabled=false; document.getElementById('scanBtn').textContent='Run Scan'; break;
     case 'match_result': showResult(msg); break;
   }
 }
@@ -274,8 +319,17 @@ function initFM(v,c){
 
 function drawMesh(canvas,lm){
   var ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
-  ctx.fillStyle='rgba(74,158,255,0.7)';
-  for(var i=0;i<lm.length;i++){ctx.beginPath();ctx.arc(lm[i].x*w,lm[i].y*h,1.1,0,Math.PI*2);ctx.fill();}
+  ctx.save();
+  ctx.globalCompositeOperation='lighter';
+  ctx.shadowColor='rgba(74,158,255,0.75)';
+  ctx.shadowBlur=8;
+  var lines=[[10,338,297,332,284,251,389,356,454,323,361,288,397,365,379,378,400,377,152,148,176,149,150,136,172,58,132,93,234,127,162,21,54,103,67,109,10],[33,7,163,144,145,153,154,155,133],[362,382,381,380,374,373,390,249,263],[61,185,40,39,37,0,267,269,270,409,291,375,321,405,314,17,84,181,91,146,61]];
+  ctx.strokeStyle='rgba(182,212,255,0.5)';
+  ctx.lineWidth=Math.max(1,w/700);
+  for(var p=0;p<lines.length;p++){ctx.beginPath();for(var k=0;k<lines[p].length;k++){var idx=lines[p][k];if(!lm[idx])continue;var x=lm[idx].x*w,y=lm[idx].y*h;if(k===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();}
+  ctx.fillStyle='rgba(74,158,255,0.82)';
+  for(var i=0;i<lm.length;i+=3){ctx.beginPath();ctx.arc(lm[i].x*w,lm[i].y*h,1.1,0,Math.PI*2);ctx.fill();}
+  ctx.restore();
 }
 
 /* ═══════════════════════════════════════
@@ -410,7 +464,7 @@ function runScan(){
     document.getElementById('myScore').style.display='block';
     wsSend({type:'submit_score',score:score});
     setAS('searching','Submitted — awaiting opponent...');
-  },2000);
+  },4200);
 }
 function showResult(msg){
   document.getElementById('resultBar').classList.add('show');

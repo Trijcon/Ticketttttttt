@@ -31,6 +31,7 @@
   --red:       #ef4444;
   --amber:     #f59e0b;
   --crimson:   #ef4444;
+  --icon-glow: rgba(74,158,255,0.55);
 
   /* ── LEGACY ALIASES (kept for older pages) ── */
   --surface:   rgba(255,255,255,0.03);
@@ -107,6 +108,7 @@ body::before {
 .nav-link.active {
   color: var(--blue); background: var(--blue-dim);
   border-color: rgba(74,158,255,0.15);
+  text-shadow: 0 0 10px var(--icon-glow);
 }
 .nav-link-disabled {
   padding: 9px 18px; border-radius: var(--radius);
@@ -116,6 +118,31 @@ body::before {
   white-space: nowrap; border: 1px solid transparent;
 }
 .nav-link-disabled:hover { color: var(--muted); background: var(--glass); }
+.nav-link,
+.nav-link-disabled,
+.chat-head-title,
+.rank-pill,
+.tier-icon,
+.priv-icon,
+.feed-ph-icon,
+.lb-rank,
+.uh-trophy {
+  transition: color 0.2s, background 0.2s, filter 0.25s, text-shadow 0.25s, box-shadow 0.25s;
+}
+.nav-link:hover,
+.nav-link-disabled:hover,
+.chat-head-title,
+.priv-icon,
+.feed-ph-icon,
+.tier-icon:hover,
+.uh-trophy:hover,
+.lb-row:hover .lb-rank {
+  filter: drop-shadow(0 0 7px var(--icon-glow));
+}
+.priv-icon,
+.feed-ph-icon {
+  box-shadow: 0 0 22px rgba(74,158,255,0.12);
+}
 
 .nav-right { display: flex; align-items: center; gap: 14px; margin-left: auto; flex-shrink: 0; }
 .nav-online {

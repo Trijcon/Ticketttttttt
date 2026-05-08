@@ -297,6 +297,7 @@
 #holoCanvas, #holoFaceCanvas {
   width: 100%; height: 100%; max-width: 320px; max-height: 380px;
   display: block;
+  filter: drop-shadow(0 0 16px rgba(74,158,255,0.35));
 }
 #holoFaceCanvas {
   display: none; position: absolute; top: 50%; left: 50%;
@@ -340,6 +341,13 @@
   animation: holo-scan-anim 3.5s linear infinite;
 }
 .holo-card.live .holo-scan { opacity: 1; }
+.holo-card::after {
+  content:'';
+  position:absolute; left:12%; right:12%; bottom:74px; height:1px;
+  background:linear-gradient(90deg, transparent, rgba(74,158,255,0.45), transparent);
+  box-shadow:0 0 20px rgba(74,158,255,0.28);
+  opacity:0.65; pointer-events:none; z-index:4;
+}
 @keyframes holo-scan-anim {
   0% { top: 0; }
   100% { top: 100%; }
@@ -566,6 +574,108 @@ function loadCanonicalFaceMesh(){
   });
 }
 
+function makeHoloLine(points, color, opacity, width){
+  var geom = new THREE.BufferGeometry().setFromPoints(points);
+  var mat = new THREE.LineBasicMaterial({
+    color: color || 0x9fcaff,
+    transparent: true,
+    opacity: opacity == null ? 0.7 : opacity,
+    depthTest: false,
+    linewidth: width || 1,
+  });
+  return new THREE.Line(geom, mat);
+}
+
+function holoOval(cx, cy, z, rx, ry, start, end, steps){
+  var pts = [];
+  var a0 = start == null ? 0 : start;
+  var a1 = end == null ? Math.PI * 2 : end;
+  var n = steps || 48;
+  for (var i=0; i<=n; i++){
+    var t = a0 + (a1-a0) * (i/n);
+    pts.push(new THREE.Vector3(cx + Math.cos(t)*rx, cy + Math.sin(t)*ry, z));
+  }
+  return pts;
+}
+
+function createCyberHead(){
+  var group = new THREE.Group();
+  group.rotation.x = -0.05;
+
+  var shellGeom = new THREE.SphereGeometry(0.95, 30, 24);
+  shellGeom.scale(0.62, 1.13, 0.55);
+  var shell = new THREE.Mesh(shellGeom, new THREE.MeshBasicMaterial({
+    color: 0x4A9EFF,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.18,
+    depthWrite: false,
+  }));
+  shell.position.y = 0.08;
+  group.add(shell);
+
+  var glowGeom = new THREE.SphereGeometry(0.9, 24, 18);
+  glowGeom.scale(0.62, 1.1, 0.52);
+  var glow = new THREE.Mesh(glowGeom, new THREE.MeshBasicMaterial({
+    color: 0x4A9EFF,
+    transparent: true,
+    opacity: 0.055,
+    depthWrite: false,
+  }));
+  glow.position.y = 0.08;
+  group.add(glow);
+
+  var front = 0.64;
+  group.add(makeHoloLine(holoOval(0, 0.08, front, 0.62, 0.98, -2.72, -0.42, 44), 0xd7ecff, 0.85));
+  group.add(makeHoloLine(holoOval(0, 0.08, front, 0.62, 0.98, Math.PI+0.42, Math.PI*2-0.42, 44), 0xd7ecff, 0.85));
+  group.add(makeHoloLine([
+    new THREE.Vector3(-0.44,-0.28,front), new THREE.Vector3(-0.32,-0.58,front+0.02),
+    new THREE.Vector3(-0.16,-0.79,front+0.03), new THREE.Vector3(0,-0.87,front+0.035),
+    new THREE.Vector3(0.16,-0.79,front+0.03), new THREE.Vector3(0.32,-0.58,front+0.02),
+    new THREE.Vector3(0.44,-0.28,front)
+  ], 0xd7ecff, 0.92));
+
+  group.add(makeHoloLine(holoOval(-0.24, 0.23, front+0.05, 0.16, 0.055, 0, Math.PI*2, 28), 0xffffff, 0.92));
+  group.add(makeHoloLine(holoOval(0.24, 0.23, front+0.05, 0.16, 0.055, 0, Math.PI*2, 28), 0xffffff, 0.92));
+  group.add(makeHoloLine([
+    new THREE.Vector3(-0.43,0.38,front+0.04), new THREE.Vector3(-0.22,0.43,front+0.07), new THREE.Vector3(-0.04,0.38,front+0.05),
+    new THREE.Vector3(0.04,0.38,front+0.05), new THREE.Vector3(0.22,0.43,front+0.07), new THREE.Vector3(0.43,0.38,front+0.04)
+  ], 0x87c4ff, 0.7));
+  group.add(makeHoloLine([
+    new THREE.Vector3(0,0.26,front+0.08), new THREE.Vector3(-0.06,0.02,front+0.13),
+    new THREE.Vector3(0,-0.13,front+0.16), new THREE.Vector3(0.08,-0.17,front+0.1)
+  ], 0xffffff, 0.82));
+  group.add(makeHoloLine(holoOval(0, -0.39, front+0.08, 0.23, 0.06, 0.12, Math.PI-0.12, 28), 0xb6d4ff, 0.72));
+  group.add(makeHoloLine(holoOval(0, -0.41, front+0.08, 0.18, 0.035, Math.PI+0.1, Math.PI*2-0.1, 28), 0xb6d4ff, 0.5));
+
+  for (var r=0; r<4; r++){
+    var y = -0.56 + r * 0.33;
+    group.add(makeHoloLine(holoOval(0, y, 0, 0.68 - r*0.035, 0.08, 0, Math.PI*2, 56), 0x4A9EFF, 0.18));
+  }
+  group.add(makeHoloLine([new THREE.Vector3(-0.18,-0.92,0.26),new THREE.Vector3(-0.22,-1.22,0.18),new THREE.Vector3(0.22,-1.22,0.18),new THREE.Vector3(0.18,-0.92,0.26)], 0x4A9EFF, 0.34));
+
+  var verts = [];
+  for (var p=0; p<130; p++){
+    var theta = Math.random() * Math.PI * 2;
+    var yy = -0.88 + Math.random() * 1.92;
+    var band = Math.max(0.15, 1 - Math.abs(yy-0.08)/1.08);
+    var rr = 0.58 * Math.sqrt(band);
+    verts.push((Math.cos(theta)*rr)*0.75, yy, (Math.sin(theta)*rr)*0.62);
+  }
+  var pointsGeom = new THREE.BufferGeometry();
+  pointsGeom.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+  group.add(new THREE.Points(pointsGeom, new THREE.PointsMaterial({
+    color: 0xb6d4ff,
+    size: 0.014,
+    transparent: true,
+    opacity: 0.45,
+    depthTest: false,
+  })));
+
+  group.scale.set(1.05, 1.05, 1.05);
+  return group;
+}
+
 function initHolo(){
   var canvas = document.getElementById('holoCanvas');
   if (!canvas || !window.THREE) return;
@@ -581,9 +691,7 @@ function initHolo(){
   _holo.renderer.setSize(W, H, false);
   _holo.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
 
-  // Placeholder mesh while we async-load the canonical face model
-  var placeholderGeom = new THREE.SphereGeometry(1.0, 12, 8);
-  _holo.head = new THREE.Mesh(placeholderGeom, new THREE.MeshBasicMaterial({wireframe:true, color:0xFFFFFF, transparent:true, opacity:0.4}));
+  _holo.head = createCyberHead();
   _holo.scene.add(_holo.head);
 
   // Outer slow ring
@@ -591,10 +699,12 @@ function initHolo(){
   _holo.ring = new THREE.Mesh(ringGeom, new THREE.MeshBasicMaterial({color:0xFFFFFF, transparent:true, opacity:0.3}));
   _holo.ring.rotation.x = Math.PI/2;
   _holo.scene.add(_holo.ring);
+  var card = document.getElementById('holoHero');
+  if (card) card.classList.add('live');
 
   // Async-load MediaPipe's canonical face mesh (468 vertices, real face topology)
   // Add a back-of-head sphere so the silhouette reads as a full skull, not just a face plate.
-  loadCanonicalFaceMesh().then(function(geom){
+  if (false) loadCanonicalFaceMesh().then(function(geom){
     if (!geom) return;
     _holo.scene.remove(_holo.head);
 
