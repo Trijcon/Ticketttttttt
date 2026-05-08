@@ -366,6 +366,18 @@ const FB = {
                allow create: if request.auth.uid == uid;
                allow update: if request.auth.uid == uid || isAdmin();
                allow delete: if isAdmin();
+
+               // Comments on a user's profile (reddit-style)
+               match /comments/{commentId} {
+                 allow read: if true;
+                 allow create: if request.auth != null
+                               && request.resource.data.authorUid == request.auth.uid
+                               && request.resource.data.text.size() <= 280;
+                 allow update: if request.auth != null;   // for upvote/downvote counter changes
+                 allow delete: if isAdmin()
+                               || (request.auth != null && resource.data.authorUid == request.auth.uid)
+                               || request.auth.uid == uid;   // profile owner can delete
+               }
              }
              match /usernames/{name} {
                allow read: if true;

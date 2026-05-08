@@ -31,11 +31,16 @@
 .feed-box{
   position:relative;border-radius:14px;overflow:hidden;
   background:#020208;border:1px solid rgba(255,255,255,0.08);
-  aspect-ratio:3/4;width:100%;height:auto;
+  aspect-ratio:4/5;width:100%;height:auto;
   min-height:560px;
 }
-.feed-video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1);}
-.feed-canvas{position:absolute;top:0;left:0;width:100%;height:100%;transform:scaleX(-1);pointer-events:none;}
+.feed-video{
+  width:100%;height:100%;object-fit:cover;display:block;
+  transform:scaleX(-1);
+  /* Slight scale so the captured 16:9 frame fits without zooming faces */
+  object-position:center 30%;
+}
+.feed-canvas{position:absolute;top:0;left:0;width:100%;height:100%;transform:scaleX(-1);pointer-events:none;object-fit:cover;object-position:center 30%;}
 .feed-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
 .feed-ph-icon{font-size:44px;opacity:0.25;}
 .feed-ph-text{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);letter-spacing:1px;}
@@ -397,7 +402,8 @@ function onMsg(msg){
 function mainAction(){ if(state==='idle')startCam(); else if(state==='camera')findMatch(); }
 
 function startCam(){
-  navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'},audio:false})
+  // Capture wider 16:9 frame so faces aren't artificially zoomed in 4:5 box
+  navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},facingMode:'user'},audio:false})
   .then(function(stream){
     myStream=stream;
     var v=document.getElementById('myVid'); v.srcObject=stream;
@@ -440,10 +446,20 @@ function initFM(v,c){
 
 function drawMesh(canvas,lm,dotColor){
   var ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
-  ctx.fillStyle=dotColor||'rgba(0,229,119,0.7)';
-  for(var i=0;i<lm.length;i++){ctx.beginPath();ctx.arc(lm[i].x*w,lm[i].y*h,1.4,0,Math.PI*2);ctx.fill();}
+  // Soft glow dots (smaller, sparser)
+  ctx.shadowColor = '#0df27a';
+  ctx.shadowBlur = 2;
+  ctx.fillStyle = dotColor || 'rgba(13,242,122,0.55)';
+  for(var i=0;i<lm.length;i+=2){
+    ctx.beginPath();
+    ctx.arc(lm[i].x*w, lm[i].y*h, 0.9, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.shadowBlur = 0;
+  // Connection lines — subtler
   var c=[[33,7],[7,163],[163,144],[144,145],[145,153],[153,154],[154,155],[155,133],[362,382],[382,381],[381,380],[380,374],[374,373],[373,390],[390,249],[249,263],[61,185],[185,40],[40,39],[39,37],[37,0],[0,267],[267,269],[269,270],[270,409],[409,291],[291,375],[375,321],[321,405],[405,314],[314,17],[17,84],[84,181],[181,91],[91,146],[146,61],[10,338],[338,297],[297,332],[332,284],[284,251],[251,389],[389,356],[356,454],[454,323],[323,361],[361,288],[288,397],[397,365],[365,379],[379,378],[378,400],[400,377],[377,152],[152,148],[148,176],[176,149],[149,150],[150,136],[136,172]];
-  ctx.strokeStyle=(dotColor||'rgba(0,229,119,0.7)').replace('0.7','0.2');ctx.lineWidth=0.8;
+  ctx.strokeStyle='rgba(13,242,122,0.18)';
+  ctx.lineWidth=0.6;
   for(var j=0;j<c.length;j++){var a=c[j][0],b=c[j][1];if(lm[a]&&lm[b]){ctx.beginPath();ctx.moveTo(lm[a].x*w,lm[a].y*h);ctx.lineTo(lm[b].x*w,lm[b].y*h);ctx.stroke();}}
 }
 

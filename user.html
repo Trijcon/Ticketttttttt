@@ -9,33 +9,97 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 <style>
-.user-wrap { max-width:920px; margin:0 auto; }
+.user-shell { max-width:760px; margin:0 auto; }
 
-.user-header {
-  background:var(--glass); border:1px solid var(--border);
-  border-radius:14px; padding:24px;
-  display:flex; align-items:center; gap:20px; margin-bottom:14px;
-  flex-wrap:wrap;
+/* ── HEADER CARD ── */
+.uh-card {
+  background:linear-gradient(180deg, rgba(26,16,48,0.6) 0%, rgba(15,15,28,0.6) 100%);
+  border:1px solid rgba(123,97,255,0.18);
+  border-radius:16px;
+  padding:26px;
+  position:relative;
+  overflow:hidden;
+  margin-bottom:14px;
 }
+.uh-card::before {
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(ellipse 60% 40% at 50% 0%, rgba(245,166,35,0.06) 0%, transparent 70%);
+  pointer-events:none;
+}
+.uh-top { display:flex; align-items:flex-start; gap:18px; position:relative; z-index:1; }
 .uh-photo {
-  width:80px; height:80px; border-radius:50%;
-  background:var(--bg4); border:1px solid var(--border2);
+  width:88px; height:88px; border-radius:50%;
+  background:var(--bg4); border:2px solid rgba(245,166,35,0.4);
   display:flex; align-items:center; justify-content:center;
-  font-family:'Space Grotesk',sans-serif; font-size:32px; font-weight:700;
+  font-family:'Space Grotesk',sans-serif; font-size:36px; font-weight:700;
   flex-shrink:0; overflow:hidden; color:var(--silver);
+  box-shadow:0 0 22px rgba(245,166,35,0.18);
 }
 .uh-photo img { width:100%; height:100%; object-fit:cover; }
+.uh-id { flex:1; min-width:0; }
+.uh-name {
+  font-family:'JetBrains Mono', monospace; font-weight:700;
+  font-size:24px; color:var(--white); letter-spacing:-0.3px; margin-bottom:8px;
+}
+.uh-badges-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+.uh-pill {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:5px 12px; border-radius:999px;
+  font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:1px;
+  border:1px solid var(--border2);
+  color:var(--silver);
+}
+.uh-pill.gold     { color:#f5a623; border-color:rgba(245,166,35,0.4); background:rgba(245,166,35,0.08); }
+.uh-pill.violet   { color:#7b61ff; border-color:rgba(123,97,255,0.4); background:rgba(123,97,255,0.08); }
+.uh-pill.tier     { color:#0df2c8; border-color:rgba(13,242,200,0.35); background:rgba(13,242,200,0.07); }
+.uh-pill.crimson  { color:#ff3d6b; border-color:rgba(255,61,107,0.35); background:rgba(255,61,107,0.07); }
 
-.uh-info { flex:1; min-width:200px; }
-.uh-name { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:26px; color:var(--white); letter-spacing:-0.3px; margin-bottom:6px; }
-.uh-tier { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--blue); letter-spacing:0.5px; margin-bottom:10px; }
-.uh-meta { display:flex; gap:16px; flex-wrap:wrap; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:0.5px; }
-.uh-meta span { display:flex; align-items:center; gap:5px; }
+.uh-rank-row { display:flex; align-items:center; gap:8px; }
+.uh-rank-num {
+  font-family:'JetBrains Mono',monospace; font-weight:700;
+  background:rgba(245,166,35,0.12); border:1px solid rgba(245,166,35,0.4);
+  color:#f5a623; padding:3px 9px; border-radius:6px; font-size:12px;
+}
+.uh-rank-meta { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:0.5px; }
+.uh-rank-meta b { color:var(--silver); font-weight:600; }
 
-.uh-elo { font-family:'Space Grotesk',sans-serif; font-size:42px; font-weight:700; color:var(--blue); line-height:1; margin-left:auto; }
-.uh-elo-label { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1.5px; color:var(--muted2); text-align:right; margin-top:4px; }
+/* Stat row */
+.uh-stats {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:8px;
+  margin-top:18px; position:relative; z-index:1;
+}
+.uh-stat {
+  background:rgba(0,0,0,0.35); border:1px solid var(--border2);
+  border-radius:10px; padding:12px; text-align:center;
+}
+.uh-stat-lbl { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:2px; color:var(--muted2); margin-bottom:5px; text-transform:uppercase; }
+.uh-stat-val { font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:700; color:#0df2c8; }
+.uh-stat:nth-child(2) .uh-stat-val { color:#f5a623; }
+.uh-stat:nth-child(3) .uh-stat-val { color:#7b61ff; }
 
-.uh-actions { display:flex; gap:8px; margin-top:12px; flex-basis:100%; }
+/* Public appeal pill */
+.uh-appeal {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:7px 14px; border-radius:999px; margin-top:14px;
+  background:rgba(245,166,35,0.08); border:1px solid rgba(245,166,35,0.3);
+  font-family:'JetBrains Mono',monospace; font-size:11px; color:#f5a623; letter-spacing:1px;
+  position:relative; z-index:1;
+}
+.uh-appeal-star { color:#ffd76a; }
+.uh-appeal-count { color:var(--muted2); }
+
+/* Trophies */
+.uh-trophies { display:flex; flex-wrap:wrap; gap:6px; margin-top:14px; position:relative; z-index:1; }
+.uh-trophy {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:6px 14px; border-radius:8px;
+  background:rgba(0,0,0,0.45); border:1px solid var(--border2);
+  font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.8px;
+  color:var(--silver);
+}
+
+/* Action row */
+.uh-actions { display:flex; gap:8px; margin-top:14px; position:relative; z-index:1; }
 .btn-follow {
   padding:10px 22px; border-radius:8px;
   background:var(--blue); border:none; color:#000;
@@ -54,156 +118,185 @@
 }
 .btn-msg:hover { color:var(--white); border-color:var(--border3); }
 
-/* Stats row */
-.stat-row {
-  display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px;
+/* ── COMMENTS (Reddit-style) ── */
+.comments-card {
+  background:rgba(15,15,28,0.5);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:0;
+  overflow:hidden;
 }
-.stat-cell {
-  background:var(--glass); border:1px solid var(--border);
-  border-radius:10px; padding:14px; text-align:center;
+.comments-list {
+  max-height:500px; overflow-y:auto;
+  padding:6px 0;
 }
-.sc-val { font-family:'Space Grotesk',sans-serif; font-size:22px; font-weight:700; color:var(--white); }
-.sc-lbl { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1.5px; color:var(--muted2); margin-top:3px; text-transform:uppercase; }
+.comments-list::-webkit-scrollbar { width:5px; }
+.comments-list::-webkit-scrollbar-thumb { background:var(--bg4); border-radius:999px; }
 
-/* Two-column layout */
-.user-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start; }
-.u-card {
-  background:var(--glass); border:1px solid var(--border);
-  border-radius:12px; padding:16px;
+.cm-row {
+  display:flex; gap:10px; padding:14px 16px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
 }
-.u-card-title {
-  font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:2px;
-  color:var(--muted); text-transform:uppercase; margin-bottom:12px;
+.cm-row:last-child { border-bottom:none; }
+.cm-vote {
+  display:flex; flex-direction:column; align-items:center; flex-shrink:0;
+  font-family:'JetBrains Mono',monospace; font-size:11px;
+  width:28px;
+}
+.cm-vote-btn {
+  background:none; border:none; color:var(--muted2); cursor:pointer;
+  font-size:14px; line-height:1; padding:2px 0; transition:color 0.15s;
+}
+.cm-vote-btn:hover { color:var(--silver); }
+.cm-vote-btn.up.active { color:#f5a623; }
+.cm-vote-btn.down.active { color:#7b61ff; }
+.cm-vote-num { color:var(--silver); font-weight:700; padding:2px 0; }
+
+.cm-body { flex:1; min-width:0; }
+.cm-meta { display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap; }
+.cm-author {
+  font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--silver); font-weight:700;
+  text-decoration:none;
+}
+.cm-author:hover { color:var(--blue); }
+.cm-date { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2); }
+.cm-flag {
+  margin-left:auto; background:none; border:none; color:var(--muted2);
+  cursor:pointer; font-size:11px; opacity:0.6; transition:opacity 0.15s;
+}
+.cm-flag:hover { opacity:1; color:#ff3d6b; }
+
+.cm-text { font-size:13px; color:var(--silver); line-height:1.55; word-break:break-word; margin-bottom:6px; }
+.cm-counts {
+  display:flex; gap:10px;
+  font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2);
+}
+.cm-counts .up { color:#f5a623; }
+.cm-counts .down { color:#7b61ff; }
+
+.cm-empty {
+  font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted2);
+  letter-spacing:0.5px; text-align:center; padding:30px 16px;
 }
 
-/* Match history */
-.match-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
-.match-row:last-child { border-bottom:none; }
-.match-result { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; flex-shrink:0; }
-.match-result.w { background:rgba(34,197,94,0.08); color:var(--green); border:1px solid rgba(34,197,94,0.18); }
-.match-result.l { background:rgba(239,68,68,0.08); color:var(--red); border:1px solid rgba(239,68,68,0.18); }
-.match-opp { font-size:13px; color:var(--silver); font-weight:500; flex:1; }
-.match-score { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2); margin-top:2px; }
-.match-elo { font-family:'JetBrains Mono',monospace; font-size:11px; }
-.match-elo.up { color:var(--green); } .match-elo.dn { color:var(--red); }
-
-/* Badges */
-.badge-grid { display:flex; flex-wrap:wrap; gap:8px; }
-.badge-chip {
-  display:inline-flex; align-items:center; gap:6px;
-  padding:7px 13px; border-radius:8px;
-  background:var(--bg3); border:1px solid var(--border2);
-  font-family:'JetBrains Mono',monospace; font-size:10px;
-  color:var(--silver); letter-spacing:0.5px;
+/* Comment input — bottom of card */
+.cm-input-wrap {
+  position:relative;
+  border-top:1px solid var(--border);
+  padding:12px 16px;
+  background:rgba(0,0,0,0.3);
 }
-
-/* Comments */
-.comment-form { margin-bottom:12px; }
-.comment-input {
-  width:100%; background:var(--bg3); border:1px solid var(--border2);
-  border-radius:8px; padding:10px 12px;
+.cm-input {
+  width:100%;
+  background:rgba(0,0,0,0.4); border:1px solid var(--border2);
+  border-radius:8px; padding:10px 90px 10px 14px;
   font-family:'Inter',sans-serif; font-size:13px;
   color:var(--white); outline:none; resize:none;
   transition:border-color 0.2s;
+  box-sizing:border-box;
 }
-.comment-input:focus { border-color:rgba(74,158,255,0.35); }
-.comment-submit {
-  padding:7px 16px; border-radius:6px;
-  background:var(--blue); border:none; color:#000;
-  font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:1px;
-  font-weight:700; cursor:pointer; margin-top:6px;
+.cm-input:focus { border-color:rgba(74,158,255,0.35); }
+.cm-input-counter {
+  position:absolute; left:24px; bottom:24px;
+  font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2);
 }
-.comment-submit:disabled { opacity:0.4; cursor:not-allowed; }
+.cm-submit {
+  position:absolute; right:24px; bottom:20px;
+  padding:6px 14px; border-radius:6px;
+  background:rgba(245,166,35,0.12); border:1px solid rgba(245,166,35,0.3);
+  color:#f5a623; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:1.5px;
+  font-weight:700; cursor:pointer;
+  display:inline-flex; align-items:center; gap:5px;
+}
+.cm-submit:hover { background:rgba(245,166,35,0.2); }
+.cm-submit:disabled { opacity:0.4; cursor:not-allowed; }
 
-.comment-list { display:flex; flex-direction:column; gap:8px; }
-.comment-item {
-  background:var(--bg3); border:1px solid var(--border);
-  border-radius:8px; padding:10px 12px;
+/* Match history (collapsible block above comments) */
+.matches-card {
+  background:var(--glass); border:1px solid var(--border);
+  border-radius:12px; padding:14px 16px; margin-bottom:14px;
 }
-.comment-head { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
-.comment-author { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:11px; color:var(--silver); }
-.comment-author a { color:var(--blue); text-decoration:none; }
-.comment-time { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2); margin-left:auto; }
-.comment-text { font-size:12px; color:var(--silver); line-height:1.55; word-break:break-word; }
-
-.comment-empty {
-  font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2);
-  letter-spacing:0.5px; text-align:center; padding:14px 0;
+.match-head {
+  font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:2px;
+  color:var(--muted); text-transform:uppercase; margin-bottom:10px;
 }
+.match-row { display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+.match-row:last-child { border-bottom:none; }
+.match-result { width:28px; height:28px; border-radius:5px; display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; flex-shrink:0; }
+.match-result.w { background:rgba(34,197,94,0.08); color:var(--green); border:1px solid rgba(34,197,94,0.18); }
+.match-result.l { background:rgba(239,68,68,0.08); color:var(--red); border:1px solid rgba(239,68,68,0.18); }
+.match-opp { font-size:12px; color:var(--silver); font-weight:500; flex:1; }
+.match-score { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2); margin-top:1px; }
+.match-elo { font-family:'JetBrains Mono',monospace; font-size:11px; }
+.match-elo.up { color:var(--green); } .match-elo.dn { color:var(--red); }
 
-@media(max-width:760px){
-  .user-grid { grid-template-columns:1fr; }
-  .stat-row { grid-template-columns:1fr 1fr; }
-  .uh-elo { margin-left:0; }
+@media(max-width:600px){
+  .uh-stats { grid-template-columns:1fr 1fr; }
+  .uh-stat:nth-child(3) { grid-column:1/-1; }
 }
 </style>
 </head>
 <body>
 <div class="page-wrap">
-<div class="user-wrap">
+<div class="user-shell">
 
-  <!-- HEADER -->
-  <div class="user-header" id="userHeader">
-    <div class="uh-photo" id="uPhoto">?</div>
-    <div class="uh-info">
-      <div class="uh-name" id="uName">Loading...</div>
-      <div class="uh-tier" id="uTier">—</div>
-      <div class="uh-meta">
-        <span id="uCountry"></span>
-        <span id="uMembers">Member</span>
-        <span id="uDiscord" style="display:none;"></span>
-      </div>
-      <div class="uh-actions">
-        <button class="btn-follow" id="followBtn" onclick="toggleFollow()" style="display:none;">+ Follow</button>
-        <button class="btn-msg" id="msgBtn" onclick="alert('Direct messages are coming soon.')" style="display:none;">Message</button>
-      </div>
-    </div>
-    <div>
-      <div class="uh-elo" id="uElo">—</div>
-      <div class="uh-elo-label">ELO</div>
-    </div>
-  </div>
-
-  <!-- STATS -->
-  <div class="stat-row">
-    <div class="stat-cell"><div class="sc-val" id="sWins">0</div><div class="sc-lbl">Wins</div></div>
-    <div class="stat-cell"><div class="sc-val" id="sLosses">0</div><div class="sc-lbl">Losses</div></div>
-    <div class="stat-cell"><div class="sc-val" id="sFollowers">0</div><div class="sc-lbl">Followers</div></div>
-    <div class="stat-cell"><div class="sc-val" id="sFollowing">0</div><div class="sc-lbl">Following</div></div>
-  </div>
-
-  <!-- TWO-COLUMN -->
-  <div class="user-grid">
-
-    <!-- LEFT: badges + match history -->
-    <div>
-      <div class="u-card" style="margin-bottom:12px;">
-        <div class="u-card-title">Trophies &amp; Badges</div>
-        <div class="badge-grid" id="badgeGrid">
-          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);">No badges yet</div>
-        </div>
-      </div>
-      <div class="u-card">
-        <div class="u-card-title">Recent Matches</div>
-        <div id="matchList">
-          <div class="comment-empty">No matches yet</div>
+  <!-- ── HEADER CARD ── -->
+  <div class="uh-card">
+    <div class="uh-top">
+      <div class="uh-photo" id="uPhoto">?</div>
+      <div class="uh-id">
+        <div class="uh-name" id="uName">Loading...</div>
+        <div class="uh-badges-row" id="uBadges"></div>
+        <div class="uh-rank-row" id="uRankRow" style="display:none;">
+          <span class="uh-rank-num" id="uRankNum">#—</span>
+          <span class="uh-rank-meta"><b id="uRankRole">ARENA RANK</b><br>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted2);letter-spacing:1px;" id="uRankSub">SEASON 1 STANDING</span>
+          </span>
         </div>
       </div>
     </div>
 
-    <!-- RIGHT: comments -->
-    <div class="u-card">
-      <div class="u-card-title">Comments</div>
-      <div class="comment-form" id="commentForm">
-        <textarea class="comment-input" id="commentInput" placeholder="Leave a comment..." maxlength="280" rows="2"></textarea>
-        <button class="comment-submit" onclick="postComment()">Post</button>
-      </div>
-      <div class="comment-list" id="commentList">
-        <div class="comment-empty">No comments yet — be the first</div>
-      </div>
+    <div class="uh-stats">
+      <div class="uh-stat"><div class="uh-stat-lbl">ELO</div><div class="uh-stat-val" id="sElo">—</div></div>
+      <div class="uh-stat"><div class="uh-stat-lbl">Wins</div><div class="uh-stat-val" id="sWins">—</div></div>
+      <div class="uh-stat"><div class="uh-stat-lbl">Comments</div><div class="uh-stat-val" id="sComments">—</div></div>
     </div>
 
+    <div class="uh-appeal" id="uAppeal" style="display:none;">
+      <span>👁 PUBLIC APPEAL:</span>
+      <b id="uAppealVal">—</b>
+      <span class="uh-appeal-star">⭐</span>
+      <span class="uh-appeal-count" id="uAppealCount">(0)</span>
+    </div>
+
+    <div class="uh-trophies" id="uTrophies"></div>
+
+    <div class="uh-actions">
+      <button class="btn-follow" id="followBtn" onclick="toggleFollow()" style="display:none;">+ Follow</button>
+      <button class="btn-msg" id="msgBtn" onclick="alert('Direct messages are coming soon.')" style="display:none;">Message</button>
+    </div>
   </div>
+
+  <!-- MATCH HISTORY -->
+  <div class="matches-card">
+    <div class="match-head">Recent Matches</div>
+    <div id="matchList">
+      <div class="cm-empty" style="padding:14px 0;">No matches yet</div>
+    </div>
+  </div>
+
+  <!-- ── COMMENTS ── -->
+  <div class="comments-card">
+    <div class="comments-list" id="commentList">
+      <div class="cm-empty">Loading comments...</div>
+    </div>
+    <div class="cm-input-wrap">
+      <textarea class="cm-input" id="commentInput" placeholder="Leave a comment..." maxlength="280" rows="2"></textarea>
+      <div class="cm-input-counter" id="cmCounter">280</div>
+      <button class="cm-submit" onclick="postComment()">📝 POST</button>
+    </div>
+  </div>
+
 </div>
 </div>
 
@@ -228,12 +321,11 @@ const db   = getFirestore(fbApp);
 injectSharedUI();
 connectWS();
 
-let _viewer = null;        // currently signed-in user
+let _viewer = null;
 let _viewerProfile = null;
-let _profileUid = null;    // UID of profile being viewed
+let _profileUid = null;
 let _profileData = null;
 
-// Get the username from URL ?u=...
 const params = new URLSearchParams(location.search);
 const targetUsername = params.get('u') || '';
 if (!targetUsername) {
@@ -242,9 +334,14 @@ if (!targetUsername) {
   loadProfile(targetUsername.toLowerCase());
 }
 
+// Comment input character counter
+const cmInput = document.getElementById('commentInput');
+cmInput.addEventListener('input', () => {
+  document.getElementById('cmCounter').textContent = (280 - cmInput.value.length);
+});
+
 async function loadProfile(unameLower) {
   try {
-    // Resolve username → UID
     const usnap = await getDoc(doc(db,'usernames',unameLower));
     if (!usnap.exists()) { document.getElementById('uName').textContent = 'User not found'; return; }
     _profileUid = usnap.data().uid;
@@ -253,6 +350,7 @@ async function loadProfile(unameLower) {
     _profileData = psnap.data();
     renderProfile(_profileData);
     loadComments();
+    computeArenaRank();
   } catch(e) {
     console.error('Load profile error:', e);
     document.getElementById('uName').textContent = 'Error loading profile';
@@ -260,8 +358,8 @@ async function loadProfile(unameLower) {
 }
 
 function renderProfile(p) {
-  const elo  = p.elo || 400;
-  const tierName = (typeof getTierName==='function') ? getTierName(elo) : 'Sub3';
+  const elo = p.elo || 400;
+  const tierName  = (typeof getTierName==='function') ? getTierName(elo) : 'Sub3';
   const tierEmoji = (typeof getTierEmoji==='function') ? getTierEmoji(elo) : '🔴';
 
   // Photo
@@ -270,36 +368,51 @@ function renderProfile(p) {
   if (p.photoURL) photoEl.innerHTML = `<img src="${p.photoURL}" onerror="this.parentElement.textContent='${initial}'">`;
   else photoEl.textContent = initial;
 
-  document.getElementById('uName').textContent = p.username || 'Unknown';
-  document.getElementById('uTier').textContent = `${tierEmoji} ${tierName} · S1`;
-  document.getElementById('uElo').textContent  = elo;
-  document.getElementById('sWins').textContent = p.wins || 0;
-  document.getElementById('sLosses').textContent = p.losses || 0;
-  document.getElementById('sFollowers').textContent = p.followerCount || 0;
-  document.getElementById('sFollowing').textContent = p.followingCount || 0;
+  // Name with country flag if known
+  const flagPrefix = p.countryFlag ? `${p.countryFlag} ` : '';
+  document.getElementById('uName').textContent = (flagPrefix + (p.username||'Unknown')).trim();
 
-  if (p.country) document.getElementById('uCountry').textContent = '🌐 ' + p.country;
-  if (p.discordUsername) {
-    const d = document.getElementById('uDiscord');
-    d.textContent = '💬 @' + p.discordUsername;
-    d.style.display = '';
+  // Badges row — top-line pills (rank, tier, season)
+  const badgesEl = document.getElementById('uBadges');
+  const tierPillClass = elo >= 5001 ? 'crimson' : elo >= 3501 ? 'gold' : elo >= 2001 ? 'violet' : elo >= 1501 ? 'tier' : '';
+  badgesEl.innerHTML = `
+    <span class="uh-pill ${tierPillClass}">${tierEmoji} ${tierName.toUpperCase()}</span>
+    <span class="uh-pill violet">S1 RANK</span>
+    ${p.role && p.role !== 'user' ? `<span class="uh-pill crimson">${p.role.toUpperCase()}</span>` : ''}
+    ${p.proActive ? `<span class="uh-pill gold">💎 PRO</span>` : ''}
+  `;
+
+  // Stats
+  document.getElementById('sElo').textContent  = elo;
+  document.getElementById('sWins').textContent = p.wins || 0;
+
+  // Public Appeal — average of post-match opponent ratings (1-10)
+  if (p.appealSum && p.appealCount) {
+    const avg = (p.appealSum / p.appealCount);
+    document.getElementById('uAppealVal').textContent = avg.toFixed(1);
+    document.getElementById('uAppealCount').textContent = `(${p.appealCount})`;
+    document.getElementById('uAppeal').style.display = '';
   }
 
-  // Badges (admin-granted) + automatic tier badge
-  const grid = document.getElementById('badgeGrid');
-  const badges = Array.isArray(p.badges) ? p.badges : [];
-  const allBadges = [
-    {label:'S1 Player', icon:'◇'},
-    {label:'S1 ' + tierName.toUpperCase(), icon:tierEmoji},
-    ...badges,
+  // Trophies — auto + admin badges
+  const auto = [
+    { label: 'S1 Player', icon: '◇' },
+    { label: 'S1 ' + tierName.toUpperCase(), icon: tierEmoji },
   ];
-  grid.innerHTML = allBadges.map(b => `<div class="badge-chip">${b.icon||'🏅'} ${escapeHtml(b.label||'')}</div>`).join('');
+  if ((p.wins||0) >= 100)  auto.push({ label: '100 WINS',  icon: '🏆' });
+  if ((p.wins||0) >= 500)  auto.push({ label: '500 WINS',  icon: '🏆' });
+  if ((p.wins||0) >= 1000) auto.push({ label: '1000 WINS', icon: '🏆' });
+  const admin = Array.isArray(p.badges) ? p.badges : [];
+  const all = auto.concat(admin);
+  document.getElementById('uTrophies').innerHTML = all.map(b =>
+    `<div class="uh-trophy">${b.icon||'🏅'} ${escapeHtml(b.label||'')}</div>`
+  ).join('');
 
   // Match history
   const hist = Array.isArray(p.matchHistory) ? p.matchHistory : [];
   const ml = document.getElementById('matchList');
   if (!hist.length) {
-    ml.innerHTML = '<div class="comment-empty">No matches yet</div>';
+    ml.innerHTML = '<div class="cm-empty" style="padding:14px 0;">No matches yet</div>';
   } else {
     ml.innerHTML = hist.slice(-15).reverse().map(m => `
       <div class="match-row">
@@ -313,18 +426,30 @@ function renderProfile(p) {
   }
 }
 
-// Auth state — used to decide if viewer can follow / comment
+// Compute arena rank by counting users with higher ELO (cap at 1000 for query budget)
+async function computeArenaRank(){
+  if (!_profileData) return;
+  try {
+    const q = query(collection(db,'users'), orderBy('elo','desc'), limit(1000));
+    const snap = await getDocs(q);
+    let rank = 0;
+    snap.docs.forEach((d, i) => { if (d.id === _profileUid) rank = i+1; });
+    if (rank > 0) {
+      document.getElementById('uRankNum').textContent  = '#' + rank;
+      document.getElementById('uRankRole').textContent = rank === 1 ? 'ARENA CHAMPION' : 'ARENA RANK';
+      document.getElementById('uRankSub').textContent  = rank === 1 ? 'UNDISPUTED LEADER' : 'SEASON 1 STANDING';
+      document.getElementById('uRankRow').style.display = '';
+    }
+  } catch(e) {/*ignore*/}
+}
+
 onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    document.getElementById('commentForm').style.display = 'none';
-    return;
-  }
+  if (!user) return;
   _viewer = user;
   try {
     const snap = await getDoc(doc(db,'users',user.uid));
     if (snap.exists()) _viewerProfile = snap.data();
   } catch(e){}
-  // Show follow + msg buttons (unless viewing own profile)
   if (_profileUid && _profileUid !== user.uid) {
     document.getElementById('followBtn').style.display = '';
     document.getElementById('msgBtn').style.display = '';
@@ -349,38 +474,30 @@ window.toggleFollow = async function(){
   try {
     if (isFollowing) {
       await updateDoc(doc(db,'users',_viewer.uid), {
-        following: arrayRemove(_profileUid),
-        followingCount: increment(-1),
+        following: arrayRemove(_profileUid), followingCount: increment(-1),
       });
       await updateDoc(doc(db,'users',_profileUid), {
-        followers: arrayRemove(_viewer.uid),
-        followerCount: increment(-1),
+        followers: arrayRemove(_viewer.uid), followerCount: increment(-1),
       });
       _viewerProfile.following = followingArr.filter(x=>x!==_profileUid);
     } else {
       await updateDoc(doc(db,'users',_viewer.uid), {
-        following: arrayUnion(_profileUid),
-        followingCount: increment(1),
+        following: arrayUnion(_profileUid), followingCount: increment(1),
       });
       await updateDoc(doc(db,'users',_profileUid), {
-        followers: arrayUnion(_viewer.uid),
-        followerCount: increment(1),
+        followers: arrayUnion(_viewer.uid), followerCount: increment(1),
       });
       _viewerProfile.following = followingArr.concat([_profileUid]);
     }
-    // Refresh stat counts on screen
-    const fc = document.getElementById('sFollowers');
-    fc.textContent = Math.max(0, parseInt(fc.textContent||'0') + (isFollowing?-1:1));
     updateFollowButton();
   } catch(e) { alert('Action failed: '+e.message); }
 };
 
 window.postComment = async function(){
   const input = document.getElementById('commentInput');
-  const text = input.value.trim();
+  const text  = input.value.trim();
   if (!text) return;
   if (!_viewer || !_viewerProfile) { alert('Sign in to comment'); return; }
-  // Profanity check (client-side)
   if (window.containsProfanity && window.containsProfanity(text)) {
     alert('Comment blocked — restricted language');
     return;
@@ -392,10 +509,33 @@ window.postComment = async function(){
       authorPhoto: _viewerProfile.photoURL || '',
       text: text.slice(0,280),
       createdAt: serverTimestamp(),
+      upvotes: 0,
+      downvotes: 0,
     });
     input.value = '';
+    document.getElementById('cmCounter').textContent = '280';
     loadComments();
-  } catch(e) { alert('Post failed: '+e.message); }
+  } catch(e) {
+    alert('Post failed — make sure your Firestore rules allow comments. '+ e.message);
+  }
+};
+
+window.voteComment = async function(commentId, dir){
+  if (!_viewer) { alert('Sign in to vote'); return; }
+  const key = `mgm_vote_${commentId}`;
+  const prev = localStorage.getItem(key);
+  if (prev === dir) return;  // already voted this way
+  try {
+    const ref = doc(db,'users',_profileUid,'comments',commentId);
+    const upDelta   = (dir==='up' ? 1 : 0) + (prev==='up' ? -1 : 0);
+    const downDelta = (dir==='down' ? 1 : 0) + (prev==='down' ? -1 : 0);
+    await updateDoc(ref, {
+      upvotes: increment(upDelta),
+      downvotes: increment(downDelta),
+    });
+    localStorage.setItem(key, dir);
+    loadComments();
+  } catch(e) { console.warn('Vote failed:', e); }
 };
 
 async function loadComments(){
@@ -404,24 +544,44 @@ async function loadComments(){
     const q = query(collection(db,'users',_profileUid,'comments'), orderBy('createdAt','desc'), limit(50));
     const snap = await getDocs(q);
     const list = document.getElementById('commentList');
+    document.getElementById('sComments').textContent = snap.size;
     if (snap.empty) {
-      list.innerHTML = '<div class="comment-empty">No comments yet — be the first</div>';
+      list.innerHTML = '<div class="cm-empty">No comments yet — be the first</div>';
       return;
     }
     list.innerHTML = snap.docs.map(d => {
       const c = d.data();
-      const when = c.createdAt?.toDate ? c.createdAt.toDate().toLocaleString() : '';
-      return `<div class="comment-item">
-        <div class="comment-head">
-          <span class="comment-author"><a href="user.html?u=${encodeURIComponent(c.authorUsername||'')}">${escapeHtml(c.authorUsername||'Unknown')}</a></span>
-          <span class="comment-time">${when}</span>
+      const id = d.id;
+      const up = c.upvotes || 0;
+      const down = c.downvotes || 0;
+      const score = up - down;
+      const myVote = localStorage.getItem(`mgm_vote_${id}`) || '';
+      const when = c.createdAt?.toDate ? formatDate(c.createdAt.toDate()) : '';
+      return `<div class="cm-row">
+        <div class="cm-vote">
+          <button class="cm-vote-btn up ${myVote==='up'?'active':''}" onclick="voteComment('${id}','up')">▲</button>
+          <span class="cm-vote-num">${score}</span>
+          <button class="cm-vote-btn down ${myVote==='down'?'active':''}" onclick="voteComment('${id}','down')">▼</button>
         </div>
-        <div class="comment-text">${escapeHtml(c.text||'')}</div>
+        <div class="cm-body">
+          <div class="cm-meta">
+            <a class="cm-author" href="user.html?u=${encodeURIComponent(c.authorUsername||'')}">${escapeHtml(c.authorUsername||'Unknown')}</a>
+            <span class="cm-date">${when}</span>
+            <button class="cm-flag" title="Report">⚑</button>
+          </div>
+          <div class="cm-text">${escapeHtml(c.text||'')}</div>
+          <div class="cm-counts"><span class="up">${up} up</span> / <span class="down">${down} down</span></div>
+        </div>
       </div>`;
     }).join('');
   } catch(e) {
+    document.getElementById('commentList').innerHTML = '<div class="cm-empty">Could not load comments</div>';
     console.error('Load comments error:', e);
   }
+}
+
+function formatDate(d){
+  return d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
 }
 </script>
 <script type="module" src="auth.js"></script>

@@ -588,21 +588,32 @@ async function handleDiscordCallback(user) {
 
 /* ════════════════════════════════
    COUNTRY DETECTION via ipapi.co (free, no key)
+   Persists country to user's Firestore doc so it shows on public profile.
 ════════════════════════════════ */
-async function fetchCountry() {
+async function fetchCountry(uid) {
   // Cache 24h to avoid repeated lookups
-  const cached = localStorage.getItem('mgm_country');
+  const cachedLabel = localStorage.getItem('mgm_country');
   const cachedAt = parseInt(localStorage.getItem('mgm_country_at') || '0');
-  if (cached && (Date.now() - cachedAt) < 86400000) {
-    return cached;
+  if (cachedLabel && (Date.now() - cachedAt) < 86400000) {
+    return cachedLabel;
   }
   try {
     const res = await fetch('https://ipapi.co/json/');
     const data = await res.json();
-    const flag = data.country_code ? countryFlag(data.country_code) : '';
-    const label = data.country_name ? (flag + ' ' + data.country_name) : 'Unknown';
+    const code = data.country_code || '';
+    const flag = code ? countryFlag(code) : '';
+    const name = data.country_name || 'Unknown';
+    const label = flag ? (flag + ' ' + name) : name;
     localStorage.setItem('mgm_country', label);
     localStorage.setItem('mgm_country_at', String(Date.now()));
+    // Persist to Firestore so user.html can show it
+    if (uid && code) {
+      try {
+        await updateDoc(doc(db,'users',uid), {
+          country: name, countryCode: code, countryFlag: flag,
+        });
+      } catch(e) { /* ignore */ }
+    }
     return label;
   } catch(e) {
     return 'Unavailable';
@@ -622,8 +633,8 @@ onAuthStateChanged(auth, async (user) => {
     if (!snap.exists()) { window.location.href='setup.html'; return; }
     _profile = snap.data();
     renderProfile(user, _profile);
-    // Country (async, non-blocking)
-    fetchCountry().then(c => {
+    // Country (async, non-blocking) — pass uid so we can persist to Firestore
+    fetchCountry(user.uid).then(c => {
       const el = document.getElementById('countryDisplay');
       if (el) el.textContent = c;
     });
