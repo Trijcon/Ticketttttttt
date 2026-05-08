@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MogMe.TV — User Profile</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.user-wrap { max-width:920px; margin:0 auto; }
+
+.user-header {
+  background:var(--glass); border:1px solid var(--border);
+  border-radius:14px; padding:24px;
+  display:flex; align-items:center; gap:20px; margin-bottom:14px;
+  flex-wrap:wrap;
+}
+.uh-photo {
+  width:80px; height:80px; border-radius:50%;
+  background:var(--bg4); border:1px solid var(--border2);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Space Grotesk',sans-serif; font-size:32px; font-weight:700;
+  flex-shrink:0; overflow:hidden; color:var(--silver);
+}
+.uh-photo img { width:100%; height:100%; object-fit:cover; }
+
+.uh-info { flex:1; min-width:200px; }
+.uh-name { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:26px; color:var(--white); letter-spacing:-0.3px; margin-bottom:6px; }
+.uh-tier { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--blue); letter-spacing:0.5px; margin-bottom:10px; }
+.uh-meta { display:flex; gap:16px; flex-wrap:wrap; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:0.5px; }
+.uh-meta span { display:flex; align-items:center; gap:5px; }
+
+.uh-elo { font-family:'Space Grotesk',sans-serif; font-size:42px; font-weight:700; color:var(--blue); line-height:1; margin-left:auto; }
+.uh-elo-label { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1.5px; color:var(--muted2); text-align:right; margin-top:4px; }
+
+.uh-actions { display:flex; gap:8px; margin-top:12px; flex-basis:100%; }
+.btn-follow {
+  padding:10px 22px; border-radius:8px;
+  background:var(--blue); border:none; color:#000;
+  font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600; cursor:pointer;
+  transition:opacity 0.2s;
+}
+.btn-follow:hover { opacity:0.85; }
+.btn-follow.following {
+  background:transparent; border:1px solid var(--border2); color:var(--silver);
+}
+.btn-msg {
+  padding:10px 22px; border-radius:8px;
+  background:transparent; border:1px solid var(--border2); color:var(--silver);
+  font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:500; cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-msg:hover { color:var(--white); border-color:var(--border3); }
+
+/* Stats row */
+.stat-row {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px;
+}
+.stat-cell {
+  background:var(--glass); border:1px solid var(--border);
+  border-radius:10px; padding:14px; text-align:center;
+}
+.sc-val { font-family:'Space Grotesk',sans-serif; font-size:22px; font-weight:700; color:var(--white); }
+.sc-lbl { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1.5px; color:var(--muted2); margin-top:3px; text-transform:uppercase; }
+
+/* Two-column layout */
+.user-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start; }
+.u-card {
+  background:var(--glass); border:1px solid var(--border);
+  border-radius:12px; padding:16px;
+}
+.u-card-title {
+  font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:2px;
+  color:var(--muted); text-transform:uppercase; margin-bottom:12px;
+}
+
+/* Match history */
+.match-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+.match-row:last-child { border-bottom:none; }
+.match-result { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; flex-shrink:0; }
+.match-result.w { background:rgba(34,197,94,0.08); color:var(--green); border:1px solid rgba(34,197,94,0.18); }
+.match-result.l { background:rgba(239,68,68,0.08); color:var(--red); border:1px solid rgba(239,68,68,0.18); }
+.match-opp { font-size:13px; color:var(--silver); font-weight:500; flex:1; }
+.match-score { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2); margin-top:2px; }
+.match-elo { font-family:'JetBrains Mono',monospace; font-size:11px; }
+.match-elo.up { color:var(--green); } .match-elo.dn { color:var(--red); }
+
+/* Badges */
+.badge-grid { display:flex; flex-wrap:wrap; gap:8px; }
+.badge-chip {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:7px 13px; border-radius:8px;
+  background:var(--bg3); border:1px solid var(--border2);
+  font-family:'JetBrains Mono',monospace; font-size:10px;
+  color:var(--silver); letter-spacing:0.5px;
+}
+
+/* Comments */
+.comment-form { margin-bottom:12px; }
+.comment-input {
+  width:100%; background:var(--bg3); border:1px solid var(--border2);
+  border-radius:8px; padding:10px 12px;
+  font-family:'Inter',sans-serif; font-size:13px;
+  color:var(--white); outline:none; resize:none;
+  transition:border-color 0.2s;
+}
+.comment-input:focus { border-color:rgba(74,158,255,0.35); }
+.comment-submit {
+  padding:7px 16px; border-radius:6px;
+  background:var(--blue); border:none; color:#000;
+  font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:1px;
+  font-weight:700; cursor:pointer; margin-top:6px;
+}
+.comment-submit:disabled { opacity:0.4; cursor:not-allowed; }
+
+.comment-list { display:flex; flex-direction:column; gap:8px; }
+.comment-item {
+  background:var(--bg3); border:1px solid var(--border);
+  border-radius:8px; padding:10px 12px;
+}
+.comment-head { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+.comment-author { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:11px; color:var(--silver); }
+.comment-author a { color:var(--blue); text-decoration:none; }
+.comment-time { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2); margin-left:auto; }
+.comment-text { font-size:12px; color:var(--silver); line-height:1.55; word-break:break-word; }
+
+.comment-empty {
+  font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2);
+  letter-spacing:0.5px; text-align:center; padding:14px 0;
+}
+
+@media(max-width:760px){
+  .user-grid { grid-template-columns:1fr; }
+  .stat-row { grid-template-columns:1fr 1fr; }
+  .uh-elo { margin-left:0; }
+}
+</style>
+</head>
+<body>
+<div class="page-wrap">
+<div class="user-wrap">
+
+  <!-- HEADER -->
+  <div class="user-header" id="userHeader">
+    <div class="uh-photo" id="uPhoto">?</div>
+    <div class="uh-info">
+      <div class="uh-name" id="uName">Loading...</div>
+      <div class="uh-tier" id="uTier">—</div>
+      <div class="uh-meta">
+        <span id="uCountry"></span>
+        <span id="uMembers">Member</span>
+        <span id="uDiscord" style="display:none;"></span>
+      </div>
+      <div class="uh-actions">
+        <button class="btn-follow" id="followBtn" onclick="toggleFollow()" style="display:none;">+ Follow</button>
+        <button class="btn-msg" id="msgBtn" onclick="alert('Direct messages are coming soon.')" style="display:none;">Message</button>
+      </div>
+    </div>
+    <div>
+      <div class="uh-elo" id="uElo">—</div>
+      <div class="uh-elo-label">ELO</div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stat-row">
+    <div class="stat-cell"><div class="sc-val" id="sWins">0</div><div class="sc-lbl">Wins</div></div>
+    <div class="stat-cell"><div class="sc-val" id="sLosses">0</div><div class="sc-lbl">Losses</div></div>
+    <div class="stat-cell"><div class="sc-val" id="sFollowers">0</div><div class="sc-lbl">Followers</div></div>
+    <div class="stat-cell"><div class="sc-val" id="sFollowing">0</div><div class="sc-lbl">Following</div></div>
+  </div>
+
+  <!-- TWO-COLUMN -->
+  <div class="user-grid">
+
+    <!-- LEFT: badges + match history -->
+    <div>
+      <div class="u-card" style="margin-bottom:12px;">
+        <div class="u-card-title">Trophies &amp; Badges</div>
+        <div class="badge-grid" id="badgeGrid">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);">No badges yet</div>
+        </div>
+      </div>
+      <div class="u-card">
+        <div class="u-card-title">Recent Matches</div>
+        <div id="matchList">
+          <div class="comment-empty">No matches yet</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: comments -->
+    <div class="u-card">
+      <div class="u-card-title">Comments</div>
+      <div class="comment-form" id="commentForm">
+        <textarea class="comment-input" id="commentInput" placeholder="Leave a comment..." maxlength="280" rows="2"></textarea>
+        <button class="comment-submit" onclick="postComment()">Post</button>
+      </div>
+      <div class="comment-list" id="commentList">
+        <div class="comment-empty">No comments yet — be the first</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script src="shared.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, collection, query, orderBy, limit,
+         getDocs, addDoc, serverTimestamp, arrayUnion, arrayRemove, increment }
+  from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const fbApp = initializeApp({
+  apiKey:"AIzaSyBpMuv59Rlhc2roSiTPBzjKKHjuwqe0TFs",
+  authDomain:"mogmetv.firebaseapp.com", projectId:"mogmetv",
+  storageBucket:"mogmetv.firebasestorage.app",
+  messagingSenderId:"1067675943117",
+  appId:"1:1067675943117:web:9545a8bbfa7f68d5db2984"
+});
+const auth = getAuth(fbApp);
+const db   = getFirestore(fbApp);
+
+injectSharedUI();
+connectWS();
+
+let _viewer = null;        // currently signed-in user
+let _viewerProfile = null;
+let _profileUid = null;    // UID of profile being viewed
+let _profileData = null;
+
+// Get the username from URL ?u=...
+const params = new URLSearchParams(location.search);
+const targetUsername = params.get('u') || '';
+if (!targetUsername) {
+  document.getElementById('uName').textContent = 'No user specified';
+} else {
+  loadProfile(targetUsername.toLowerCase());
+}
+
+async function loadProfile(unameLower) {
+  try {
+    // Resolve username → UID
+    const usnap = await getDoc(doc(db,'usernames',unameLower));
+    if (!usnap.exists()) { document.getElementById('uName').textContent = 'User not found'; return; }
+    _profileUid = usnap.data().uid;
+    const psnap = await getDoc(doc(db,'users',_profileUid));
+    if (!psnap.exists()) { document.getElementById('uName').textContent = 'User not found'; return; }
+    _profileData = psnap.data();
+    renderProfile(_profileData);
+    loadComments();
+  } catch(e) {
+    console.error('Load profile error:', e);
+    document.getElementById('uName').textContent = 'Error loading profile';
+  }
+}
+
+function renderProfile(p) {
+  const elo  = p.elo || 400;
+  const tierName = (typeof getTierName==='function') ? getTierName(elo) : 'Sub3';
+  const tierEmoji = (typeof getTierEmoji==='function') ? getTierEmoji(elo) : '🔴';
+
+  // Photo
+  const initial = (p.username||'?')[0].toUpperCase();
+  const photoEl = document.getElementById('uPhoto');
+  if (p.photoURL) photoEl.innerHTML = `<img src="${p.photoURL}" onerror="this.parentElement.textContent='${initial}'">`;
+  else photoEl.textContent = initial;
+
+  document.getElementById('uName').textContent = p.username || 'Unknown';
+  document.getElementById('uTier').textContent = `${tierEmoji} ${tierName} · S1`;
+  document.getElementById('uElo').textContent  = elo;
+  document.getElementById('sWins').textContent = p.wins || 0;
+  document.getElementById('sLosses').textContent = p.losses || 0;
+  document.getElementById('sFollowers').textContent = p.followerCount || 0;
+  document.getElementById('sFollowing').textContent = p.followingCount || 0;
+
+  if (p.country) document.getElementById('uCountry').textContent = '🌐 ' + p.country;
+  if (p.discordUsername) {
+    const d = document.getElementById('uDiscord');
+    d.textContent = '💬 @' + p.discordUsername;
+    d.style.display = '';
+  }
+
+  // Badges (admin-granted) + automatic tier badge
+  const grid = document.getElementById('badgeGrid');
+  const badges = Array.isArray(p.badges) ? p.badges : [];
+  const allBadges = [
+    {label:'S1 Player', icon:'◇'},
+    {label:'S1 ' + tierName.toUpperCase(), icon:tierEmoji},
+    ...badges,
+  ];
+  grid.innerHTML = allBadges.map(b => `<div class="badge-chip">${b.icon||'🏅'} ${escapeHtml(b.label||'')}</div>`).join('');
+
+  // Match history
+  const hist = Array.isArray(p.matchHistory) ? p.matchHistory : [];
+  const ml = document.getElementById('matchList');
+  if (!hist.length) {
+    ml.innerHTML = '<div class="comment-empty">No matches yet</div>';
+  } else {
+    ml.innerHTML = hist.slice(-15).reverse().map(m => `
+      <div class="match-row">
+        <div class="match-result ${m.won?'w':'l'}">${m.won?'W':'L'}</div>
+        <div style="flex:1;">
+          <div class="match-opp">${escapeHtml(m.opponentName||'Unknown')}${m.bot?' 🤖':''}</div>
+          <div class="match-score">${(m.myScore||0).toFixed(1)} vs ${(m.oppScore||0).toFixed(1)}</div>
+        </div>
+        <div class="match-elo ${m.eloChange>=0?'up':'dn'}">${m.eloChange>=0?'+':''}${m.eloChange||0}</div>
+      </div>`).join('');
+  }
+}
+
+// Auth state — used to decide if viewer can follow / comment
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    document.getElementById('commentForm').style.display = 'none';
+    return;
+  }
+  _viewer = user;
+  try {
+    const snap = await getDoc(doc(db,'users',user.uid));
+    if (snap.exists()) _viewerProfile = snap.data();
+  } catch(e){}
+  // Show follow + msg buttons (unless viewing own profile)
+  if (_profileUid && _profileUid !== user.uid) {
+    document.getElementById('followBtn').style.display = '';
+    document.getElementById('msgBtn').style.display = '';
+    updateFollowButton();
+  }
+});
+
+function updateFollowButton(){
+  const btn = document.getElementById('followBtn');
+  if (!_viewerProfile || !_profileUid) return;
+  const followingArr = _viewerProfile.following || [];
+  const isFollowing = followingArr.indexOf(_profileUid) >= 0;
+  btn.textContent = isFollowing ? '✓ Following' : '+ Follow';
+  btn.classList.toggle('following', isFollowing);
+}
+
+window.toggleFollow = async function(){
+  if (!_viewer || !_profileUid) { alert('Sign in to follow'); return; }
+  if (_profileUid === _viewer.uid) return;
+  const followingArr = (_viewerProfile && _viewerProfile.following) || [];
+  const isFollowing = followingArr.indexOf(_profileUid) >= 0;
+  try {
+    if (isFollowing) {
+      await updateDoc(doc(db,'users',_viewer.uid), {
+        following: arrayRemove(_profileUid),
+        followingCount: increment(-1),
+      });
+      await updateDoc(doc(db,'users',_profileUid), {
+        followers: arrayRemove(_viewer.uid),
+        followerCount: increment(-1),
+      });
+      _viewerProfile.following = followingArr.filter(x=>x!==_profileUid);
+    } else {
+      await updateDoc(doc(db,'users',_viewer.uid), {
+        following: arrayUnion(_profileUid),
+        followingCount: increment(1),
+      });
+      await updateDoc(doc(db,'users',_profileUid), {
+        followers: arrayUnion(_viewer.uid),
+        followerCount: increment(1),
+      });
+      _viewerProfile.following = followingArr.concat([_profileUid]);
+    }
+    // Refresh stat counts on screen
+    const fc = document.getElementById('sFollowers');
+    fc.textContent = Math.max(0, parseInt(fc.textContent||'0') + (isFollowing?-1:1));
+    updateFollowButton();
+  } catch(e) { alert('Action failed: '+e.message); }
+};
+
+window.postComment = async function(){
+  const input = document.getElementById('commentInput');
+  const text = input.value.trim();
+  if (!text) return;
+  if (!_viewer || !_viewerProfile) { alert('Sign in to comment'); return; }
+  // Profanity check (client-side)
+  if (window.containsProfanity && window.containsProfanity(text)) {
+    alert('Comment blocked — restricted language');
+    return;
+  }
+  try {
+    await addDoc(collection(db,'users',_profileUid,'comments'), {
+      authorUid: _viewer.uid,
+      authorUsername: _viewerProfile.username || 'Unknown',
+      authorPhoto: _viewerProfile.photoURL || '',
+      text: text.slice(0,280),
+      createdAt: serverTimestamp(),
+    });
+    input.value = '';
+    loadComments();
+  } catch(e) { alert('Post failed: '+e.message); }
+};
+
+async function loadComments(){
+  if (!_profileUid) return;
+  try {
+    const q = query(collection(db,'users',_profileUid,'comments'), orderBy('createdAt','desc'), limit(50));
+    const snap = await getDocs(q);
+    const list = document.getElementById('commentList');
+    if (snap.empty) {
+      list.innerHTML = '<div class="comment-empty">No comments yet — be the first</div>';
+      return;
+    }
+    list.innerHTML = snap.docs.map(d => {
+      const c = d.data();
+      const when = c.createdAt?.toDate ? c.createdAt.toDate().toLocaleString() : '';
+      return `<div class="comment-item">
+        <div class="comment-head">
+          <span class="comment-author"><a href="user.html?u=${encodeURIComponent(c.authorUsername||'')}">${escapeHtml(c.authorUsername||'Unknown')}</a></span>
+          <span class="comment-time">${when}</span>
+        </div>
+        <div class="comment-text">${escapeHtml(c.text||'')}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    console.error('Load comments error:', e);
+  }
+}
+</script>
+<script type="module" src="auth.js"></script>
+</body>
+</html>

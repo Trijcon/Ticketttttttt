@@ -146,8 +146,19 @@
 }
 .coming-badge:hover { color:var(--muted); border-color:var(--border2); }
 
+/* ── FEATURE ROW (Lab / Rank / Private) ── */
+.feature-grid {
+  display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;
+  margin-bottom:10px;
+}
+.feature-grid .card.small { min-height:200px; }
+
+@media(max-width:760px){
+  .feature-grid { grid-template-columns:1fr; }
+}
+
 /* ── BOTTOM GRID ── */
-.bottom-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; margin-top:-2px; }
+.bottom-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
 .section-box { background:var(--glass); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
 .section-head {
   padding:14px 18px; border-bottom:1px solid var(--border);
@@ -369,7 +380,7 @@
       </div>
     </a>
 
-    <!-- RIGHT STACK -->
+    <!-- RIGHT STACK — only hologram now -->
     <div class="side-stack">
 
       <!-- ALGORITHM PREVIEW HOLOGRAM (aesthetic only) -->
@@ -391,39 +402,39 @@
         <button class="holo-activate" id="holoActivate" onclick="toggleHolo()">⚡ TRY IT ON YOUR FACE</button>
       </div>
 
-      <!-- THE LAB -->
-      <div class="card small" onclick="openLabSoonModal()" style="min-height:160px;">
-        <div class="coming-badge" onclick="event.stopPropagation();openLabSoonModal()">In development</div>
-        <div class="card-label">Solo Calibration</div>
-        <div class="card-title">The Lab</div>
-        <div class="card-desc">In-depth AI facial analysis. Coming soon.</div>
-      </div>
-
-      <!-- GLOBAL RANK -->
-      <a class="card small" href="rank.html" style="min-height:auto;">
-        <div class="card-label">Leaderboard</div>
-        <div class="card-title">Global Rank</div>
-        <div class="tier-list">
-          <div class="tier-row"><span class="tier-row-name">💀 Slayer</span><span class="tier-row-elo">5001+</span></div>
-          <div class="tier-row"><span class="tier-row-name">👑 Chad</span><span class="tier-row-elo">3501–5000</span></div>
-          <div class="tier-row"><span class="tier-row-name">🔥 Chadlite</span><span class="tier-row-elo">2001–3500</span></div>
-          <div class="tier-row"><span class="tier-row-name">⭐ HTN</span><span class="tier-row-elo">1501–2000</span></div>
-          <div class="tier-row"><span class="tier-row-name">⚡ MTN</span><span class="tier-row-elo">1001–1500</span></div>
-          <div class="tier-row"><span class="tier-row-name">🌙 LTN</span><span class="tier-row-elo">501–1000</span></div>
-          <div class="tier-row"><span class="tier-row-name">🔴 Sub3</span><span class="tier-row-elo">1–500</span></div>
-          <div class="tier-row"><span class="tier-row-name">🧪 Molecule</span><span class="tier-row-elo">≤0</span></div>
-        </div>
-      </a>
-
-      <!-- PRIVATE ROOM -->
-      <a class="card small" href="private.html">
-        <div class="card-label">Invite Only</div>
-        <div class="card-title">Private Room</div>
-        <div class="card-desc" style="margin-bottom:12px;">Challenge a friend with a 6-digit code.</div>
-        <div class="code-cta">Have a code? Join →</div>
-      </a>
-
     </div>
+  </div>
+
+  <!-- FEATURE ROW: Lab / Rank / Private (3 cards in a row, under arena) -->
+  <div class="feature-grid">
+    <!-- THE LAB -->
+    <div class="card small" onclick="openLabSoonModal()">
+      <div class="coming-badge" onclick="event.stopPropagation();openLabSoonModal()">In development</div>
+      <div class="card-label">Solo Calibration</div>
+      <div class="card-title">The Lab</div>
+      <div class="card-desc">In-depth AI facial analysis. Coming soon.</div>
+    </div>
+
+    <!-- GLOBAL RANK -->
+    <a class="card small" href="rank.html">
+      <div class="card-label">Leaderboard</div>
+      <div class="card-title">Global Rank</div>
+      <div class="card-desc">Top moggers worldwide · Updated live</div>
+      <div class="tier-list" style="margin-top:auto;">
+        <div class="tier-row"><span class="tier-row-name">💀 Slayer</span><span class="tier-row-elo">5001+</span></div>
+        <div class="tier-row"><span class="tier-row-name">👑 Chad</span><span class="tier-row-elo">3501–5000</span></div>
+        <div class="tier-row"><span class="tier-row-name">🔥 Chadlite</span><span class="tier-row-elo">2001–3500</span></div>
+        <div class="tier-row"><span class="tier-row-name">⭐ HTN</span><span class="tier-row-elo">1501–2000</span></div>
+      </div>
+    </a>
+
+    <!-- PRIVATE ROOM -->
+    <a class="card small" href="private.html">
+      <div class="card-label">Invite Only</div>
+      <div class="card-title">Private Room</div>
+      <div class="card-desc" style="margin-bottom:12px;">Challenge a friend with a 6-digit code. Unranked.</div>
+      <div class="code-cta">Have a code? Join →</div>
+    </a>
   </div>
 
   <!-- BOTTOM: ACTIVITY + LEADERBOARD -->
@@ -550,7 +561,7 @@ function initHolo(){
     if (!geom) return;
     _holo.scene.remove(_holo.head);
     _holo.head = new THREE.Mesh(geom, new THREE.MeshBasicMaterial({
-      wireframe: true, color: 0xFFFFFF, transparent: true, opacity: 0.55,
+      wireframe: true, color: 0xFFFFFF, transparent: true, opacity: 0.85,
       side: THREE.DoubleSide,
     }));
     _holo.scene.add(_holo.head);

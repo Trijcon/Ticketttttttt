@@ -132,7 +132,8 @@ window.getFirestoreLeaderboard = async function(containerId) {
       const photo = u.photoURL
         ? `<img src="${u.photoURL}" style="width:32px;height:32px;border-radius:8px;object-fit:cover;">`
         : `<div class="lb-av ${cls}">${(u.username||'?')[0].toUpperCase()}</div>`;
-      return `<div class="lb-row">
+      const userHref = `user.html?u=${encodeURIComponent(u.username||'')}`;
+      return `<a class="lb-row" href="${userHref}" style="text-decoration:none;color:inherit;cursor:pointer;">
         <div class="lb-rank">${medals[i]||('#'+(i+1))}</div>
         <div class="lb-info">
           ${photo}
@@ -142,7 +143,7 @@ window.getFirestoreLeaderboard = async function(containerId) {
           </div>
         </div>
         <div class="lb-elo">${u.elo||400} ELO</div>
-      </div>`;
+      </a>`;
     }).join('');
   } catch(e) {
     el.innerHTML = '<div style="padding:24px;text-align:center;font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--muted2);">Could not load leaderboard</div>';

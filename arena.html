@@ -8,8 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 <style>
-.arena-wrap{max-width:1200px;margin:0 auto;}
-.page-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:38px;letter-spacing:1px;margin-bottom:4px;color:var(--white);}
+.arena-wrap{max-width:1500px;margin:0 auto;padding:0 8px;}
+.page-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:42px;letter-spacing:1px;margin-bottom:4px;color:var(--white);}
 .page-sub{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--muted);margin-bottom:20px;}
 .status-top{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
 .status-dot{width:8px;height:8px;border-radius:50%;background:var(--muted2);flex-shrink:0;transition:all 0.3s;}
@@ -31,7 +31,8 @@
 .feed-box{
   position:relative;border-radius:14px;overflow:hidden;
   background:#020208;border:1px solid rgba(255,255,255,0.08);
-  aspect-ratio:4/3;width:100%;
+  aspect-ratio:3/4;width:100%;height:auto;
+  min-height:560px;
 }
 .feed-video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1);}
 .feed-canvas{position:absolute;top:0;left:0;width:100%;height:100%;transform:scaleX(-1);pointer-events:none;}
