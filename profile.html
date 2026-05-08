@@ -9,7 +9,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 <style>
-/* ── ACCOUNT SETTINGS PANEL ── */
 .settings-shell {
   max-width: 980px; margin: 0 auto;
   background: rgba(10,10,16,0.72);
@@ -24,279 +23,102 @@
   padding-bottom: 18px; margin-bottom: 18px;
   border-bottom: 1px solid var(--border);
 }
-.settings-brand {
-  font-family: 'JetBrains Mono', monospace; font-size: 9px;
-  letter-spacing: 2px; color: var(--muted2); text-transform: uppercase;
-}
-.settings-title {
-  font-family: 'Space Grotesk', sans-serif; font-weight: 700;
-  font-size: 22px; color: var(--white); letter-spacing: -0.3px;
-  margin-left: 4px;
-}
-.settings-close {
-  margin-left: auto;
-  width: 32px; height: 32px; border-radius: 50%;
-  background: var(--glass2); border: 1px solid var(--border2);
-  color: var(--muted); cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 13px; transition: all 0.2s;
-}
+.settings-brand { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--muted2); text-transform: uppercase; }
+.settings-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 22px; color: var(--white); letter-spacing: -0.3px; margin-left: 4px; }
+.settings-close { margin-left: auto; width: 32px; height: 32px; border-radius: 50%; background: var(--glass2); border: 1px solid var(--border2); color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.2s; }
 .settings-close:hover { color: var(--white); border-color: var(--border3); }
 
-/* ── HEADER CARD ── */
-.acc-header {
-  display: flex; align-items: center; gap: 18px;
-  padding: 18px 20px; margin-bottom: 16px;
-  background: var(--glass); border: 1px solid var(--border);
-  border-radius: 12px;
-}
-.acc-photo {
-  width: 56px; height: 56px; border-radius: 50%;
-  background: var(--bg4); border: 1px solid var(--border2);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700;
-  flex-shrink: 0; overflow: hidden; color: var(--silver);
-}
+.acc-header { display: flex; align-items: center; gap: 18px; padding: 18px 20px; margin-bottom: 16px; background: var(--glass); border: 1px solid var(--border); border-radius: 12px; }
+.acc-photo { width: 56px; height: 56px; border-radius: 50%; background: var(--bg4); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; flex-shrink: 0; overflow: hidden; color: var(--silver); }
 .acc-photo img { width: 100%; height: 100%; object-fit: cover; }
 .acc-id { flex: 1; min-width: 0; }
-.acc-name {
-  font-family: 'Space Grotesk', sans-serif; font-weight: 700;
-  font-size: 22px; color: var(--white); letter-spacing: -0.3px; margin-bottom: 6px;
-}
+.acc-name { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 22px; color: var(--white); letter-spacing: -0.3px; margin-bottom: 6px; }
 .acc-badges { display: flex; flex-wrap: wrap; gap: 6px; }
-.acc-badge {
-  font-family: 'JetBrains Mono', monospace; font-size: 8.5px;
-  letter-spacing: 1px; padding: 3px 9px; border-radius: 999px;
-  border: 1px solid var(--border2); color: var(--muted);
-  display: inline-flex; align-items: center; gap: 4px;
-}
+.acc-badge { font-family: 'JetBrains Mono', monospace; font-size: 8.5px; letter-spacing: 1px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border2); color: var(--muted); display: inline-flex; align-items: center; gap: 4px; }
 .acc-badge.tier { color: var(--blue); border-color: rgba(74,158,255,0.25); background: var(--blue-dim); }
 .acc-badge.season { color: var(--violet); border-color: rgba(123,97,255,0.25); background: rgba(123,97,255,0.08); }
-
 .acc-stats { display: flex; gap: 8px; }
-.stat-tile {
-  min-width: 78px; padding: 10px 14px;
-  background: var(--bg2); border: 1px solid var(--border2);
-  border-radius: 10px; text-align: center;
-}
+.stat-tile { min-width: 78px; padding: 10px 14px; background: var(--bg2); border: 1px solid var(--border2); border-radius: 10px; text-align: center; }
 .stat-tile.season-tile { border-color: rgba(74,158,255,0.3); }
-.stat-tile-label {
-  font-family: 'JetBrains Mono', monospace; font-size: 8px;
-  letter-spacing: 2px; color: var(--muted2); margin-bottom: 4px; text-transform: uppercase;
-}
-.stat-tile-val {
-  font-family: 'Space Grotesk', sans-serif; font-weight: 700;
-  font-size: 16px; color: var(--white);
-}
+.stat-tile-label { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 2px; color: var(--muted2); margin-bottom: 4px; text-transform: uppercase; }
+.stat-tile-val { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 16px; color: var(--white); }
 .stat-tile.season-tile .stat-tile-val { color: var(--blue); }
 
-/* ── TWO-COLUMN GRID ── */
 .acc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-/* ── CARDS ── */
-.acc-card {
-  background: var(--glass); border: 1px solid var(--border);
-  border-radius: 12px; padding: 16px 18px;
-}
-.acc-card-head {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 14px;
-}
-.acc-card-title {
-  font-family: 'JetBrains Mono', monospace; font-size: 9px;
-  letter-spacing: 2px; color: var(--muted); text-transform: uppercase;
-}
-.acc-card-edit {
-  width: 26px; height: 26px; border-radius: 50%;
-  background: var(--glass2); border: 1px solid var(--border2);
-  color: var(--muted); cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px; transition: all 0.2s;
-}
+.acc-card { background: var(--glass); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+.acc-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.acc-card-title { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+.acc-card-edit { width: 26px; height: 26px; border-radius: 50%; background: var(--glass2); border: 1px solid var(--border2); color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; transition: all 0.2s; }
 .acc-card-edit:hover { color: var(--blue); border-color: rgba(74,158,255,0.3); }
 
-/* ── FIELDS ── */
 .field-block { margin-bottom: 12px; }
 .field-block:last-child { margin-bottom: 0; }
-.field-label-mini {
-  font-family: 'JetBrains Mono', monospace; font-size: 8px;
-  letter-spacing: 2px; color: var(--muted2); margin-bottom: 5px;
-  text-transform: uppercase; display: block;
-}
-.field-row {
-  display: flex; align-items: center; gap: 10px;
-}
-.field-row .field-disp {
-  flex: 1;
-  font-family: 'Space Grotesk', sans-serif; font-weight: 600;
-  font-size: 16px; color: var(--white);
-}
-.field-row .field-disp.muted {
-  font-family: 'JetBrains Mono', monospace; font-size: 12px;
-  font-weight: 400; color: var(--muted);
-}
-.photo-btn {
-  padding: 6px 12px; border-radius: 7px;
-  background: var(--glass2); border: 1px solid var(--border2);
-  color: var(--silver); font-family: 'JetBrains Mono', monospace;
-  font-size: 9px; letter-spacing: 1px; cursor: pointer;
-  display: inline-flex; align-items: center; gap: 5px;
-  transition: all 0.2s;
-}
+.field-label-mini { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 2px; color: var(--muted2); margin-bottom: 5px; text-transform: uppercase; display: block; }
+.field-row { display: flex; align-items: center; gap: 10px; }
+.field-row .field-disp { flex: 1; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 16px; color: var(--white); }
+.field-row .field-disp.muted { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 400; color: var(--muted); }
+.photo-btn { padding: 6px 12px; border-radius: 7px; background: var(--glass2); border: 1px solid var(--border2); color: var(--silver); font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 1px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s; }
 .photo-btn:hover { color: var(--white); border-color: var(--border3); }
 
-.field-input-row {
-  display: flex; gap: 8px; margin-top: 6px;
-}
-.field-input-row input {
-  flex: 1; background: var(--bg3); border: 1px solid var(--border2);
-  border-radius: 7px; padding: 9px 12px; outline: none;
-  font-size: 13px; color: var(--white); font-family: 'Inter', sans-serif;
-}
-.field-input-row input:focus { border-color: rgba(74,158,255,0.35); }
+.field-input-row { display: flex; gap: 8px; margin-top: 6px; }
+.field-input-row input, .field-input-row select { flex: 1; background: var(--bg3); border: 1px solid var(--border2); border-radius: 7px; padding: 9px 12px; outline: none; font-size: 13px; color: var(--white); font-family: 'Inter', sans-serif; }
+.field-input-row input:focus, .field-input-row select:focus { border-color: rgba(74,158,255,0.35); }
 
-.email-pill {
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 8px; padding: 12px 14px;
-  font-family: 'JetBrains Mono', monospace; font-size: 12px;
-  color: var(--silver);
-}
-.email-pill .lbl {
-  font-size: 8px; letter-spacing: 2px; color: var(--muted2);
-  display: block; margin-bottom: 4px; text-transform: uppercase;
-}
+/* Bio textarea */
+.bio-textarea { width: 100%; background: var(--bg3); border: 1px solid var(--border2); border-radius: 7px; padding: 9px 12px; outline: none; font-size: 13px; color: var(--white); font-family: 'Inter', sans-serif; resize: none; height: 72px; line-height: 1.5; box-sizing: border-box; }
+.bio-textarea:focus { border-color: rgba(74,158,255,0.35); }
 
-/* ── TROPHY CASE ── */
+/* Social input */
+.social-input-row { display: flex; align-items: center; gap: 8px; }
+.social-icon { font-size: 14px; width: 24px; text-align: center; flex-shrink: 0; }
+.social-input { flex: 1; background: var(--bg3); border: 1px solid var(--border2); border-radius: 7px; padding: 8px 12px; outline: none; font-size: 13px; color: var(--white); font-family: 'Inter', sans-serif; }
+.social-input:focus { border-color: rgba(74,158,255,0.35); }
+
+/* Social display chips */
+.social-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: var(--bg3); border: 1px solid var(--border2); border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--silver); }
+
+.email-pill { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--silver); }
+.email-pill .lbl { font-size: 8px; letter-spacing: 2px; color: var(--muted2); display: block; margin-bottom: 4px; text-transform: uppercase; }
+
 .trophy-row { display: flex; flex-wrap: wrap; gap: 8px; }
-.trophy-chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 14px; border-radius: 8px;
-  background: var(--bg3); border: 1px solid var(--border2);
-  font-family: 'JetBrains Mono', monospace; font-size: 10px;
-  color: var(--silver); letter-spacing: 0.5px;
-}
+.trophy-chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; background: var(--bg3); border: 1px solid var(--border2); font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--silver); letter-spacing: 0.5px; }
 .trophy-chip.tier { border-color: rgba(74,158,255,0.25); background: var(--blue-dim); color: var(--blue); }
 
-/* ── TOGGLE ── */
-.toggle-row {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  gap: 14px;
-}
+.toggle-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
 .toggle-info { flex: 1; }
-.toggle-name {
-  font-family: 'Space Grotesk', sans-serif; font-weight: 600;
-  font-size: 13px; color: var(--white); margin-bottom: 4px; letter-spacing: 0.3px;
-}
-.toggle-desc {
-  font-size: 12px; color: var(--muted); line-height: 1.55;
-}
-.toggle-switch {
-  width: 38px; height: 22px; border-radius: 999px;
-  background: var(--bg4); border: 1px solid var(--border2);
-  position: relative; cursor: pointer; flex-shrink: 0;
-  transition: all 0.2s;
-}
-.toggle-switch::after {
-  content: ''; position: absolute;
-  top: 2px; left: 2px; width: 16px; height: 16px;
-  border-radius: 50%; background: var(--muted);
-  transition: all 0.2s;
-}
+.toggle-name { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 13px; color: var(--white); margin-bottom: 4px; letter-spacing: 0.3px; }
+.toggle-desc { font-size: 12px; color: var(--muted); line-height: 1.55; }
+.toggle-switch { width: 38px; height: 22px; border-radius: 999px; background: var(--bg4); border: 1px solid var(--border2); position: relative; cursor: pointer; flex-shrink: 0; transition: all 0.2s; }
+.toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--muted); transition: all 0.2s; }
 .toggle-switch.on { background: var(--blue-dim); border-color: rgba(74,158,255,0.4); }
 .toggle-switch.on::after { left: 18px; background: var(--blue); }
 
-/* ── SUBSCRIPTION ── */
-.sub-row {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px; background: var(--bg3); border: 1px solid var(--border);
-  border-radius: 10px;
-}
-.sub-icon {
-  width: 32px; height: 32px; border-radius: 8px;
-  background: var(--bg4); border: 1px solid var(--border2);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px; flex-shrink: 0;
-}
+.sub-row { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; }
+.sub-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--bg4); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
 .sub-info { flex: 1; min-width: 0; }
-.sub-title {
-  font-family: 'Space Grotesk', sans-serif; font-weight: 600;
-  font-size: 13px; color: var(--white); margin-bottom: 2px;
-}
+.sub-title { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 13px; color: var(--white); margin-bottom: 2px; }
 .sub-desc { font-size: 11px; color: var(--muted); line-height: 1.45; }
-.sub-tag {
-  font-family: 'JetBrains Mono', monospace; font-size: 8px;
-  letter-spacing: 1px; padding: 3px 8px; border-radius: 999px;
-  background: var(--bg4); border: 1px solid var(--border2); color: var(--muted);
-  flex-shrink: 0;
-}
-.sub-tag.pro { background: var(--blue-dim); color: var(--blue); border-color: rgba(74,158,255,0.3); }
+.sub-tag { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 1px; padding: 3px 8px; border-radius: 999px; background: var(--bg4); border: 1px solid var(--border2); color: var(--muted); flex-shrink: 0; }
 
-/* ── DISCORD ── */
-.discord-card .acc-card-title-row {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 4px;
-}
-.discord-icon {
-  width: 28px; height: 28px; border-radius: 7px;
-  background: rgba(88,101,242,0.12); border: 1px solid rgba(88,101,242,0.3);
-  color: #5865F2; display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.discord-card-sub {
-  font-size: 11px; color: var(--muted); margin-bottom: 12px;
-  margin-left: 38px; line-height: 1.45;
-}
-.discord-status {
-  background: var(--bg3); border: 1px solid var(--border);
-  border-radius: 9px; padding: 12px 14px; margin-bottom: 10px;
-  display: flex; align-items: center; gap: 10px;
-}
+.discord-card .acc-card-title-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.discord-icon { width: 28px; height: 28px; border-radius: 7px; background: rgba(88,101,242,0.12); border: 1px solid rgba(88,101,242,0.3); color: #5865F2; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.discord-card-sub { font-size: 11px; color: var(--muted); margin-bottom: 12px; margin-left: 38px; line-height: 1.45; }
+.discord-status { background: var(--bg3); border: 1px solid var(--border); border-radius: 9px; padding: 12px 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
 .discord-status-info { flex: 1; }
-.discord-status-title {
-  font-family: 'Space Grotesk', sans-serif; font-weight: 600;
-  font-size: 12px; color: var(--silver);
-}
-.discord-status-desc {
-  font-family: 'JetBrains Mono', monospace; font-size: 9px;
-  color: var(--muted2); letter-spacing: 1px; margin-top: 3px; text-transform: uppercase;
-}
-.discord-connect {
-  width: 100%; padding: 10px; border-radius: 9px;
-  background: rgba(88,101,242,0.08); border: 1px solid rgba(88,101,242,0.3);
-  color: #8b95f5; font-family: 'JetBrains Mono', monospace;
-  font-size: 10px; letter-spacing: 1.5px; cursor: pointer;
-  transition: all 0.2s; text-transform: uppercase;
-}
+.discord-status-title { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 12px; color: var(--silver); }
+.discord-status-desc { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted2); letter-spacing: 1px; margin-top: 3px; text-transform: uppercase; }
+.discord-connect { width: 100%; padding: 10px; border-radius: 9px; background: rgba(88,101,242,0.08); border: 1px solid rgba(88,101,242,0.3); color: #8b95f5; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1.5px; cursor: pointer; transition: all 0.2s; text-transform: uppercase; }
 .discord-connect:hover { background: rgba(88,101,242,0.14); color: #b6bcff; }
 
-/* ── ACCOUNT ACTIONS ── */
 .action-list { display: flex; flex-direction: column; gap: 8px; }
-.action-btn {
-  width: 100%; padding: 11px 14px; border-radius: 9px;
-  background: var(--bg3); border: 1px solid var(--border2);
-  color: var(--silver); font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px; font-weight: 500; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  transition: all 0.2s;
-}
+.action-btn { width: 100%; padding: 11px 14px; border-radius: 9px; background: var(--bg3); border: 1px solid var(--border2); color: var(--silver); font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
 .action-btn:hover { color: var(--white); border-color: var(--border3); background: var(--glass2); }
-.action-btn.danger {
-  color: var(--red); border-color: rgba(239,68,68,0.25); background: rgba(239,68,68,0.05);
-}
+.action-btn.danger { color: var(--red); border-color: rgba(239,68,68,0.25); background: rgba(239,68,68,0.05); }
 .action-btn.danger:hover { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.4); }
-.action-note {
-  font-family: 'JetBrains Mono', monospace; font-size: 9px;
-  color: var(--muted2); line-height: 1.55; margin-top: 8px; letter-spacing: 0.3px;
-}
+.action-note { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted2); line-height: 1.55; margin-top: 8px; letter-spacing: 0.3px; }
 
-/* ── PURCHASE HISTORY ── */
-.purchase-empty {
-  background: var(--bg3); border: 1px solid var(--border);
-  border-radius: 9px; padding: 18px; text-align: center;
-  font-family: 'JetBrains Mono', monospace; font-size: 11px;
-  color: var(--muted2); letter-spacing: 0.5px;
-}
+.purchase-empty { background: var(--bg3); border: 1px solid var(--border); border-radius: 9px; padding: 18px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted2); letter-spacing: 0.5px; }
 
-/* ── MATCH HISTORY (kept) ── */
 .match-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
 .match-row:last-child { border-bottom: none; }
 .match-result { width: 32px; height: 32px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; flex-shrink: 0; }
@@ -307,7 +129,6 @@
 .match-elo { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
 .match-elo.up { color: var(--green); } .match-elo.dn { color: var(--red); }
 
-/* ── DELETE CONFIRM ── */
 .confirm-inner { text-align: center; }
 .confirm-icon { font-size: 36px; margin-bottom: 12px; }
 .confirm-text { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 20px; }
@@ -325,14 +146,12 @@
 <div class="page-wrap">
 <div class="settings-shell">
 
-  <!-- ── HEADER ── -->
   <div class="settings-head">
-    <span class="settings-brand">OMOGGLE</span>
+    <span class="settings-brand">MOGME.TV</span>
     <span class="settings-title">Account Settings</span>
     <button class="settings-close" onclick="window.location.href='index.html'" title="Close">✕</button>
   </div>
 
-  <!-- ── PROFILE HEADER CARD ── -->
   <div class="acc-header">
     <div class="acc-photo" id="pPhoto">?</div>
     <div class="acc-id">
@@ -359,10 +178,9 @@
     </div>
   </div>
 
-  <!-- ── TWO-COLUMN GRID ── -->
   <div class="acc-grid">
 
-    <!-- ── LEFT COLUMN ── -->
+    <!-- LEFT COLUMN -->
     <div>
       <!-- PROFILE IDENTITY -->
       <div class="acc-card" style="margin-bottom:12px;">
@@ -371,6 +189,7 @@
           <button class="acc-card-edit" id="editBtn" onclick="toggleEdit()" title="Edit">✎</button>
         </div>
 
+        <!-- Photo + Name -->
         <div class="field-block">
           <label class="field-label-mini">Display Name</label>
           <div class="field-row">
@@ -384,6 +203,98 @@
           </div>
         </div>
 
+        <!-- BIO -->
+        <div class="field-block">
+          <label class="field-label-mini">Bio</label>
+          <div class="field-row" id="bioDisplayRow">
+            <div class="field-disp muted" id="bioDisplay">No bio yet</div>
+            <button class="photo-btn" onclick="toggleBioEdit()">✎ EDIT</button>
+          </div>
+          <div id="bioEditRow" style="display:none;margin-top:6px;">
+            <textarea class="bio-textarea" id="bioInput" maxlength="160" placeholder="Write something about yourself..." oninput="document.getElementById('bioCount').textContent=this.value.length+'/160'"></textarea>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted2);" id="bioCount">0/160</span>
+              <div style="display:flex;gap:6px;">
+                <button class="photo-btn" onclick="toggleBioEdit()">Cancel</button>
+                <button class="btn-primary" style="font-size:12px;padding:7px 14px;" onclick="saveBio()">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COUNTRY -->
+        <div class="field-block">
+          <label class="field-label-mini">Country</label>
+          <div class="field-row" id="countryDisplayRow">
+            <div class="field-disp muted" id="countryDisplay">Not set</div>
+            <button class="photo-btn" onclick="toggleCountryEdit()">✎ EDIT</button>
+          </div>
+          <div class="field-input-row" id="countryEditRow" style="display:none;">
+            <select id="countryInput">
+              <option value="">Select country...</option>
+              <option>🇺🇸 United States</option>
+              <option>🇬🇧 United Kingdom</option>
+              <option>🇨🇦 Canada</option>
+              <option>🇦🇺 Australia</option>
+              <option>🇩🇪 Germany</option>
+              <option>🇫🇷 France</option>
+              <option>🇳🇱 Netherlands</option>
+              <option>🇸🇪 Sweden</option>
+              <option>🇳🇴 Norway</option>
+              <option>🇪🇸 Spain</option>
+              <option>🇮🇹 Italy</option>
+              <option>🇵🇹 Portugal</option>
+              <option>🇷🇺 Russia</option>
+              <option>🇹🇷 Turkey</option>
+              <option>🇧🇷 Brazil</option>
+              <option>🇲🇽 Mexico</option>
+              <option>🇯🇵 Japan</option>
+              <option>🇰🇷 South Korea</option>
+              <option>🇨🇳 China</option>
+              <option>🇮🇳 India</option>
+              <option>🇮🇷 Iran</option>
+              <option>🇸🇦 Saudi Arabia</option>
+              <option>🇦🇪 UAE</option>
+              <option>🇿🇦 South Africa</option>
+              <option>🇵🇭 Philippines</option>
+              <option>🇮🇩 Indonesia</option>
+              <option>🇲🇾 Malaysia</option>
+              <option>🇹🇭 Thailand</option>
+            </select>
+            <button class="btn-primary" style="font-size:12px;padding:8px 14px;" onclick="saveCountry()">Save</button>
+          </div>
+        </div>
+
+        <!-- SOCIAL LINKS -->
+        <div class="field-block">
+          <label class="field-label-mini">Social Links</label>
+          <div id="socialsDisplay" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted2);">No socials added</div>
+          </div>
+          <button class="photo-btn" onclick="toggleSocialsEdit()" id="socialsEditToggle">✎ EDIT SOCIALS</button>
+          <div id="socialsEditRow" style="display:none;margin-top:10px;">
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div class="social-input-row">
+                <span class="social-icon">📸</span>
+                <input class="social-input" id="igInput" type="text" maxlength="30" placeholder="Instagram username">
+              </div>
+              <div class="social-input-row">
+                <span class="social-icon">𝕏</span>
+                <input class="social-input" id="xInput" type="text" maxlength="30" placeholder="X / Twitter username">
+              </div>
+              <div class="social-input-row">
+                <span class="social-icon">🎵</span>
+                <input class="social-input" id="ttInput" type="text" maxlength="30" placeholder="TikTok username">
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button class="photo-btn" onclick="toggleSocialsEdit()">Cancel</button>
+                <button class="btn-primary" style="font-size:12px;padding:8px 14px;flex:1;" onclick="saveSocials()">Save Socials</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- EMAIL -->
         <div class="field-block">
           <div class="email-pill">
             <span class="lbl">Email</span>
@@ -394,9 +305,7 @@
 
       <!-- TROPHY CASE -->
       <div class="acc-card" style="margin-bottom:12px;">
-        <div class="acc-card-head">
-          <div class="acc-card-title">Trophy Case</div>
-        </div>
+        <div class="acc-card-head"><div class="acc-card-title">Trophy Case</div></div>
         <div class="trophy-row">
           <div class="trophy-chip">◇ S1 PLAYER</div>
           <div class="trophy-chip tier" id="trophyTier">🔴 S1 SUB3</div>
@@ -405,18 +314,15 @@
 
       <!-- MATCH HISTORY -->
       <div class="acc-card">
-        <div class="acc-card-head">
-          <div class="acc-card-title">Recent Matches</div>
-        </div>
+        <div class="acc-card-head"><div class="acc-card-title">Recent Matches</div></div>
         <div id="matchHistory">
           <div style="text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);padding:8px 0;">No matches yet — get in the arena</div>
         </div>
       </div>
     </div>
 
-    <!-- ── RIGHT COLUMN ── -->
+    <!-- RIGHT COLUMN -->
     <div>
-      <!-- REPLAY SETTINGS -->
       <div class="acc-card" style="margin-bottom:12px;">
         <div class="acc-card-head"><div class="acc-card-title">Replay Settings</div></div>
         <div class="toggle-row">
@@ -428,37 +334,34 @@
         </div>
       </div>
 
-      <!-- SUBSCRIPTION -->
       <div class="acc-card" style="margin-bottom:12px;">
         <div class="acc-card-head"><div class="acc-card-title">Subscription</div></div>
         <div class="sub-row">
           <div class="sub-icon">💳</div>
           <div class="sub-info">
-            <div class="sub-title">No active Omoggle Pro</div>
+            <div class="sub-title">No active MogMe Pro</div>
             <div class="sub-desc">Subscribe to Pro from the Lab page to unlock billing management here.</div>
           </div>
           <div class="sub-tag">FREE</div>
         </div>
       </div>
 
-      <!-- PURCHASE HISTORY -->
       <div class="acc-card" style="margin-bottom:12px;">
         <div class="acc-card-head"><div class="acc-card-title">Purchase History</div></div>
         <div class="purchase-empty">No purchases yet</div>
       </div>
 
-      <!-- DISCORD ROLE SYNC -->
       <div class="acc-card discord-card" style="margin-bottom:12px;">
         <div class="acc-card-title-row">
           <div class="discord-icon">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
           </div>
           <div class="acc-card-title">Discord Role Sync</div>
         </div>
         <div class="discord-card-sub">Sync your rank &amp; Pro status to server roles.</div>
         <div class="discord-status">
           <div class="discord-icon" style="background:rgba(255,255,255,0.04);border-color:var(--border2);color:var(--muted);">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
           </div>
           <div class="discord-status-info">
             <div class="discord-status-title">No Discord account linked.</div>
@@ -468,14 +371,13 @@
         <button class="discord-connect" onclick="connectDiscord()">CONNECT DISCORD</button>
       </div>
 
-      <!-- ACCOUNT ACTIONS -->
       <div class="acc-card">
         <div class="acc-card-head"><div class="acc-card-title">Account Actions</div></div>
         <div class="action-list">
           <button class="action-btn" onclick="signOutUser()">↩ Sign Out</button>
           <button class="action-btn danger" onclick="openModal('confirmDelete')">🗑 Delete Account</button>
         </div>
-        <div class="action-note">Delete Account permanently removes your Omoggle account and profile photo.</div>
+        <div class="action-note">Delete Account permanently removes your MogMe.TV account and profile photo.</div>
       </div>
     </div>
 
@@ -483,7 +385,6 @@
 </div>
 </div>
 
-<!-- DELETE CONFIRM MODAL -->
 <div class="modal-overlay" id="confirmDelete" onclick="if(event.target===this)closeModal('confirmDelete')">
   <div class="modal-box" style="max-width:380px;">
     <div class="confirm-inner">
@@ -521,7 +422,6 @@ let _user = null, _profile = null, _editMode = false;
 injectSharedUI();
 connectWS();
 
-// HD Clip Mode toggle persisted in localStorage
 const hdSaved = localStorage.getItem('mgm_hd_clip') === '1';
 if (hdSaved) document.getElementById('hdToggle').classList.add('on');
 
@@ -532,7 +432,34 @@ window.toggleHD = function() {
 };
 
 window.connectDiscord = function() {
-  alert('Discord OAuth integration coming soon. We\'ll auto-sync your rank & Pro status to Discord roles.');
+  alert('Discord OAuth integration coming soon.');
+};
+
+// Bio toggle
+window.toggleBioEdit = function() {
+  const row = document.getElementById('bioEditRow');
+  const disp = document.getElementById('bioDisplayRow');
+  const showing = row.style.display !== 'none';
+  row.style.display = showing ? 'none' : 'block';
+  if (!showing) {
+    document.getElementById('bioInput').value = document.getElementById('bioDisplay').textContent === 'No bio yet' ? '' : document.getElementById('bioDisplay').textContent;
+    document.getElementById('bioCount').textContent = document.getElementById('bioInput').value.length + '/160';
+  }
+};
+
+// Country toggle
+window.toggleCountryEdit = function() {
+  const row = document.getElementById('countryEditRow');
+  row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+};
+
+// Socials toggle
+window.toggleSocialsEdit = function() {
+  const row = document.getElementById('socialsEditRow');
+  const btn = document.getElementById('socialsEditToggle');
+  const showing = row.style.display !== 'none';
+  row.style.display = showing ? 'none' : 'block';
+  btn.textContent = showing ? '✎ EDIT SOCIALS' : '✕ CANCEL';
 };
 
 onAuthStateChanged(auth, async (user) => {
@@ -547,11 +474,10 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 function renderProfile(user, p) {
-  const elo    = p.elo || 400;
-  const wins   = p.wins || 0;
+  const elo = p.elo || 400;
+  const wins = p.wins || 0;
   const losses = p.losses || 0;
 
-  // Photo
   const photoEl = document.getElementById('pPhoto');
   const photoSrc = p.photoURL || user.photoURL;
   const initial = (p.username||p.displayName||'?')[0].toUpperCase();
@@ -568,13 +494,34 @@ function renderProfile(user, p) {
   document.getElementById('pSeasonBadge').textContent = '◇ S1 ' + tierName.toUpperCase();
   document.getElementById('trophyTier').textContent = tierEmoji + ' S1 ' + tierName.toUpperCase();
   document.getElementById('pAppeal').textContent = (wins+losses) ? Math.round(wins/(wins+losses)*100)+'%' : '—';
-  document.getElementById('pElo').textContent  = elo;
+  document.getElementById('pElo').textContent = elo;
   document.getElementById('pWins').textContent = wins;
-
   document.getElementById('nameDisplay').textContent = p.displayName || p.username || '—';
   document.getElementById('nameInput').value = p.displayName || p.username || '';
   document.getElementById('emailDisplay').textContent = user.email || '—';
 
+  // Bio
+  if (p.bio) {
+    document.getElementById('bioDisplay').textContent = p.bio;
+    document.getElementById('bioDisplay').classList.remove('muted');
+  }
+
+  // Country
+  if (p.country) {
+    document.getElementById('countryDisplay').textContent = p.country;
+    document.getElementById('countryDisplay').classList.remove('muted');
+    document.getElementById('countryInput').value = p.country;
+  }
+
+  // Socials
+  renderSocials(p.socials || {});
+  if (p.socials) {
+    if (p.socials.ig) document.getElementById('igInput').value = p.socials.ig;
+    if (p.socials.x)  document.getElementById('xInput').value  = p.socials.x;
+    if (p.socials.tt) document.getElementById('ttInput').value = p.socials.tt;
+  }
+
+  // Match history
   const hist = p.matchHistory || [];
   const histEl = document.getElementById('matchHistory');
   if (!hist.length) {
@@ -590,6 +537,15 @@ function renderProfile(user, p) {
         <div class="match-elo ${m.eloChange>=0?'up':'dn'}">${m.eloChange>=0?'+':''}${m.eloChange}</div>
       </div>`).join('');
   }
+}
+
+function renderSocials(socials) {
+  const el = document.getElementById('socialsDisplay');
+  const chips = [];
+  if (socials.ig)  chips.push(`<div class="social-chip">📸 @${socials.ig}</div>`);
+  if (socials.x)   chips.push(`<div class="social-chip">𝕏 @${socials.x}</div>`);
+  if (socials.tt)  chips.push(`<div class="social-chip">🎵 @${socials.tt}</div>`);
+  el.innerHTML = chips.length ? chips.join('') : '<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--muted2);">No socials added</div>';
 }
 
 window.toggleEdit = function() {
@@ -612,6 +568,42 @@ window.saveName = async function() {
   } catch(e) { alert('Save failed: '+e.message); }
 };
 
+window.saveBio = async function() {
+  const bio = document.getElementById('bioInput').value.trim();
+  if (!_user) return;
+  try {
+    await updateDoc(doc(db,'users',_user.uid), { bio, lastSeen:serverTimestamp() });
+    document.getElementById('bioDisplay').textContent = bio || 'No bio yet';
+    if (bio) document.getElementById('bioDisplay').classList.remove('muted');
+    window.toggleBioEdit();
+  } catch(e) { alert('Save failed: '+e.message); }
+};
+
+window.saveCountry = async function() {
+  const country = document.getElementById('countryInput').value;
+  if (!country || !_user) return;
+  try {
+    await updateDoc(doc(db,'users',_user.uid), { country, lastSeen:serverTimestamp() });
+    document.getElementById('countryDisplay').textContent = country;
+    document.getElementById('countryDisplay').classList.remove('muted');
+    window.toggleCountryEdit();
+  } catch(e) { alert('Save failed: '+e.message); }
+};
+
+window.saveSocials = async function() {
+  if (!_user) return;
+  const socials = {
+    ig: document.getElementById('igInput').value.trim().replace('@',''),
+    x:  document.getElementById('xInput').value.trim().replace('@',''),
+    tt: document.getElementById('ttInput').value.trim().replace('@',''),
+  };
+  try {
+    await updateDoc(doc(db,'users',_user.uid), { socials, lastSeen:serverTimestamp() });
+    renderSocials(socials);
+    window.toggleSocialsEdit();
+  } catch(e) { alert('Save failed: '+e.message); }
+};
+
 window.onPhotoPick = function(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -620,23 +612,18 @@ window.onPhotoPick = function(event) {
   reader.onload = async (e) => {
     const dataUrl = e.target.result;
     try {
-      // Store the data URL (small images only) — production would upload to Firebase Storage
       await updateDoc(doc(db,'users',_user.uid), { photoURL: dataUrl, lastSeen: serverTimestamp() });
       localStorage.setItem('mgm_photo', dataUrl);
-      const photoEl = document.getElementById('pPhoto');
-      photoEl.innerHTML = `<img src="${dataUrl}">`;
+      document.getElementById('pPhoto').innerHTML = `<img src="${dataUrl}">`;
     } catch(err) { alert('Photo upload failed: '+err.message); }
   };
   reader.readAsDataURL(file);
 };
 
 window.signOutUser = async function() {
-  console.log('[Profile] Sign out requested');
-  // Clear localStorage first
   ['mgm_uid','mgm_username','mgm_name','mgm_elo','mgm_wins','mgm_losses','mgm_photo','mgm_hd_clip']
     .forEach(k=>localStorage.removeItem(k));
-  try { await signOut(auth); }
-  catch(e) { console.warn('[Profile] signOut error:', e.message); }
+  try { await signOut(auth); } catch(e) {}
   window.location.replace('index.html?logout=' + Date.now());
 };
 
