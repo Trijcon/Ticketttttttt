@@ -273,7 +273,7 @@
 
     <div class="uh-actions">
       <button class="btn-follow" id="followBtn" onclick="toggleFollow()" style="display:none;">+ Follow</button>
-      <button class="btn-msg" id="msgBtn" onclick="alert('Direct messages are coming soon.')" style="display:none;">Message</button>
+      <button class="btn-msg" id="msgBtn" onclick="openMessage()" style="display:none;">Message</button>
     </div>
   </div>
 
@@ -465,6 +465,11 @@ function updateFollowButton(){
   btn.textContent = isFollowing ? '✓ Following' : '+ Follow';
   btn.classList.toggle('following', isFollowing);
 }
+
+window.openMessage = function(){
+  if (!_profileData || !_profileData.username) return;
+  window.location.href = 'messages.html?to=' + encodeURIComponent(_profileData.username);
+};
 
 window.toggleFollow = async function(){
   if (!_viewer || !_profileUid) { alert('Sign in to follow'); return; }

@@ -41,6 +41,48 @@
   object-position:center 30%;
 }
 .feed-canvas{position:absolute;top:0;left:0;width:100%;height:100%;transform:scaleX(-1);pointer-events:none;object-fit:cover;object-position:center 30%;}
+
+/* Scanning line — sweeps top-to-bottom every 3s, only when face active */
+.feed-box .scan-line-fx {
+  position:absolute; left:0; right:0; height:2.5px;
+  background:linear-gradient(90deg,
+    transparent 0%,
+    rgba(74,158,255,0.0) 5%,
+    rgba(74,158,255,0.6) 25%,
+    rgba(180,220,255,1) 50%,
+    rgba(74,158,255,0.6) 75%,
+    transparent 100%);
+  box-shadow:0 0 12px rgba(74,158,255,0.6),0 0 24px rgba(74,158,255,0.4);
+  z-index:7; pointer-events:none; opacity:0;
+  animation:scan-line-sweep 3s linear infinite;
+  display:none;
+}
+.feed-box.scanning .scan-line-fx { display:block; }
+@keyframes scan-line-sweep {
+  0%   { top:0%;   opacity:0; }
+  10%  { opacity:1; }
+  90%  { opacity:1; }
+  100% { top:100%; opacity:0; }
+}
+
+/* Auto-scan center overlay — "ANALYZING…" with countdown */
+.scan-countdown {
+  position:absolute; inset:0; display:none;
+  align-items:center; justify-content:center; flex-direction:column;
+  background:radial-gradient(circle at 50% 50%, rgba(74,158,255,0.08), transparent 60%);
+  z-index:8; pointer-events:none;
+}
+.scan-countdown.show { display:flex; }
+.scan-countdown-text {
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px; letter-spacing:3px; color:rgba(255,255,255,0.5);
+  text-transform:uppercase; margin-bottom:6px;
+}
+.scan-countdown-num {
+  font-family:'Space Grotesk',sans-serif; font-weight:700;
+  font-size:48px; color:#fff;
+  text-shadow:0 0 18px rgba(74,158,255,0.6);
+}
 .feed-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
 .feed-ph-icon{font-size:44px;opacity:0.25;}
 .feed-ph-text{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);letter-spacing:1px;}
@@ -193,9 +235,14 @@
 
   <div class="feeds-grid">
     <!-- LEFT FEED -->
-    <div class="feed-box">
+    <div class="feed-box" id="myFeed">
       <video class="feed-video" id="myVid" autoplay playsinline muted></video>
       <canvas class="feed-canvas" id="myCanvas"></canvas>
+      <div class="scan-line-fx"></div>
+      <div class="scan-countdown" id="scanCountdown">
+        <div class="scan-countdown-text">Analyzing</div>
+        <div class="scan-countdown-num" id="scanCountdownNum">5</div>
+      </div>
       <!-- Overlay -->
       <div class="scan-overlay">
         <div class="scan-info-tl" id="myInfoTL">
@@ -375,7 +422,7 @@ connectWS(onMsg);
 function onMsg(msg){
   switch(msg.type){
     case 'queue_joined':
-      setS('searching','Searching for opponent... (AI opponent in 15s if no human found)');
+      setS('searching','Searching for opponent...');
       document.getElementById('mainBtn').textContent='SEARCHING...';
       document.getElementById('mainBtn').disabled=true;
       document.getElementById('skipBtn').style.display='flex';
@@ -446,19 +493,19 @@ function initFM(v,c){
 
 function drawMesh(canvas,lm,dotColor){
   var ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
-  // Soft glow dots (smaller, sparser)
-  ctx.shadowColor = '#0df27a';
-  ctx.shadowBlur = 2;
-  ctx.fillStyle = dotColor || 'rgba(13,242,122,0.55)';
+  // Blue face-scan dots
+  ctx.shadowColor = '#4A9EFF';
+  ctx.shadowBlur = 3;
+  ctx.fillStyle = dotColor || 'rgba(74,158,255,0.7)';
   for(var i=0;i<lm.length;i+=2){
     ctx.beginPath();
     ctx.arc(lm[i].x*w, lm[i].y*h, 0.9, 0, Math.PI*2);
     ctx.fill();
   }
   ctx.shadowBlur = 0;
-  // Connection lines — subtler
+  // Blue connection lines — subtle
   var c=[[33,7],[7,163],[163,144],[144,145],[145,153],[153,154],[154,155],[155,133],[362,382],[382,381],[381,380],[380,374],[374,373],[373,390],[390,249],[249,263],[61,185],[185,40],[40,39],[39,37],[37,0],[0,267],[267,269],[269,270],[270,409],[409,291],[291,375],[375,321],[321,405],[405,314],[314,17],[17,84],[84,181],[181,91],[91,146],[146,61],[10,338],[338,297],[297,332],[332,284],[284,251],[251,389],[389,356],[356,454],[454,323],[323,361],[361,288],[288,397],[397,365],[365,379],[379,378],[378,400],[400,377],[377,152],[152,148],[148,176],[176,149],[149,150],[150,136],[136,172]];
-  ctx.strokeStyle='rgba(13,242,122,0.18)';
+  ctx.strokeStyle='rgba(74,158,255,0.22)';
   ctx.lineWidth=0.6;
   for(var j=0;j<c.length;j++){var a=c[j][0],b=c[j][1];if(lm[a]&&lm[b]){ctx.beginPath();ctx.moveTo(lm[a].x*w,lm[a].y*h);ctx.lineTo(lm[b].x*w,lm[b].y*h);ctx.stroke();}}
 }
@@ -732,8 +779,9 @@ function updateMoggingBar(myScore,oppScore){
 }
 
 function findMatch(){if(!myStream){setS('','Start camera first!');return;}wsSend({type:'join_queue'});}
-function setBtnFind(){var b=document.getElementById('mainBtn');b.textContent='FIND MATCH \u2192';b.disabled=false;b.onclick=findMatch;}
-function setBtnScan(){var b=document.getElementById('mainBtn');b.textContent='RUN SCAN';b.disabled=false;b.onclick=runScan;}
+function setBtnFind(){var b=document.getElementById('mainBtn');b.textContent='FIND MATCH \u2192';b.disabled=false;b.style.display='block';b.onclick=findMatch;}
+// Auto-scan flow: hide the main action button while scanning
+function setBtnScan(){var b=document.getElementById('mainBtn');b.textContent='SCAN AUTO-START';b.disabled=true;b.style.display='none';}
 
 function onMatchFound(msg){
   state='matched';
@@ -775,8 +823,10 @@ function startRTC(){
     document.getElementById('oppInfoTL').style.display='block';
     document.getElementById('oppLabelTR').style.display='block';
     document.getElementById('reportBtn').style.display='block';
-    setS('connected','Cameras live — run your scan!');
+    setS('connected','Cameras live — initiating scan...');
     wsSend({type:'webrtc_connected'});
+    // Auto-start scan after a brief settle
+    setTimeout(autoRunScan, 1200);
   };
   peerConn.onicecandidate=function(e){if(e.candidate&&oppSocketId)wsSend({type:'webrtc_ice',targetId:oppSocketId,candidate:e.candidate});};
   if(myRole==='offerer'){
@@ -792,23 +842,54 @@ function handleIce(msg){if(!peerConn||!msg.candidate)return;peerConn.addIceCandi
 function closeRTC(){if(peerConn){try{peerConn.close();}catch(e){}peerConn=null;}oppSocketId=null;myRole=null;}
 
 function runScan(){
-  if(!myLandmarks){setS('connected','\u26A0 Center your face in frame');return;}
-  state='scanning';
-  document.getElementById('mainBtn').textContent='SCANNING...'; document.getElementById('mainBtn').disabled=true;
-  setS('searching','AI analyzing your features...');
-  setTimeout(function(){
-    var result=calcDetailedScore(myLandmarks);
-    myLastScore=result.score;
-    // Show final score on overlay
-    document.getElementById('myScoreVal').textContent=result.score.toFixed(1);
-    document.getElementById('myTierBadge').textContent=getTierEmoji(scoreToElo(result.score))+' '+getTierName(scoreToElo(result.score));
-    document.getElementById('myTierBadge').style.color=getTierColor(result.score);
-    document.getElementById('myDom').textContent=result.dom;
-    document.getElementById('myFlaw').textContent=result.flaw;
-    updateMoggingBar(result.score,oppLastScore);
-    wsSend({type:'submit_score',score:result.score});
-    setS('searching','Score submitted \u2014 awaiting opponent...');
-  },2400);
+  // Manual scan retained as fallback (e.g. retry button)
+  autoRunScan();
+}
+
+/* Auto-scan: starts a 5s countdown with the scan line sweeping;
+   submits score automatically when timer hits 0. No user click. */
+var _scanTimer = null;
+function autoRunScan(){
+  if (state === 'scanning' || state === 'result') return;
+  state = 'scanning';
+  // Activate scan-line sweep on YOUR feed
+  document.getElementById('myFeed').classList.add('scanning');
+  // Show countdown overlay
+  var cd = document.getElementById('scanCountdown');
+  var cdNum = document.getElementById('scanCountdownNum');
+  cd.classList.add('show');
+  document.getElementById('mainBtn').textContent = 'SCANNING';
+  document.getElementById('mainBtn').disabled = true;
+  setS('searching', 'AI scan in progress \u2014 hold still');
+  var t = 5;
+  cdNum.textContent = t;
+  _scanTimer = setInterval(function(){
+    t--;
+    cdNum.textContent = t > 0 ? t : '';
+    if (t <= 0) {
+      clearInterval(_scanTimer);
+      cd.classList.remove('show');
+      // Submit
+      if (myLandmarks) {
+        var result = calcDetailedScore(myLandmarks);
+        myLastScore = result.score;
+        document.getElementById('myScoreVal').textContent = result.score.toFixed(1);
+        document.getElementById('myTierBadge').textContent = getTierEmoji(scoreToElo(result.score)) + ' ' + getTierName(scoreToElo(result.score));
+        document.getElementById('myTierBadge').style.color = getTierColor(result.score);
+        document.getElementById('myDom').textContent = result.dom;
+        document.getElementById('myFlaw').textContent = result.flaw;
+        updateMoggingBar(result.score, oppLastScore);
+        wsSend({ type:'submit_score', score: result.score });
+        setS('searching', 'Score locked \u2014 awaiting opponent...');
+      } else {
+        // No landmarks \u2014 try again in 1s
+        document.getElementById('myFeed').classList.remove('scanning');
+        state = 'matched';
+        setS('connected', '\u26A0 Face not detected \u2014 re-scanning in 2s');
+        setTimeout(autoRunScan, 2000);
+      }
+    }
+  }, 1000);
 }
 
 function onResult(msg){
@@ -817,6 +898,9 @@ function onResult(msg){
   updateMoggingBar(myLastScore,oppLastScore);
   updateGetMog(myLastScore,oppLastScore);
   stopMatchTimer();
+  document.getElementById('myFeed').classList.remove('scanning');
+  document.getElementById('scanCountdown').classList.remove('show');
+  if (_scanTimer) { clearInterval(_scanTimer); _scanTimer = null; }
   // Show opp score on overlay
   document.getElementById('oppScoreVal').textContent=oppLastScore.toFixed(1);
   var oppTierElo=scoreToElo(oppLastScore);
@@ -844,6 +928,9 @@ function skipOpp(){
   setS('','Searching for new opponent...'); setBtnFind(); document.getElementById('skipBtn').style.display='none';
   hideOverlays(); oppLastScore=0;
   stopMatchTimer(); updateGetMog(0,0);
+  document.getElementById('myFeed').classList.remove('scanning');
+  document.getElementById('scanCountdown').classList.remove('show');
+  if (_scanTimer) { clearInterval(_scanTimer); _scanTimer = null; }
 }
 
 function resetOpp(){

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MogMe.TV — Messages</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.msg-shell { max-width:920px; margin:0 auto; }
+.msg-grid {
+  display:grid; grid-template-columns:280px 1fr; gap:10px;
+  background:var(--glass); border:1px solid var(--border);
+  border-radius:14px; overflow:hidden;
+  height:calc(100vh - 160px); min-height:560px;
+}
+
+/* Inbox */
+.inbox { border-right:1px solid var(--border); display:flex; flex-direction:column; }
+.inbox-head {
+  padding:14px 16px; border-bottom:1px solid var(--border);
+  font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px; color:var(--white);
+}
+.inbox-list { flex:1; overflow-y:auto; }
+.inbox-empty { padding:30px 16px; text-align:center; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2); letter-spacing:0.5px; }
+.convo-item {
+  display:flex; align-items:center; gap:10px; padding:11px 14px;
+  cursor:pointer; border-bottom:1px solid rgba(255,255,255,0.03);
+  transition:background 0.15s;
+}
+.convo-item:hover { background:rgba(255,255,255,0.03); }
+.convo-item.active { background:rgba(74,158,255,0.08); border-left:2px solid var(--blue); padding-left:12px; }
+.convo-photo {
+  width:38px; height:38px; border-radius:50%;
+  background:var(--bg4); border:1px solid var(--border2);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:700;
+  color:var(--silver); overflow:hidden; flex-shrink:0;
+}
+.convo-photo img { width:100%; height:100%; object-fit:cover; }
+.convo-info { flex:1; min-width:0; }
+.convo-name { font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600; color:var(--silver); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.convo-preview { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.convo-time { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2); flex-shrink:0; }
+.convo-unread {
+  min-width:18px; height:18px; border-radius:9px;
+  background:var(--blue); color:#000; font-family:'JetBrains Mono',monospace;
+  font-size:9px; font-weight:700; display:flex; align-items:center; justify-content:center; padding:0 6px;
+  flex-shrink:0;
+}
+
+/* Conversation pane */
+.convo-pane { display:flex; flex-direction:column; min-width:0; }
+.convo-head {
+  padding:14px 18px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:12px;
+}
+.convo-head-name { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px; color:var(--white); }
+.convo-head a { color:var(--blue); text-decoration:none; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1px; margin-left:auto; }
+.convo-head a:hover { text-decoration:underline; }
+
+.convo-msgs {
+  flex:1; overflow-y:auto; padding:16px 18px;
+  display:flex; flex-direction:column; gap:8px;
+}
+.convo-empty {
+  flex:1; display:flex; align-items:center; justify-content:center;
+  font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted2); letter-spacing:0.5px;
+  padding:30px;
+}
+.bubble {
+  max-width:75%; padding:9px 13px; border-radius:14px;
+  font-size:13px; color:var(--silver); line-height:1.5;
+  word-break:break-word;
+}
+.bubble.in { background:var(--bg3); border:1px solid var(--border); align-self:flex-start; border-bottom-left-radius:4px; }
+.bubble.out { background:var(--blue); color:#000; align-self:flex-end; border-bottom-right-radius:4px; }
+.bubble-time { font-family:'JetBrains Mono',monospace; font-size:8px; color:var(--muted2); margin-top:3px; }
+.bubble.out .bubble-time { color:rgba(0,0,0,0.5); text-align:right; }
+
+.compose {
+  border-top:1px solid var(--border); padding:12px 16px;
+  display:flex; gap:8px;
+}
+.compose input {
+  flex:1; background:var(--bg3); border:1px solid var(--border2);
+  border-radius:8px; padding:10px 14px; outline:none;
+  font-family:'Inter',sans-serif; font-size:13px; color:var(--white);
+}
+.compose input:focus { border-color:rgba(74,158,255,0.35); }
+.compose button {
+  padding:0 18px; border-radius:8px; border:none;
+  background:var(--blue); color:#000; font-family:'Space Grotesk',sans-serif;
+  font-size:13px; font-weight:600; cursor:pointer;
+}
+.compose button:disabled { opacity:0.4; cursor:not-allowed; }
+
+@media(max-width:760px){
+  .msg-grid { grid-template-columns:1fr; height:auto; }
+  .msg-grid.has-active .inbox { display:none; }
+  .msg-grid:not(.has-active) .convo-pane { display:none; }
+  .convo-pane { min-height:60vh; }
+}
+</style>
+</head>
+<body>
+<div class="page-wrap">
+<div class="msg-shell">
+
+  <div class="msg-grid" id="msgGrid">
+    <!-- Inbox -->
+    <div class="inbox">
+      <div class="inbox-head">Messages</div>
+      <div class="inbox-list" id="inboxList">
+        <div class="inbox-empty">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Active conversation -->
+    <div class="convo-pane">
+      <div class="convo-head" id="convoHead" style="display:none;">
+        <div class="convo-photo" id="convoHeadPhoto">?</div>
+        <div class="convo-head-name" id="convoHeadName">—</div>
+        <a href="#" id="convoHeadView">View profile →</a>
+      </div>
+      <div class="convo-msgs" id="convoMsgs">
+        <div class="convo-empty">Select a conversation, or open one from a user profile.</div>
+      </div>
+      <div class="compose" id="compose" style="display:none;">
+        <input type="text" id="composeInput" placeholder="Message..." maxlength="400" onkeydown="if(event.key==='Enter')sendMsg()">
+        <button onclick="sendMsg()">Send</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script src="shared.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where,
+         orderBy, limit, getDocs, addDoc, serverTimestamp, onSnapshot, increment }
+  from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const fbApp = initializeApp({
+  apiKey:"AIzaSyBpMuv59Rlhc2roSiTPBzjKKHjuwqe0TFs",
+  authDomain:"mogmetv.firebaseapp.com", projectId:"mogmetv",
+  storageBucket:"mogmetv.firebasestorage.app",
+  messagingSenderId:"1067675943117",
+  appId:"1:1067675943117:web:9545a8bbfa7f68d5db2984"
+});
+const auth = getAuth(fbApp);
+const db   = getFirestore(fbApp);
+
+injectSharedUI();
+connectWS();
+
+let _user = null;
+let _userProfile = null;
+let _activeConvoId = null;
+let _activeOther = null;
+let _inboxUnsub = null;
+let _convoUnsub = null;
+
+// Conversation ID = sorted UIDs joined with "_"
+function convoIdOf(uidA, uidB){
+  return [uidA, uidB].sort().join('_');
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { window.location.href = 'index.html'; return; }
+  _user = user;
+  try {
+    const snap = await getDoc(doc(db,'users',user.uid));
+    if (snap.exists()) _userProfile = snap.data();
+  } catch(e){}
+  loadInbox();
+  // Auto-open conversation if URL has ?to=username
+  const params = new URLSearchParams(location.search);
+  const toUsername = params.get('to');
+  if (toUsername) startConversationWithUsername(toUsername.toLowerCase());
+});
+
+async function startConversationWithUsername(unameLower){
+  try {
+    const usnap = await getDoc(doc(db,'usernames',unameLower));
+    if (!usnap.exists()) { alert('User not found'); return; }
+    const otherUid = usnap.data().uid;
+    if (otherUid === _user.uid) return;
+    const otherSnap = await getDoc(doc(db,'users',otherUid));
+    const other = otherSnap.exists() ? otherSnap.data() : null;
+    if (!other) return;
+
+    // Ensure conversation doc exists
+    const cid = convoIdOf(_user.uid, otherUid);
+    const cref = doc(db,'conversations',cid);
+    const cdoc = await getDoc(cref);
+    if (!cdoc.exists()) {
+      await setDoc(cref, {
+        participants: [_user.uid, otherUid].sort(),
+        lastMessage: '',
+        lastAt: serverTimestamp(),
+        unread: { [_user.uid]: 0, [otherUid]: 0 },
+        names: { [_user.uid]: _userProfile?.username || 'Unknown', [otherUid]: other.username || 'Unknown' },
+        photos: { [_user.uid]: _userProfile?.photoURL || '', [otherUid]: other.photoURL || '' },
+      });
+    }
+    openConversation(cid, { uid: otherUid, username: other.username, photoURL: other.photoURL });
+  } catch(e) { console.error(e); }
+}
+
+function loadInbox(){
+  if (_inboxUnsub) _inboxUnsub();
+  // All conversations the user is in, ordered by recent
+  const q = query(
+    collection(db,'conversations'),
+    where('participants','array-contains', _user.uid),
+    orderBy('lastAt','desc'), limit(50)
+  );
+  _inboxUnsub = onSnapshot(q, (snap) => {
+    const list = document.getElementById('inboxList');
+    if (snap.empty) {
+      list.innerHTML = '<div class="inbox-empty">No conversations yet.<br>Open a user profile and tap Message.</div>';
+      return;
+    }
+    const myUid = _user.uid;
+    list.innerHTML = snap.docs.map(d => {
+      const c = d.data();
+      const other = (c.participants||[]).find(p => p !== myUid);
+      const oName = (c.names && c.names[other]) || 'Unknown';
+      const oPhoto = (c.photos && c.photos[other]) || '';
+      const photoHTML = oPhoto
+        ? `<div class="convo-photo"><img src="${oPhoto}"></div>`
+        : `<div class="convo-photo">${(oName[0]||'?').toUpperCase()}</div>`;
+      const unread = (c.unread && c.unread[myUid]) || 0;
+      const when = c.lastAt?.toDate ? formatTime(c.lastAt.toDate()) : '';
+      const preview = (c.lastMessage || '').slice(0, 60);
+      return `<div class="convo-item ${d.id===_activeConvoId?'active':''}" data-cid="${d.id}" data-other="${other}" data-name="${escapeHtml(oName)}" data-photo="${escapeHtml(oPhoto||'')}">
+        ${photoHTML}
+        <div class="convo-info">
+          <div class="convo-name">${escapeHtml(oName)}</div>
+          <div class="convo-preview">${escapeHtml(preview) || '— no messages yet —'}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <div class="convo-time">${when}</div>
+          ${unread > 0 ? `<div class="convo-unread">${unread}</div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+    // Wire clicks
+    list.querySelectorAll('.convo-item').forEach(el => {
+      el.addEventListener('click', () => {
+        openConversation(el.dataset.cid, {
+          uid: el.dataset.other,
+          username: el.dataset.name,
+          photoURL: el.dataset.photo,
+        });
+      });
+    });
+  });
+}
+
+async function openConversation(cid, other){
+  _activeConvoId = cid;
+  _activeOther = other;
+  document.getElementById('msgGrid').classList.add('has-active');
+  // Mark unread cleared
+  try {
+    await updateDoc(doc(db,'conversations',cid), { [`unread.${_user.uid}`]: 0 });
+  } catch(e){}
+
+  // Header
+  document.getElementById('convoHead').style.display = '';
+  document.getElementById('compose').style.display = '';
+  const hp = document.getElementById('convoHeadPhoto');
+  if (other.photoURL) hp.innerHTML = `<img src="${other.photoURL}">`;
+  else hp.textContent = (other.username||'?')[0].toUpperCase();
+  document.getElementById('convoHeadName').textContent = other.username || 'Unknown';
+  document.getElementById('convoHeadView').href = `user.html?u=${encodeURIComponent(other.username||'')}`;
+
+  // Subscribe to messages
+  if (_convoUnsub) _convoUnsub();
+  const q = query(collection(db,'conversations',cid,'messages'), orderBy('createdAt','asc'), limit(200));
+  _convoUnsub = onSnapshot(q, (snap) => {
+    const wrap = document.getElementById('convoMsgs');
+    if (snap.empty) {
+      wrap.innerHTML = '<div class="convo-empty">No messages yet — say something!</div>';
+      return;
+    }
+    wrap.innerHTML = snap.docs.map(d => {
+      const m = d.data();
+      const out = m.fromUid === _user.uid;
+      const when = m.createdAt?.toDate ? formatTime(m.createdAt.toDate()) : '';
+      return `<div class="bubble ${out?'out':'in'}">
+        <div>${escapeHtml(m.text||'')}</div>
+        <div class="bubble-time">${when}</div>
+      </div>`;
+    }).join('');
+    wrap.scrollTop = wrap.scrollHeight;
+  });
+}
+
+window.sendMsg = async function(){
+  const input = document.getElementById('composeInput');
+  const text = input.value.trim();
+  if (!text || !_user || !_activeConvoId || !_activeOther) return;
+  // Profanity filter
+  if (window.containsProfanity && window.containsProfanity(text)) {
+    alert('Message blocked — restricted language');
+    return;
+  }
+  input.value = '';
+  try {
+    await addDoc(collection(db,'conversations',_activeConvoId,'messages'), {
+      fromUid: _user.uid,
+      fromUsername: _userProfile?.username || 'Unknown',
+      text: text.slice(0, 400),
+      createdAt: serverTimestamp(),
+    });
+    // Update conversation summary + unread for the recipient
+    await updateDoc(doc(db,'conversations',_activeConvoId), {
+      lastMessage: text.slice(0, 100),
+      lastAt: serverTimestamp(),
+      [`unread.${_activeOther.uid}`]: increment(1),
+    });
+  } catch(e) {
+    alert('Send failed — make sure Firestore rules allow conversations. ' + e.message);
+  }
+};
+
+function formatTime(d){
+  const today = new Date();
+  if (d.toDateString() === today.toDateString()) {
+    return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  }
+  return d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+}
+</script>
+<script type="module" src="auth.js"></script>
+</body>
+</html>

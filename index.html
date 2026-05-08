@@ -565,6 +565,10 @@ function initHolo(){
       side: THREE.DoubleSide,
     }));
     _holo.scene.add(_holo.head);
+    // Snapshot original vertex positions so we can restore when camera turns off
+    var pa = geom.attributes.position;
+    _holo.canonicalPositions = new Float32Array(pa.array.length);
+    _holo.canonicalPositions.set(pa.array);
   }).catch(function(){ /* keep placeholder on failure */ });
 
   // Throttled rAF render — 30fps instead of 60fps
@@ -604,6 +608,12 @@ window.toggleHolo = async function(){
     if (_holo.stream) { _holo.stream.getTracks().forEach(function(t){t.stop();}); _holo.stream = null; }
     _holo.mpRunning = false;
     _holo.targetPose = null;  // resume auto-rotate
+    // Restore canonical face mesh positions (they were mutated by live tracking)
+    if (_holo.head && _holo.canonicalPositions) {
+      var pa = _holo.head.geometry.attributes.position;
+      pa.array.set(_holo.canonicalPositions);
+      pa.needsUpdate = true;
+    }
     btn.textContent = '⚡ TRY IT ON YOUR FACE';
     btn.classList.remove('live');
     dot.classList.remove('live');
@@ -670,11 +680,31 @@ function holoComputePose(lm){
   return { yaw: yaw, pitch: pitch, roll: -roll };
 }
 
+/* Drive the wireframe head's vertices directly from live MediaPipe landmarks.
+   Both share the same canonical 468-vertex topology so the mapping is 1:1.
+   This makes the wireframe deform as the user smiles, blinks, opens mouth, etc. */
 function holoOnResults(r){
-  // No drawn overlay — only drive the 3D head's rotation from detected pose.
   if (r.multiFaceLandmarks && r.multiFaceLandmarks.length > 0) {
-    var pose = holoComputePose(r.multiFaceLandmarks[0]);
-    if (pose) _holo.targetPose = pose;
+    var lm = r.multiFaceLandmarks[0];
+    if (_holo.head && _holo.head.geometry && _holo.head.geometry.attributes && _holo.head.geometry.attributes.position) {
+      var pos = _holo.head.geometry.attributes.position;
+      var n = Math.min(lm.length, pos.count);
+      // Compute centroid for centering
+      var cx = 0, cy = 0, cz = 0;
+      for (var i=0; i<n; i++){ cx+=lm[i].x; cy+=lm[i].y; cz+=lm[i].z; }
+      cx /= n; cy /= n; cz /= n;
+      // Map normalized screen coords → centered 3D in the same scale we used for canonical mesh
+      var SCALE = 5.0;
+      for (var k=0; k<n; k++){
+        // Mirror X (camera is mirrored) + center + scale
+        pos.setXYZ(k, -(lm[k].x - cx) * SCALE, -(lm[k].y - cy) * SCALE, -(lm[k].z - cz) * SCALE);
+      }
+      pos.needsUpdate = true;
+      _holo.head.geometry.computeBoundingBox();
+      // Keep head pose tracking too — but since the geometry is now the live face,
+      // we don't need to also rotate, the geometry itself moves.
+      _holo.targetPose = { yaw:0, pitch:0, roll:0 };
+    }
   } else {
     _holo.targetPose = { yaw: 0, pitch: 0, roll: 0 };
   }
