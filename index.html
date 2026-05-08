@@ -33,15 +33,15 @@
 .t-sep { font-family:'Space Grotesk',sans-serif; font-size:22px; color:var(--muted2); align-self:center; margin-bottom:6px; }
 .season-right { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2); letter-spacing:1px; }
 
-/* ── ASYMMETRIC GRID ── */
+/* ── ASYMMETRIC GRID — arena emphasized ── */
 .main-grid {
   display:grid;
-  grid-template-columns:1.8fr 1fr;
+  grid-template-columns:2.2fr 1fr;
   grid-template-rows:auto auto;
   align-items:start;
   gap:10px; margin-bottom:10px;
 }
-.card.arena { align-self:start; }
+.card.arena { align-self:start; min-height:440px; }
 .side-stack { display:flex; flex-direction:column; gap:10px; align-self:start; }
 
 /* ── CARDS ── */
@@ -147,7 +147,7 @@
 .coming-badge:hover { color:var(--muted); border-color:var(--border2); }
 
 /* ── BOTTOM GRID ── */
-.bottom-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+.bottom-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; margin-top:-2px; }
 .section-box { background:var(--glass); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
 .section-head {
   padding:14px 18px; border-bottom:1px solid var(--border);
@@ -196,8 +196,8 @@
   border-radius: var(--radius);
   overflow: hidden;
   display: flex; flex-direction: column;
-  min-height: 640px;
-  padding: 16px 16px 18px;
+  min-height: 440px;
+  padding: 14px 16px 16px;
 }
 .holo-grid-bg {
   position: absolute; inset: 0;
@@ -372,37 +372,23 @@
     <!-- RIGHT STACK -->
     <div class="side-stack">
 
-      <!-- ALGORITHM PREVIEW HOLOGRAM (vertical) -->
+      <!-- ALGORITHM PREVIEW HOLOGRAM (aesthetic only) -->
       <div class="holo-card" id="holoHero">
         <div class="holo-grid-bg"></div>
         <div class="holo-glow"></div>
         <div class="holo-scan"></div>
 
         <div class="holo-card-head">
-          <div>
-            <div class="holo-tag">// THE LAB</div>
-            <div class="holo-title">ALGORITHM PREVIEW</div>
-            <div class="holo-sub">[MAX ASCENSION REACHED]</div>
-          </div>
+          <div class="holo-tag">// THE LAB</div>
           <div class="holo-status-line"><span class="holo-status-dot" id="holoDot"></span><span id="holoStatusText">STANDBY</span></div>
         </div>
 
         <div class="holo-stage">
           <canvas id="holoCanvas" width="320" height="380"></canvas>
-          <canvas id="holoFaceCanvas" width="320" height="380"></canvas>
           <video id="holoVid" autoplay playsinline muted></video>
         </div>
 
-        <div class="holo-stats-bottom">
-          <div class="holo-stat-row"><span class="holo-stat-key">PROPORTIONS</span><span class="holo-stat-val" id="holoStat1">85%</span></div>
-          <div class="holo-stat-row"><span class="holo-stat-key">SYMMETRY</span><span class="holo-stat-val" id="holoStat2">92</span></div>
-          <div class="holo-stat-row"><span class="holo-stat-key">JAW DEF</span><span class="holo-stat-val" id="holoStat3">88</span></div>
-          <div class="holo-stat-row"><span class="holo-stat-key">CHEEKBONES</span><span class="holo-stat-val" id="holoStat5">90%</span></div>
-          <div class="holo-stat-row"><span class="holo-stat-key">MIDFACE</span><span class="holo-stat-val" id="holoStat6">87</span></div>
-          <div class="holo-stat-row"><span class="holo-stat-key">NOSE</span><span class="holo-stat-val" id="holoStat8">91</span></div>
-        </div>
-
-        <button class="holo-activate" id="holoActivate" onclick="toggleHolo()">⚡ ACTIVATE LIVE SCAN</button>
+        <button class="holo-activate" id="holoActivate" onclick="toggleHolo()">⚡ TRY IT ON YOUR FACE</button>
       </div>
 
       <!-- THE LAB -->
@@ -595,20 +581,6 @@ function initHolo(){
   }
   animate(0);
 
-  // Slower stat updates (was 750ms → 1500ms)
-  setInterval(function(){
-    if (_holo.active) return;
-    var ids = ['holoStat1','holoStat2','holoStat3','holoStat5','holoStat6','holoStat8'];
-    var id = ids[Math.floor(Math.random()*ids.length)];
-    var el = document.getElementById(id);
-    if (!el) return;
-    var t = el.textContent;
-    var hasPct = t.indexOf('%') > -1;
-    var n = parseInt(t);
-    if (isNaN(n)) return;
-    n = Math.max(78, Math.min(99, n + (Math.random()<0.5?-1:1)));
-    el.textContent = hasPct ? n+'%' : n;
-  }, 1500);
 }
 
 window.toggleHolo = async function(){
@@ -621,8 +593,7 @@ window.toggleHolo = async function(){
     if (_holo.stream) { _holo.stream.getTracks().forEach(function(t){t.stop();}); _holo.stream = null; }
     _holo.mpRunning = false;
     _holo.targetPose = null;  // resume auto-rotate
-    document.getElementById('holoFaceCanvas').style.display = 'none';
-    btn.textContent = '⚡ ACTIVATE LIVE SCAN';
+    btn.textContent = '⚡ TRY IT ON YOUR FACE';
     btn.classList.remove('live');
     dot.classList.remove('live');
     hero.classList.remove('live');
@@ -636,10 +607,6 @@ window.toggleHolo = async function(){
     _holo.stream = await navigator.mediaDevices.getUserMedia({video:{width:480,height:360,facingMode:'user'},audio:false});
     var v = document.getElementById('holoVid');
     v.srcObject = _holo.stream;
-
-    // Show face canvas OVER the rotating Three.js head (whole head stays visible)
-    var fc = document.getElementById('holoFaceCanvas');
-    fc.style.display = 'block';
 
     if (!_holo.faceMesh && window.FaceMesh) {
       _holo.faceMesh = new FaceMesh({locateFile:function(f){return 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/'+f;}});
@@ -672,9 +639,6 @@ window.toggleHolo = async function(){
   }
 };
 
-// Reduced connection set for cleaner overlay on top of 3D head
-var _HOLO_CONNS = [[33,133],[362,263],[61,291],[78,308],[10,152],[234,454],[152,234],[152,454]];
-
 // Compute head pose (yaw / pitch / roll) from MediaPipe landmarks
 function holoComputePose(lm){
   if (!lm[33] || !lm[263] || !lm[1] || !lm[10] || !lm[152]) return null;
@@ -696,45 +660,11 @@ function holoComputePose(lm){
 }
 
 function holoOnResults(r){
-  var c = document.getElementById('holoFaceCanvas');
-  if (!c) return;
-  var ctx = c.getContext('2d');
-  ctx.clearRect(0,0,c.width,c.height);
-
+  // No drawn overlay — only drive the 3D head's rotation from detected pose.
   if (r.multiFaceLandmarks && r.multiFaceLandmarks.length > 0) {
-    var lm = r.multiFaceLandmarks[0];
-
-    // Drive 3D head rotation from detected pose
-    var pose = holoComputePose(lm);
+    var pose = holoComputePose(r.multiFaceLandmarks[0]);
     if (pose) _holo.targetPose = pose;
-
-    var W = c.width, H = c.height;
-    ctx.save();
-    ctx.translate(W,0); ctx.scale(-1,1);
-    ctx.shadowColor = '#FFFFFF';
-    ctx.shadowBlur = 3;
-    ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    // Sparser dot draw — every 3rd landmark for perf + cleaner look
-    for (var i=0;i<lm.length;i+=3) {
-      ctx.beginPath();
-      ctx.arc(lm[i].x*W, lm[i].y*H, 1, 0, Math.PI*2);
-      ctx.fill();
-    }
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-    ctx.lineWidth = 0.7;
-    for (var k=0;k<_HOLO_CONNS.length;k++) {
-      var a = _HOLO_CONNS[k][0], b = _HOLO_CONNS[k][1];
-      if (lm[a] && lm[b]) {
-        ctx.beginPath();
-        ctx.moveTo(lm[a].x*W, lm[a].y*H);
-        ctx.lineTo(lm[b].x*W, lm[b].y*H);
-        ctx.stroke();
-      }
-    }
-    ctx.restore();
   } else {
-    // No face detected — drift back toward neutral
     _holo.targetPose = { yaw: 0, pitch: 0, roll: 0 };
   }
 }

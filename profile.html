@@ -368,26 +368,29 @@
       <div class="acc-card" style="margin-bottom:12px;">
         <div class="acc-card-head">
           <div class="acc-card-title">Profile Identity</div>
-          <button class="acc-card-edit" id="editBtn" onclick="toggleEdit()" title="Edit">✎</button>
         </div>
 
         <div class="field-block">
-          <label class="field-label-mini">Display Name</label>
+          <label class="field-label-mini">Username (locked)</label>
           <div class="field-row">
             <div class="field-disp" id="nameDisplay">—</div>
             <button class="photo-btn" onclick="document.getElementById('photoInput').click()">📷 PHOTO</button>
             <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="onPhotoPick(event)">
           </div>
-          <div class="field-input-row" id="nameEditRow" style="display:none;">
-            <input id="nameInput" type="text" maxlength="24" placeholder="Display name">
-            <button class="btn-primary" style="font-size:12px;padding:8px 14px;" onclick="saveName()">Save</button>
-          </div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted2);margin-top:6px;letter-spacing:0.3px;">Your username is your permanent identity and can't be changed.</div>
         </div>
 
         <div class="field-block">
           <div class="email-pill">
             <span class="lbl">Email</span>
             <span id="emailDisplay">—</span>
+          </div>
+        </div>
+
+        <div class="field-block">
+          <div class="email-pill">
+            <span class="lbl">Country</span>
+            <span id="countryDisplay">Detecting...</span>
           </div>
         </div>
       </div>
@@ -531,9 +534,85 @@ window.toggleHD = function() {
   localStorage.setItem('mgm_hd_clip', t.classList.contains('on') ? '1' : '0');
 };
 
+/* ════════════════════════════════
+   DISCORD OAUTH (implicit flow)
+   ─────────────────────────────────
+   Setup steps for the owner:
+   1. Go to https://discord.com/developers/applications
+   2. Create a new application, copy the Client ID
+   3. In OAuth2 settings, add this redirect URL:
+        https://YOUR-SITE.com/profile.html
+      (use the exact URL where profile.html is served)
+   4. Replace DISCORD_CLIENT_ID below with your real Client ID
+════════════════════════════════ */
+const DISCORD_CLIENT_ID = ''; // ← put your Discord application Client ID here
+
 window.connectDiscord = function() {
-  alert('Discord OAuth integration coming soon. We\'ll auto-sync your rank & Pro status to Discord roles.');
+  if (!DISCORD_CLIENT_ID) {
+    alert('Discord integration not configured yet. Owner: open profile.html and set DISCORD_CLIENT_ID.');
+    return;
+  }
+  const redirect = encodeURIComponent(window.location.origin + window.location.pathname);
+  const url = `https://discord.com/api/oauth2/authorize`
+    + `?client_id=${DISCORD_CLIENT_ID}`
+    + `&redirect_uri=${redirect}`
+    + `&response_type=token&scope=identify`;
+  window.location.href = url;
 };
+
+// Handle Discord OAuth callback (#access_token=... in URL fragment)
+async function handleDiscordCallback(user) {
+  if (!window.location.hash || !window.location.hash.includes('access_token=')) return;
+  const params = new URLSearchParams(window.location.hash.slice(1));
+  const token = params.get('access_token');
+  if (!token) return;
+  try {
+    const res = await fetch('https://discord.com/api/users/@me', {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    const d = await res.json();
+    if (!d.id) throw new Error('No Discord user');
+    await updateDoc(doc(db,'users',user.uid), {
+      discordId: d.id,
+      discordUsername: d.username,
+      discordAvatar: d.avatar || null,
+      discordLinkedAt: serverTimestamp(),
+    });
+    // Strip the hash from the URL
+    history.replaceState({}, '', window.location.pathname);
+    location.reload();
+  } catch(e) {
+    alert('Discord linking failed: ' + e.message);
+  }
+}
+
+/* ════════════════════════════════
+   COUNTRY DETECTION via ipapi.co (free, no key)
+════════════════════════════════ */
+async function fetchCountry() {
+  // Cache 24h to avoid repeated lookups
+  const cached = localStorage.getItem('mgm_country');
+  const cachedAt = parseInt(localStorage.getItem('mgm_country_at') || '0');
+  if (cached && (Date.now() - cachedAt) < 86400000) {
+    return cached;
+  }
+  try {
+    const res = await fetch('https://ipapi.co/json/');
+    const data = await res.json();
+    const flag = data.country_code ? countryFlag(data.country_code) : '';
+    const label = data.country_name ? (flag + ' ' + data.country_name) : 'Unknown';
+    localStorage.setItem('mgm_country', label);
+    localStorage.setItem('mgm_country_at', String(Date.now()));
+    return label;
+  } catch(e) {
+    return 'Unavailable';
+  }
+}
+function countryFlag(code) {
+  if (!code || code.length !== 2) return '';
+  const A = 0x1F1E6;
+  return String.fromCodePoint(A + code.charCodeAt(0) - 65, A + code.charCodeAt(1) - 65);
+}
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) { window.location.href='index.html'; return; }
@@ -543,6 +622,13 @@ onAuthStateChanged(auth, async (user) => {
     if (!snap.exists()) { window.location.href='setup.html'; return; }
     _profile = snap.data();
     renderProfile(user, _profile);
+    // Country (async, non-blocking)
+    fetchCountry().then(c => {
+      const el = document.getElementById('countryDisplay');
+      if (el) el.textContent = c;
+    });
+    // Handle Discord OAuth redirect callback
+    handleDiscordCallback(user);
   } catch(e) { console.error('Profile load error:',e); }
 });
 
@@ -571,9 +657,24 @@ function renderProfile(user, p) {
   document.getElementById('pElo').textContent  = elo;
   document.getElementById('pWins').textContent = wins;
 
-  document.getElementById('nameDisplay').textContent = p.displayName || p.username || '—';
-  document.getElementById('nameInput').value = p.displayName || p.username || '';
+  document.getElementById('nameDisplay').textContent = p.username || '—';
   document.getElementById('emailDisplay').textContent = user.email || '—';
+
+  // Discord linked state
+  if (p.discordId && p.discordUsername) {
+    const titleEl = document.querySelector('#confirmDelete') ? null : null;
+    const dStatus = document.querySelector('.discord-status .discord-status-info');
+    if (dStatus) {
+      dStatus.innerHTML = `
+        <div class="discord-status-title" style="color:#5865F2;">@${p.discordUsername}</div>
+        <div class="discord-status-desc">Linked · Roles will sync automatically</div>`;
+    }
+    const btn = document.querySelector('.discord-connect');
+    if (btn) {
+      btn.textContent = 'DISCONNECT DISCORD';
+      btn.onclick = unlinkDiscord;
+    }
+  }
 
   const hist = p.matchHistory || [];
   const histEl = document.getElementById('matchHistory');
@@ -592,24 +693,15 @@ function renderProfile(user, p) {
   }
 }
 
-window.toggleEdit = function() {
-  _editMode = !_editMode;
-  document.getElementById('nameDisplay').style.display = _editMode ? 'none' : 'block';
-  document.getElementById('nameEditRow').style.display = _editMode ? 'flex' : 'none';
-  document.getElementById('editBtn').textContent = _editMode ? '✕' : '✎';
-};
-
-window.saveName = async function() {
-  const newName = document.getElementById('nameInput').value.trim();
-  if (!newName || !_user) return;
-  if (newName.length < 2) { alert('Name too short'); return; }
+window.unlinkDiscord = async function() {
+  if (!_user) return;
+  if (!confirm('Disconnect your Discord account?')) return;
   try {
-    await updateDoc(doc(db,'users',_user.uid), { displayName:newName, lastSeen:serverTimestamp() });
-    document.getElementById('nameDisplay').textContent = newName;
-    document.getElementById('pName').textContent = newName;
-    localStorage.setItem('mgm_name', newName);
-    window.toggleEdit();
-  } catch(e) { alert('Save failed: '+e.message); }
+    await updateDoc(doc(db,'users',_user.uid), {
+      discordId: null, discordUsername: null, discordAvatar: null, discordLinkedAt: null
+    });
+    location.reload();
+  } catch(e) { alert('Disconnect failed: '+e.message); }
 };
 
 window.onPhotoPick = function(event) {

@@ -336,24 +336,60 @@ const FB = {
 };
 
 /* ════════════════════════════════
-   SECURITY MODEL
-   ──────────────
-   The ONLY way into this panel is to sign in with the Google
-   account whose Firebase UID matches OWNER_UID below.
-   • Anyone can view this HTML — that's fine, it doesn't grant access.
-   • The actual write protection MUST live in Firestore Security Rules.
-   • Recommended Firestore rules (paste into Firebase console):
-       match /users/{uid} {
-         allow read: if true;
-         allow write: if request.auth.uid == "<YOUR_UID>"
-                      || request.auth.uid == uid;
-       }
-       match /usernames/{name} { allow read: if true; allow write: if request.auth.uid == "<YOUR_UID>"; }
-       match /bans/{name}      { allow read: if true; allow write: if request.auth.uid == "<YOUR_UID>"; }
-   • Without those rules, ANY signed-in user could bypass this UI
-     and write directly via the browser console. Fix that first.
+   SECURITY MODEL — read carefully
+   ───────────────────────────────
+   This panel is gated by Firebase Auth + UID allowlist.
+   ANYONE can view the admin.html source — that's fine. What
+   matters is who can ACT, and that's enforced two places:
+
+   (1) CLIENT GATE (this file)
+       Only Google accounts whose Firebase UID is in OWNER_UIDS
+       can see the admin panel. Anyone else gets blocked at the
+       gate. This is just UX — it doesn't actually protect data.
+
+   (2) SERVER ENFORCEMENT — Firestore Security Rules (REQUIRED)
+       Anyone could open the browser console and write directly
+       to Firestore unless your rules block them. Paste this in
+       Firebase console → Firestore Database → Rules:
+
+         rules_version = '2';
+         service cloud.firestore {
+           match /databases/{database}/documents {
+             function isAdmin() {
+               return request.auth != null && request.auth.uid in [
+                 'wqHmlndLquOdIKgK3pLrz2WwGgI3'
+                 // add other dev-team UIDs here, comma-separated
+               ];
+             }
+             match /users/{uid} {
+               allow read: if true;
+               allow create: if request.auth.uid == uid;
+               allow update: if request.auth.uid == uid || isAdmin();
+               allow delete: if isAdmin();
+             }
+             match /usernames/{name} {
+               allow read: if true;
+               allow write: if isAdmin() || (request.auth != null && request.resource.data.uid == request.auth.uid);
+             }
+             match /bans/{name} { allow read: if true; allow write: if isAdmin(); }
+           }
+         }
+
+       Without these rules, the admin panel's "security" is
+       cosmetic. With them, only the listed UIDs can perform
+       admin writes regardless of how someone reaches Firestore.
+
+   ─── HOW TO ADD YOURSELF / YOUR DEV TEAM ───
+   1. Sign in to the site with the Google account you want to grant
+   2. Visit admin.html — it shows your UID even when unauthorized
+   3. Add the UID to OWNER_UIDS below AND to the Firestore rules above
+   4. Push to GitHub
 ════════════════════════════════ */
-const OWNER_UID = 'wqHmlndLquOdIKgK3pLrz2WwGgI3';
+const OWNER_UIDS = [
+  'wqHmlndLquOdIKgK3pLrz2WwGgI3',
+  // 'your-dev-teammate-uid',
+];
+const isOwner = (uid) => Array.isArray(OWNER_UIDS) && OWNER_UIDS.indexOf(uid) >= 0;
 
 const SERVER = 'https://mogmetv-production.up.railway.app';
 const fbApp  = initializeApp(FB);
@@ -393,7 +429,7 @@ onAuthStateChanged(auth, (user) => {
     return;
   }
 
-  if (user.uid !== OWNER_UID) {
+  if (!isOwner(user.uid)) {
     stateEl.innerHTML = 'Signed in as <span style="color:#f2f2ff;">' + user.email + '</span> — but this account is <span style="color:#ff3d6b;">not authorized</span>.';
     signInBtn.style.display = 'none';
     uidBox.style.display = 'block';
