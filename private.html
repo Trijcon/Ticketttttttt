@@ -359,17 +359,18 @@ function drawMesh(canvas,lm){
   trace([64,98,2,327,294], 'rgba(125,198,255,0.22)', 0.8*scale, 0);
   trace([61,185,40,39,37,0,267,269,270,409,291], 'rgba(222,244,255,0.30)', 0.9*scale, 1);
   trace([78,13,308], 'rgba(125,198,255,0.20)', 0.75*scale, 0);
-  ctx.shadowColor='rgba(0,229,255,0.7)';
-  ctx.shadowBlur=4;
-  ctx.fillStyle='rgba(74,210,255,0.34)';
-  for(var i=0;i<lm.length;i+=9){
+  ctx.shadowColor='rgba(0,229,255,0.45)';
+  ctx.shadowBlur=2;
+  ctx.fillStyle='rgba(0,236,210,0.20)';
+  for(var i=0;i<lm.length;i++){
     var sp=pt(i); if(!sp) continue;
     ctx.beginPath();
-    ctx.arc(sp.x,sp.y,0.75*scale,0,Math.PI*2);
+    ctx.arc(sp.x,sp.y,0.58*scale,0,Math.PI*2);
     ctx.fill();
   }
   var anchors=[10,33,133,362,263,1,4,61,291,152,234,454,172,397,70,300];
-  for(var a=0;a<anchors.length;a++) node(anchors[a],1.45*scale,'rgba(112,220,255,0.72)');
+  ctx.shadowBlur=7;
+  for(var a=0;a<anchors.length;a++) node(anchors[a],1.65*scale,'rgba(112,220,255,0.72)');
   if(lm[10]&&lm[152]&&lm[234]&&lm[454]){
     var left=lm[234].x*w, right=lm[454].x*w, top=lm[10].y*h, bottom=lm[152].y*h;
     var padX=(right-left)*0.13, padY=(bottom-top)*0.08;

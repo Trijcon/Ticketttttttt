@@ -37,15 +37,18 @@ body { padding-right: 0 !important; }
   position:relative;border-radius:14px;overflow:hidden;
   background:#020208;border:1px solid rgba(255,255,255,0.08);
   aspect-ratio:4/5;width:100%;height:auto;
-  min-height:78vh;
+  min-height:0;
+  height:min(78vh,840px);
 }
 .feed-video{
   width:100%;height:100%;object-fit:cover;display:block;
-  transform:scaleX(-1);
-  /* Slight scale so the captured 16:9 frame fits without zooming faces */
+  transform:scaleX(-1) scale(0.94);
+  transform-origin:center;
+  /* Pull the camera back slightly so faces do not feel cropped into the frame. */
   object-position:center 30%;
+  background:#020208;
 }
-.feed-canvas{position:absolute;top:0;left:0;width:100%;height:100%;transform:scaleX(-1);pointer-events:none;object-fit:cover;object-position:center 30%;}
+.feed-canvas{position:absolute;top:0;left:0;width:100%;height:100%;transform:scaleX(-1) scale(0.94);transform-origin:center;pointer-events:none;object-fit:cover;object-position:center 30%;}
 .feed-box::before{
   content:'';position:absolute;inset:0;z-index:4;pointer-events:none;
   background:
@@ -119,10 +122,54 @@ body { padding-right: 0 !important; }
 .feed-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
 .feed-ph-icon{font-size:44px;opacity:0.25;}
 .feed-ph-text{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);letter-spacing:1px;}
+.queue-hud{
+  position:fixed;inset:0;z-index:22;display:none;align-items:center;justify-content:center;
+  pointer-events:none;text-align:center;
+}
+.queue-hud.show{display:flex;}
+.queue-card{
+  min-width:260px;padding:22px 26px 20px;border-radius:18px;
+  background:radial-gradient(circle at 50% 0%,rgba(74,210,255,0.12),rgba(0,0,0,0.78) 62%);
+  border:1px solid rgba(74,210,255,0.22);
+  box-shadow:0 0 32px rgba(74,158,255,0.12),inset 0 0 28px rgba(255,255,255,0.035);
+  backdrop-filter:blur(16px);
+}
+.queue-core{
+  width:52px;height:52px;margin:0 auto 18px;border-radius:50%;
+  border:1px solid rgba(74,210,255,0.22);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 26px rgba(74,210,255,0.16);
+  animation:queue-pulse 1.8s ease-in-out infinite;
+}
+.queue-core::before{
+  content:'';width:18px;height:18px;clip-path:polygon(25% 8%,75% 8%,100% 50%,75% 92%,25% 92%,0 50%);
+  background:rgba(218,248,255,0.92);
+  box-shadow:0 0 18px rgba(74,210,255,0.8);
+}
+.queue-title{
+  font-family:'JetBrains Mono',monospace;font-weight:800;font-size:13px;letter-spacing:3px;
+  color:rgba(255,255,255,0.9);text-transform:uppercase;line-height:1.45;
+}
+.queue-sub{
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:rgba(255,255,255,0.48);
+  margin-top:12px;
+}
+.queue-details{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px;
+  font-family:'JetBrains Mono',monospace;text-transform:uppercase;
+}
+.queue-detail{
+  border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:7px 8px;background:rgba(255,255,255,0.035);
+}
+.queue-detail b{display:block;font-size:8px;letter-spacing:1.4px;color:rgba(255,255,255,0.35);margin-bottom:3px;}
+.queue-detail span{font-size:10px;font-weight:800;color:#7eefff;letter-spacing:0.8px;}
+@keyframes queue-pulse{0%,100%{transform:scale(1);opacity:0.82}50%{transform:scale(1.08);opacity:1}}
 
 @media(max-width:760px){
   .feeds-grid{grid-template-columns:1fr;gap:10px;}
   .feeds-grid .vs-divider{display:none;}
+  .feed-box{height:auto;min-height:58vh;}
+  .queue-card{min-width:0;width:min(88vw,320px);}
 }
 
 /* SCAN OVERLAY */
@@ -457,6 +504,18 @@ body { padding-right: 0 !important; }
     </div>
   </div>
 
+    <div class="queue-hud" id="queueHud">
+      <div class="queue-card">
+        <div class="queue-core"></div>
+        <div class="queue-title" id="queueHudTitle">WAITING FOR OPPONENT<br>TO CONNECT...</div>
+        <div class="queue-sub" id="queueHudSub">Center your face before the scan starts</div>
+        <div class="queue-details">
+          <div class="queue-detail"><b>Mode</b><span>Ranked</span></div>
+          <div class="queue-detail"><b>Search</b><span id="queueElapsed">00:00</span></div>
+          <div class="queue-detail"><b>Scan</b><span>Auto</span></div>
+        </div>
+      </div>
+    </div>
   <!-- VS + MOGGING BAR -->
   <div class="vs-section">
     <div class="mogging-wrap">
@@ -557,7 +616,26 @@ var state='idle',myStream=null,faceMesh=null,fmReady=false,myLandmarks=null;
 var peerConn=null,oppSocketId=null,myRole=null;
 var myLastScore=0,oppLastScore=0;
 var matchStartTs=0,matchTimerId=null;
+var queueStartTs=0,queueTimerId=null,_autoArenaBooted=false,_autoQueueAfterCamera=true;
 var ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]};
+
+function startQueueTimer(){
+  queueStartTs=Date.now();
+  var elapsed=document.getElementById('queueElapsed');
+  var hud=document.getElementById('queueHud');
+  if(hud)hud.classList.add('show');
+  if(queueTimerId)clearInterval(queueTimerId);
+  queueTimerId=setInterval(function(){
+    var s=Math.floor((Date.now()-queueStartTs)/1000);
+    var m=Math.floor(s/60),ss=s%60;
+    if(elapsed)elapsed.textContent=String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0');
+  },250);
+}
+function stopQueueTimer(){
+  if(queueTimerId){clearInterval(queueTimerId);queueTimerId=null;}
+  var hud=document.getElementById('queueHud');
+  if(hud)hud.classList.remove('show');
+}
 
 function startMatchTimer(){
   matchStartTs=Date.now();
@@ -612,6 +690,18 @@ document.getElementById('myMogLabel').textContent  = _name;
 
 injectSharedUI();
 connectWS(onMsg);
+setTimeout(autoStartArena, 450);
+
+function autoStartArena(){
+  if(_autoArenaBooted)return;
+  if(document.getElementById('ageGate')){setTimeout(autoStartArena, 450);return;}
+  _autoArenaBooted=true;
+  _autoQueueAfterCamera=true;
+  var b=document.getElementById('mainBtn');
+  if(b){b.textContent='OPENING CAMERA...';b.disabled=true;}
+  setS('searching','Opening camera...');
+  startCam();
+}
 
 function onMsg(msg){
   switch(msg.type){
@@ -620,16 +710,18 @@ function onMsg(msg){
       document.getElementById('mainBtn').textContent='SEARCHING...';
       document.getElementById('mainBtn').disabled=true;
       document.getElementById('skipBtn').style.display='flex';
+      startQueueTimer();
       state='searching'; break;
     case 'queue_update':
       document.getElementById('qText').textContent=msg.size>0?msg.size+' in queue':''; break;
     case 'queue_error':
+      stopQueueTimer();
       setS('', msg.error || 'Could not join queue');
       setBtnFind();
       document.getElementById('skipBtn').style.display='none';
       if ((msg.error||'').toLowerCase().includes('sign in')) openClaimModal();
       break;
-    case 'match_found': onMatchFound(msg); break;
+    case 'match_found': stopQueueTimer(); onMatchFound(msg); break;
     case 'match_result': onResult(msg); break;
     case 'score_error':
       setS('connected', msg.error || 'Scan could not be submitted');
@@ -638,10 +730,12 @@ function onMsg(msg){
       break;
     case 'score_submitted': setS('searching','Score submitted — awaiting opponent...'); break;
     case 'opponent_disconnected':
+      stopQueueTimer();
       setS('','Opponent disconnected');resetOpp();closeRTC();state='camera';
       setBtnFind();document.getElementById('skipBtn').style.display='none';
       hideOverlays(); break;
     case 'opponent_skipped':
+      stopQueueTimer();
       setS('','You were skipped');resetOpp();closeRTC();state='camera';
       setBtnFind();document.getElementById('skipBtn').style.display='none';
       hideOverlays(); break;
@@ -667,6 +761,10 @@ function startCam(){
       document.getElementById('myLabelTR').style.display='block';
       state='camera'; setBtnFind(); setS('','Camera active — find a match!');
       initFM(v,c);
+      if(_autoQueueAfterCamera){
+        _autoQueueAfterCamera=false;
+        setTimeout(findMatch, 350);
+      }
     };
   }).catch(function(){ setS('','Camera denied — allow access to continue'); });
 }
@@ -738,17 +836,18 @@ function drawMesh(canvas,lm,dotColor){
   trace([64,98,2,327,294], 'rgba(125,198,255,0.22)', 0.8*scale, 0);
   trace([61,185,40,39,37,0,267,269,270,409,291], 'rgba(222,244,255,0.30)', 0.9*scale, 1);
   trace([78,13,308], 'rgba(125,198,255,0.20)', 0.75*scale, 0);
-  ctx.shadowColor='rgba(0,229,255,0.7)';
-  ctx.shadowBlur=4;
-  ctx.fillStyle='rgba(74,210,255,0.34)';
-  for(var i=0;i<lm.length;i+=9){
+  ctx.shadowColor='rgba(0,229,255,0.45)';
+  ctx.shadowBlur=2;
+  ctx.fillStyle='rgba(0,236,210,0.20)';
+  for(var i=0;i<lm.length;i++){
     var sp=pt(i); if(!sp) continue;
     ctx.beginPath();
-    ctx.arc(sp.x,sp.y,0.75*scale,0,Math.PI*2);
+    ctx.arc(sp.x,sp.y,0.58*scale,0,Math.PI*2);
     ctx.fill();
   }
   var anchors=[10,33,133,362,263,1,4,61,291,152,234,454,172,397,70,300];
-  for(var a=0;a<anchors.length;a++) node(anchors[a],1.45*scale,dotColor||'rgba(112,220,255,0.72)');
+  ctx.shadowBlur=7;
+  for(var a=0;a<anchors.length;a++) node(anchors[a],1.65*scale,dotColor||'rgba(112,220,255,0.72)');
   if(lm[10]&&lm[152]&&lm[234]&&lm[454]){
     var left=lm[234].x*w, right=lm[454].x*w, top=lm[10].y*h, bottom=lm[152].y*h;
     var padX=(right-left)*0.13, padY=(bottom-top)*0.08;
@@ -1121,7 +1220,20 @@ function updateMoggingBar(myScore,oppScore){
   document.getElementById('moggingFillR').style.width=(100-myPct)+'%';
 }
 
-function findMatch(){if(!myStream){setS('','Start camera first!');return;}wsSend({type:'join_queue'});}
+function findMatch(){
+  if(!myStream){setS('','Start camera first!');return;}
+  if(state==='result'){
+    document.getElementById('resultCard').classList.remove('show');
+    state='camera';
+  }
+  if(state==='searching')return;
+  if(!wsSend({type:'join_queue'})){
+    setS('searching','Connecting to match server...');
+    setTimeout(findMatch, 700);
+    return;
+  }
+  setS('searching','Searching for opponent...');
+}
 function setBtnFind(){var b=document.getElementById('mainBtn');b.textContent='FIND MATCH \u2192';b.disabled=false;b.style.display='block';b.onclick=findMatch;}
 // Auto-scan flow: hide the main action button while scanning
 function setBtnScan(){var b=document.getElementById('mainBtn');b.textContent='SCAN AUTO-START';b.disabled=true;b.style.display='none';}
@@ -1248,6 +1360,7 @@ var _lastMatchOpp = null; // stash for rating + analysis
 var _lastMyMetrics = null;
 function onResult(msg){
   state='result';
+  stopQueueTimer();
   myLastScore=msg.myScore||0; oppLastScore=msg.opponentScore||0;
   updateMoggingBar(myLastScore,oppLastScore);
   updateGetMog(myLastScore,oppLastScore);
@@ -1338,6 +1451,7 @@ function skipOpp(){
   document.getElementById('myFeed').classList.remove('scanning');
   document.getElementById('scanCountdown').classList.remove('show');
   if (_scanTimer) { clearInterval(_scanTimer); _scanTimer = null; }
+  setTimeout(findMatch, 250);
 }
 
 function resetOpp(){
