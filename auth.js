@@ -64,17 +64,13 @@ window.signInWithGoogle = async function() {
 };
 
 window.signOutUser = async function() {
-  console.log('[Auth] Sign out requested');
-  // 1. Clear localStorage IMMEDIATELY so we have clean local state regardless of Firebase
-  ['mgm_name','mgm_elo','mgm_wins','mgm_losses','mgm_peakElo','mgm_winStreak','mgm_dailyChallengeWins','mgm_uid','mgm_photo','mgm_username','mgm_hd_clip']
-    .forEach(k => localStorage.removeItem(k));
-  _currentUser = null;
-  _currentProfile = null;
-  // 2. Try Firebase signOut (don't let errors block redirect)
-  try { await signOut(auth); console.log('[Auth] Firebase signed out'); }
-  catch(e) { console.warn('[Auth] Firebase signOut error:', e.message); }
-  // 3. Hard redirect with cache bypass
-  window.location.replace('index.html?logout=' + Date.now());
+  try {
+    await signOut(auth);
+    _currentUser = null; _currentProfile = null;
+    ['mgm_name','mgm_elo','mgm_wins','mgm_losses','mgm_uid','mgm_photo','mgm_username']
+      .forEach(k => localStorage.removeItem(k));
+    window.location.href = 'index.html';
+  } catch(e) { console.error(e); }
 };
 
 /* ══════════════════════════════════
@@ -93,12 +89,6 @@ async function loadOrCreateProfile(user) {
     localStorage.setItem('mgm_elo',      data.elo      || 400);
     localStorage.setItem('mgm_wins',     data.wins     || 0);
     localStorage.setItem('mgm_losses',   data.losses   || 0);
-    localStorage.setItem('mgm_peakElo',  data.peakElo  || data.elo || 400);
-    localStorage.setItem('mgm_winStreak', data.winStreak || 0);
-    localStorage.setItem('mgm_dailyChallengeWins', data.dailyChallengeWins || 0);
-    if (Array.isArray(data.matchHistory)) {
-      localStorage.setItem('mgm_elo_history', JSON.stringify(data.matchHistory.slice(-30).map(m => m.newElo || data.elo || 400)));
-    }
     localStorage.setItem('mgm_photo',    data.photoURL || user.photoURL || '');
     await updateDoc(ref, { lastSeen: serverTimestamp() });
     return data;
@@ -107,8 +97,17 @@ async function loadOrCreateProfile(user) {
   return null;
 }
 
-window.saveEloToFirestore = async function() {
-  console.warn('Client-side ELO writes are disabled. The game server owns ranked results.');
+window.saveEloToFirestore = async function(elo, wins, losses) {
+  const uid = localStorage.getItem('mgm_uid');
+  if (!uid) return;
+  try {
+    await updateDoc(doc(db, 'users', uid), {
+      elo, wins, losses, lastSeen: serverTimestamp()
+    });
+    localStorage.setItem('mgm_elo',    elo);
+    localStorage.setItem('mgm_wins',   wins);
+    localStorage.setItem('mgm_losses', losses);
+  } catch(e) { console.error('Save ELO error:', e); }
 };
 
 window.getFirestoreLeaderboard = async function(containerId) {
@@ -125,58 +124,17 @@ window.getFirestoreLeaderboard = async function(containerId) {
     el.innerHTML = snap.docs.map((d,i) => {
       const u = d.data();
       const t = getTierFromElo(u.elo || 400);
-      const cls = t.name.toLowerCase().replace(' ','');
-      const streak = parseInt(u.winStreak || 0);
-      const streakText = streak > 0 ? ` · ${streak}W streak` : '';
-      const photo = u.photoURL
-        ? `<img src="${u.photoURL}" style="width:32px;height:32px;border-radius:8px;object-fit:cover;">`
-        : `<div class="lb-av ${cls}">${(u.username||'?')[0].toUpperCase()}</div>`;
       const userHref = `user.html?u=${encodeURIComponent(u.username||'')}`;
-      return `<a class="lb-row" href="${userHref}" style="text-decoration:none;color:inherit;cursor:pointer;border-left:3px solid ${t.color};box-shadow:inset 18px 0 28px ${t.color}18;">
+      const photo = u.photoURL
+        ? `<img src="${u.photoURL}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
+        : `<div class="lb-av">${(u.username||'?')[0].toUpperCase()}</div>`;
+      return `<a class="lb-row tier-${t.name}" href="${userHref}">
         <div class="lb-rank">${medals[i]||('#'+(i+1))}</div>
         <div class="lb-info">
           ${photo}
           <div>
             <div class="lb-name">${escHtml(u.username||'Unknown')}</div>
-            <div class="lb-sub">${t.emoji} ${t.name} · ${u.wins||0}W ${u.losses||0}L</div>
-          </div>
-        </div>
-        <div class="lb-elo">${u.elo||400} ELO</div>
-      </a>`;
-    }).join('');
-  } catch(e) {
-    el.innerHTML = '<div style="padding:24px;text-align:center;font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--muted2);">Could not load leaderboard</div>';
-  }
-};
-
-window.getFirestoreLeaderboard = async function(containerId) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
-  try {
-    const q = query(collection(db,'users'), orderBy('elo','desc'), limit(20));
-    const snap = await getDocs(q);
-    if (snap.empty) {
-      el.innerHTML = '<div style="padding:24px;text-align:center;font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--muted2);">No ranked players yet</div>';
-      return;
-    }
-    const medals = ['#1','#2','#3'];
-    el.innerHTML = snap.docs.map((d,i) => {
-      const u = d.data();
-      const t = getTierFromElo(u.elo || 400);
-      const cls = t.name.toLowerCase().replace(' ','');
-      const streak = parseInt(u.winStreak || 0);
-      const photo = u.photoURL
-        ? `<img src="${u.photoURL}" style="width:32px;height:32px;border-radius:8px;object-fit:cover;">`
-        : `<div class="lb-av ${cls}">${(u.username||'?')[0].toUpperCase()}</div>`;
-      const userHref = `user.html?u=${encodeURIComponent(u.username||'')}`;
-      const sub = `${t.emoji} ${t.name} · ${u.wins||0}W ${u.losses||0}L${streak ? ' · ' + streak + 'W streak' : ''}`;
-      return `<a class="lb-row" href="${userHref}" style="text-decoration:none;color:inherit;cursor:pointer;border-left:3px solid ${t.color};box-shadow:inset 18px 0 28px ${t.color}18;">
-        <div class="lb-rank">${medals[i]||('#'+(i+1))}</div>
-        <div class="lb-info">
-          ${photo}
-          <div>
-            <div class="lb-name">${escHtml(u.username||'Unknown')}</div>
-            <div class="lb-sub">${sub}</div>
+            <div class="lb-sub">${t.emoji} ${t.name} · ${u.wins||0}W ${u.losses||0}L${u.winStreak>1?' · 🔥'+u.winStreak+'W':''}</div>
           </div>
         </div>
         <div class="lb-elo">${u.elo||400} ELO</div>
@@ -197,10 +155,8 @@ function escHtml(s) {
 function updateNavForUser(user, profile) {
   const btn    = document.getElementById('navClaimBtn');
   const banner = document.getElementById('guestBanner');
-  const chatInputRow = document.getElementById('chatInputRow');
-  const chatSignin   = document.getElementById('chatSigninPrompt');
-  const chatInput    = document.getElementById('chatMsgIn');
-  const chatName     = document.getElementById('chatNameIn');
+  const chatInput = document.getElementById('chatMsgIn');
+  const chatName  = document.getElementById('chatNameIn');
 
   if (user && profile) {
     // Logged in
@@ -209,20 +165,16 @@ function updateNavForUser(user, profile) {
       const uname = profile.username || user.displayName?.split(' ')[0] || 'Profile';
       btn.style.cssText = 'display:flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;border-radius:999px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);cursor:pointer;';
       btn.innerHTML = photo
-        ? `<img src="${photo}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`
-        : `<div style="width:30px;height:30px;border-radius:50%;background:rgba(74,158,255,0.12);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#4A9EFF;">${(uname[0]||'?').toUpperCase()}</div><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`;
-      // Site-wide: clicking profile icon goes directly to profile/edit page
-      btn.onclick = () => { window.location.href = 'profile.html'; };
-      btn.title = 'Edit Profile';
+        ? `<img src="${photo}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`
+        : `<div style="width:24px;height:24px;border-radius:50%;background:rgba(74,158,255,0.1);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#4A9EFF;">${(uname[0]||'?').toUpperCase()}</div><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`;
+      btn.onclick = () => window.toggleUserMenu && window.toggleUserMenu();
     }
     if (banner) banner.style.display = 'none';
     document.body.style.paddingTop = 'var(--nav-h)';
 
-    // Show real chat input, hide sign-in prompt
-    if (chatInputRow) chatInputRow.style.display = 'flex';
-    if (chatSignin)   chatSignin.style.display = 'none';
-    if (chatInput)    { chatInput.disabled = false; chatInput.placeholder = 'Say something...'; }
-    if (chatName)     { chatName.value = profile.username||user.displayName; chatName.disabled = true; }
+    // Enable chat
+    if (chatInput) { chatInput.disabled = false; chatInput.placeholder = 'Say something...'; }
+    if (chatName)  { chatName.value = profile.username||user.displayName; chatName.disabled = true; }
   } else {
     // Guest
     if (btn) {
@@ -233,9 +185,8 @@ function updateNavForUser(user, profile) {
     if (banner) banner.style.display = 'flex';
     document.body.style.paddingTop = 'calc(var(--nav-h) + 36px)';
 
-    // Hide chat input, show sign-in prompt
-    if (chatInputRow) chatInputRow.style.display = 'none';
-    if (chatSignin)   chatSignin.style.display = 'block';
+    // Disable chat for guests
+    if (chatInput) { chatInput.disabled = true; chatInput.placeholder = 'Sign in to chat'; }
   }
 }
 
@@ -310,20 +261,6 @@ onAuthStateChanged(auth, async (user) => {
         // ── Send Firebase ID Token to WebSocket server for JWT verification ──
         try {
           const idToken = await user.getIdToken(false); // false = use cached token
-          if (window.mgmSetAuthState) {
-            window.mgmSetAuthState({
-              idToken,
-              uid: user.uid,
-              name: profile.username || user.displayName,
-              username: profile.username || '',
-              photoURL: profile.photoURL || user.photoURL || '',
-              elo: profile.elo || 400,
-              wins: profile.wins || 0,
-              losses: profile.losses || 0,
-              peakElo: profile.peakElo || profile.elo || 400,
-              winStreak: profile.winStreak || 0,
-            });
-          }
           if (window.wsSend) {
             window.wsSend({
               type:     'set_user',
