@@ -36,13 +36,6 @@ body { padding-right:0!important; }
 .arena-title { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:22px; color:var(--white); letter-spacing:-0.3px; }
 .arena-online { display:flex; align-items:center; gap:6px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2); }
 .arena-online-dot { width:5px; height:5px; border-radius:50%; background:var(--green); opacity:0.8; }
-.arena-head-actions { display:flex; align-items:center; gap:10px; }
-.sound-toggle {
-  border:1px solid rgba(74,158,255,0.22); background:rgba(74,158,255,0.08); color:var(--blue);
-  border-radius:999px; padding:7px 11px; font-family:'JetBrains Mono',monospace; font-size:10px;
-  letter-spacing:0.8px; cursor:pointer; box-shadow:0 0 16px rgba(74,158,255,0.08);
-}
-.sound-toggle.off { color:var(--muted2); border-color:rgba(255,255,255,0.08); background:rgba(255,255,255,0.03); box-shadow:none; }
 
 .status-ticker {
   position:relative; z-index:10; margin:14px 32px 0;
@@ -125,12 +118,6 @@ body { padding-right:0!important; }
 .feed-ph { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; z-index:7; }
 .feed-ph-icon { opacity:0.12; }
 .feed-ph-text { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2); letter-spacing:1px; }
-.feed-ph.camera-needed {
-  background:radial-gradient(circle at center, rgba(74,158,255,0.1), rgba(0,0,0,0.84) 54%);
-  gap:16px; padding:26px; text-align:center;
-}
-.feed-ph.camera-needed .feed-ph-icon { opacity:0.42; filter:drop-shadow(0 0 18px rgba(74,158,255,0.26)); }
-.feed-ph.camera-needed .feed-ph-text { color:var(--silver); font-size:12px; line-height:1.7; max-width:320px; }
 
 /* Searching overlay — blurs YOUR feed while in queue */
 .search-overlay {
@@ -349,10 +336,7 @@ body { padding-right:0!important; }
       <a class="arena-back" href="index.html">← HOME</a>
       <div><div class="arena-eyebrow">Ranked Matchmaking</div><div class="arena-title">⚔ 1V1 Arena</div></div>
     </div>
-    <div class="arena-head-actions">
-      <button class="sound-toggle" id="soundToggle" onclick="toggleSound()">SOUND ON</button>
-      <div class="arena-online"><div class="arena-online-dot"></div><span class="online-count-val">— online</span></div>
-    </div>
+    <div class="arena-online"><div class="arena-online-dot"></div><span class="online-count-val">— online</span></div>
   </div>
 
   <div class="status-ticker">
@@ -399,7 +383,7 @@ body { padding-right:0!important; }
       </div>
       <div class="feed-ph" id="myPH">
         <div class="feed-ph-icon"><svg width="44" height="44" viewBox="0 0 44 44" fill="none"><circle cx="22" cy="22" r="20" stroke="#333" stroke-width="1.2"/><circle cx="22" cy="17" r="7" stroke="#333" stroke-width="1.2"/><path d="M8 40c0-7.73 6.27-14 14-14s14 6.27 14 14" stroke="#333" stroke-width="1.2"/></svg></div>
-        <div class="feed-ph-text" id="myPHText">Opening camera...</div>
+        <div class="feed-ph-text">Opening camera...</div>
       </div>
     </div>
 
@@ -524,25 +508,11 @@ var ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.g
    No assets. All synthesis.
 ═══════════════════════════════ */
 var _audioCtx=null;
-var soundOn=localStorage.getItem('mgm_sound')!=='0';
-function updateSoundButton(){
-  var b=document.getElementById('soundToggle');
-  if(!b) return;
-  b.textContent=soundOn?'SOUND ON':'SOUND OFF';
-  b.classList.toggle('off',!soundOn);
-}
-function toggleSound(){
-  soundOn=!soundOn;
-  localStorage.setItem('mgm_sound',soundOn?'1':'0');
-  updateSoundButton();
-  if(soundOn) playTone(660,'sine',0.12,0.07,0);
-}
 function getAudioCtx(){
   if(!_audioCtx) _audioCtx=new(window.AudioContext||window.webkitAudioContext)();
   return _audioCtx;
 }
 function playTone(freq,type,dur,vol,delay){
-  if(!soundOn) return;
   try{
     var ctx=getAudioCtx();
     var o=ctx.createOscillator(), g=ctx.createGain();
@@ -562,7 +532,6 @@ function soundMatchFound(){
   playTone(880,'sine',0.5,0.10,0.38);
 }
 function soundScanBeep(){
-  if(!soundOn) return;
   // Short digital sweep
   try{
     var ctx=getAudioCtx();
@@ -593,7 +562,6 @@ function soundScanLock(){
 var _elo=parseInt(localStorage.getItem('mgm_elo')||'400');
 var _name=localStorage.getItem('mgm_username')||localStorage.getItem('mgm_name')||'You';
 
-updateSoundButton();
 document.getElementById('myTRName').textContent=_name;
 document.getElementById('myTRElo').textContent=_elo+' ELO · '+getTierName(_elo);
 document.getElementById('myMogName').textContent=_name;
@@ -674,14 +642,7 @@ function onMsg(msg){
       // Opponent also clicked rematch — pair them
       rematchOppReady=true;
       var rw=document.getElementById('rmbWaiting'); if(rw) rw.style.display='none';
-      document.getElementById('resultOverlay').classList.remove('show');
-      document.getElementById('rematchBanner').classList.remove('show');
-      resetOpp(); closeRTC();
-      setS('connected','Rematch confirmed - rejoining...'); break;
-    case 'opponent_wants_rematch':
-      startRematchWindow();
-      setS('connected','Opponent wants a rematch');
-      break;
+      setS('connected','Rematch confirmed — rejoining...'); break;
     case 'webrtc_offer': handleOffer(msg); break;
     case 'webrtc_answer': handleAnswer(msg); break;
     case 'webrtc_ice': handleIce(msg); break;
@@ -697,7 +658,7 @@ function startCam(){
     var v=document.getElementById('myVid'); v.srcObject=stream;
     v.onloadedmetadata=function(){
       var c=document.getElementById('myCanvas'); c.width=v.videoWidth; c.height=v.videoHeight;
-      var ph=document.getElementById('myPH'); ph.classList.remove('camera-needed'); ph.style.display='none';
+      document.getElementById('myPH').style.display='none';
       document.getElementById('myScorePill').style.display='block';
       document.getElementById('myNamePill').style.display='block';
       document.getElementById('confBarWrap').style.display='flex';
@@ -709,11 +670,6 @@ function startCam(){
     };
   }).catch(function(){
     setS('','Camera denied — allow access to continue');
-    var ph=document.getElementById('myPH');
-    var phText=document.getElementById('myPHText');
-    ph.classList.add('camera-needed');
-    ph.style.display='flex';
-    if(phText) phText.innerHTML='Camera permission required<br><span style="color:var(--muted2);font-size:10px;">Allow camera access in your browser, then retry to enter the arena.</span>';
     var btn=document.getElementById('mainBtn'); btn.disabled=false; btn.textContent='Retry Camera'; btn.style.display='block'; btn.onclick=startCam;
   });
 }
@@ -806,7 +762,6 @@ function setMMK(pref){
 
 function findMatch(){
   if(!myStream||state==='searching')return;
-  if(typeof connectWS==='function') connectWS(onMsg);
   if(!wsSend({type:'join_queue',mmkPref:mmkPref})){setS('searching','Connecting...');setTimeout(findMatch,700);return;}
 }
 function cancelSearch(){
@@ -841,8 +796,7 @@ function onMatchFound(msg){
   startRTC();
 }
 function startRTC(){
-  if(peerConn){try{peerConn.close();}catch(e){} peerConn=null;}
-  peerConn=new RTCPeerConnection(ICE);
+  closeRTC(); peerConn=new RTCPeerConnection(ICE);
   if(myStream) myStream.getTracks().forEach(function(t){peerConn.addTrack(t,myStream);});
   peerConn.ontrack=function(e){
     var v=document.getElementById('oppVid'); v.srcObject=e.streams[0]; v.style.display='block';
@@ -971,8 +925,7 @@ function startRematchWindow(){
 
 function requestRematch(){
   rematchRequested=true;
-  var wait=document.getElementById('rmbWaiting');
-  if(wait) wait.style.display='block';
+  document.getElementById('rmbWaiting').style.display='block';
   wsSend({type:'request_rematch',targetId:oppSocketId});
 }
 
@@ -996,9 +949,12 @@ function showDailyComplete(){
 function toggleDailyModal(){}
 
 function rematch(){
-  document.getElementById('rematchBanner').classList.add('show');
-  requestRematch();
-  setS('connected','Rematch requested - waiting for opponent...');
+  if(rematchTimer) clearInterval(rematchTimer);
+  document.getElementById('rematchBanner').classList.remove('show');
+  document.getElementById('resultOverlay').classList.remove('show');
+  document.getElementById('mainBtn').style.display='block';
+  state='camera'; setS('','Finding next opponent...'); showScanBtn(false);
+  oppLastScore=0; updateMogBar(myLastScore,0); resetOpp(); setTimeout(findMatch,300);
 }
 function skipOpp(){stopQTimer();wsSend({type:'skip_opponent'});resetOpp();closeRTC();state='camera';setS('','Finding new opponent...');document.getElementById('myFeedWrap').classList.remove('searching-state');showScanBtn(false);document.getElementById('skipBtn').style.display='none';setTimeout(findMatch,300);}
 function resetOpp(){var v=document.getElementById('oppVid');v.srcObject=null;v.style.display='none';document.getElementById('oppPH').style.display='flex';document.getElementById('oppPHText').textContent='Waiting for opponent...';document.getElementById('oppScorePill').style.display='none';document.getElementById('oppNamePill').style.display='none';document.getElementById('reportBtn').style.display='none';document.getElementById('oppFeedWrap').classList.remove('active');}
