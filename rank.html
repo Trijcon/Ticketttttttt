@@ -30,9 +30,6 @@
 .my-stats { display:flex; gap:20px; }
 .my-stat-v { font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:700; color:var(--white); }
 .my-stat-l { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:1px; color:var(--muted2); margin-top:1px; }
-.rank-spark { width:160px; min-width:140px; margin-left:6px; }
-.rank-spark-label { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:1px; color:var(--muted2); margin-bottom:6px; text-transform:uppercase; }
-.rank-spark canvas { width:100%; height:42px; display:block; }
 .my-elo { font-family:'Space Grotesk',sans-serif; font-size:40px; font-weight:700; color:var(--blue); line-height:1; margin-left:auto; }
 
 .season-card {
@@ -59,13 +56,36 @@
 
 .tier-panel { background:var(--glass); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; position:sticky; top:calc(var(--nav-h)+12px); }
 .tier-panel-head { padding:12px 16px; border-bottom:1px solid var(--border); font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:2px; color:var(--muted2); text-transform:uppercase; }
-.tier-item { display:flex; align-items:center; gap:10px; padding:11px 16px; border-bottom:1px solid var(--border); transition:background 0.15s; }
+
+.tier-item {
+  display:flex; align-items:center; gap:12px; padding:12px 16px;
+  border-bottom:1px solid var(--border); cursor:pointer;
+  transition:all 0.2s; position:relative; overflow:hidden;
+}
 .tier-item:last-child { border-bottom:none; }
-.tier-item:hover { background:var(--glass2); }
-.tier-item.current { background:var(--blue-dim); border-left:2px solid var(--blue); }
-.tier-icon { font-size:16px; width:22px; text-align:center; flex-shrink:0; }
-.tier-name { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13px; color:var(--silver); }
+.tier-item::before {
+  content:''; position:absolute; left:0; top:0; bottom:0; width:2px;
+  background:transparent; transition:background 0.2s;
+}
+.tier-item:hover::before { background:var(--blue); }
+.tier-item:hover { background:rgba(74,158,255,0.05); }
+.tier-item:hover .tier-icon { transform:scale(1.25) rotate(-5deg); filter:drop-shadow(0 0 8px currentColor); }
+.tier-item:hover .tier-name { color:var(--white); }
+.tier-item.current { background:var(--blue-dim); }
+.tier-item.current::before { background:var(--blue); }
+
+.tier-icon { font-size:18px; width:24px; text-align:center; flex-shrink:0; transition:transform 0.2s, filter 0.2s; }
+.tier-name { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13px; color:var(--silver); transition:color 0.2s; }
 .tier-range { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2); margin-top:1px; letter-spacing:0.3px; }
+.tier-count { margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2); }
+
+/* Tier-specific hover glows */
+.tier-item[data-tier="Slayer"]:hover { background:rgba(255,61,107,0.06); }
+.tier-item[data-tier="Slayer"]:hover::before { background:#ff3d6b; }
+.tier-item[data-tier="Chad"]:hover { background:rgba(245,166,35,0.06); }
+.tier-item[data-tier="Chad"]:hover::before { background:#f5a623; }
+.tier-item[data-tier="Chadlite"]:hover { background:rgba(123,97,255,0.06); }
+.tier-item[data-tier="Chadlite"]:hover::before { background:#7b61ff; }
 
 @media(max-width:800px){ .rank-layout{grid-template-columns:1fr;} .my-card{grid-column:1;} .tier-panel{position:static;} }
 </style>
@@ -84,10 +104,6 @@
         <div><div class="my-stat-v" id="myW">0</div><div class="my-stat-l">Wins</div></div>
         <div><div class="my-stat-v" id="myL">0</div><div class="my-stat-l">Losses</div></div>
         <div><div class="my-stat-v" id="myWR">—</div><div class="my-stat-l">Win Rate</div></div>
-      </div>
-      <div class="rank-spark">
-        <div class="rank-spark-label">ELO History</div>
-        <canvas id="eloSpark" width="180" height="48"></canvas>
       </div>
     </div>
     <div class="my-elo" id="myEloEl">400</div>
@@ -125,14 +141,14 @@
   <!-- RIGHT: TIER PANEL -->
   <div class="tier-panel">
     <div class="tier-panel-head">Rank Tiers</div>
-    <div class="tier-item" id="ti-Slayer"><div class="tier-icon">💀</div><div><div class="tier-name" style="color:#fff;">Slayer</div><div class="tier-range">5,001+ ELO</div></div></div>
-    <div class="tier-item" id="ti-Chad"><div class="tier-icon">👑</div><div><div class="tier-name" style="color:var(--blue);">Chad</div><div class="tier-range">3,501–5,000</div></div></div>
-    <div class="tier-item" id="ti-Chadlite"><div class="tier-icon">🔥</div><div><div class="tier-name" style="color:#6db3ff;">Chadlite</div><div class="tier-range">2,001–3,500</div></div></div>
-    <div class="tier-item" id="ti-HTN"><div class="tier-icon">⭐</div><div><div class="tier-name" style="color:var(--silver);">HTN</div><div class="tier-range">1,501–2,000</div></div></div>
-    <div class="tier-item" id="ti-MTN"><div class="tier-icon">⚡</div><div><div class="tier-name" style="color:var(--silver);">MTN</div><div class="tier-range">1,001–1,500</div></div></div>
-    <div class="tier-item" id="ti-LTN"><div class="tier-icon">🌙</div><div><div class="tier-name" style="color:var(--muted);">LTN</div><div class="tier-range">501–1,000</div></div></div>
-    <div class="tier-item" id="ti-Sub3"><div class="tier-icon">🔴</div><div><div class="tier-name" style="color:var(--muted);">Sub3</div><div class="tier-range">1–500</div></div></div>
-    <div class="tier-item" id="ti-Molecule"><div class="tier-icon">🧪</div><div><div class="tier-name" style="color:var(--muted2);">Molecule</div><div class="tier-range">0 or below</div></div></div>
+    <div class="tier-item" id="ti-Slayer" data-tier="Slayer" onclick="filterLB('Slayer')" title="Top 0.1% of players"><div class="tier-icon">💀</div><div style="flex:1;"><div class="tier-name" style="color:#ff6b8a;">Slayer</div><div class="tier-range">5,001+ ELO</div></div><div class="tier-count" id="tc-Slayer"></div></div>
+    <div class="tier-item" id="ti-Chad" data-tier="Chad" onclick="filterLB('Chad')" title="Elite moggers"><div class="tier-icon">👑</div><div style="flex:1;"><div class="tier-name" style="color:#f5a623;">Chad</div><div class="tier-range">3,501–5,000</div></div><div class="tier-count" id="tc-Chad"></div></div>
+    <div class="tier-item" id="ti-Chadlite" data-tier="Chadlite" onclick="filterLB('Chadlite')" title="Above average"><div class="tier-icon">🔥</div><div style="flex:1;"><div class="tier-name" style="color:#7b61ff;">Chadlite</div><div class="tier-range">2,001–3,500</div></div><div class="tier-count" id="tc-Chadlite"></div></div>
+    <div class="tier-item" id="ti-HTN" data-tier="HTN" onclick="filterLB('HTN')"><div class="tier-icon">⭐</div><div style="flex:1;"><div class="tier-name">HTN</div><div class="tier-range">1,501–2,000</div></div><div class="tier-count" id="tc-HTN"></div></div>
+    <div class="tier-item" id="ti-MTN" data-tier="MTN" onclick="filterLB('MTN')"><div class="tier-icon">⚡</div><div style="flex:1;"><div class="tier-name">MTN</div><div class="tier-range">1,001–1,500</div></div><div class="tier-count" id="tc-MTN"></div></div>
+    <div class="tier-item" id="ti-LTN" data-tier="LTN" onclick="filterLB('LTN')"><div class="tier-icon">🌙</div><div style="flex:1;"><div class="tier-name" style="color:var(--muted);">LTN</div><div class="tier-range">501–1,000</div></div><div class="tier-count" id="tc-LTN"></div></div>
+    <div class="tier-item" id="ti-Sub3" data-tier="Sub3" onclick="filterLB('Sub3')"><div class="tier-icon">🔴</div><div style="flex:1;"><div class="tier-name" style="color:var(--muted);">Sub3</div><div class="tier-range">1–500</div></div><div class="tier-count" id="tc-Sub3"></div></div>
+    <div class="tier-item" id="ti-Molecule" data-tier="Molecule" onclick="filterLB('Molecule')"><div class="tier-icon">🧪</div><div style="flex:1;"><div class="tier-name" style="color:var(--muted2);">Molecule</div><div class="tier-range">0 or below</div></div><div class="tier-count" id="tc-Molecule"></div></div>
   </div>
 
 </div>
@@ -144,6 +160,17 @@ injectSharedUI();
 connectWS();
 var name=localStorage.getItem('mgm_username')||localStorage.getItem('mgm_name')||'You';
 var elo=parseInt(localStorage.getItem('mgm_elo')||'400');
+
+function filterLB(tier){
+  // Highlight active tier
+  document.querySelectorAll('.tier-item').forEach(function(el){el.classList.remove('current');});
+  var el=document.getElementById('ti-'+tier); if(el) el.classList.add('current');
+  // Scroll leaderboard to first match of that tier
+  var rows=document.querySelectorAll('#lbMain .lb-row');
+  for(var i=0;i<rows.length;i++){
+    if(rows[i].textContent.indexOf(tier)>=0){rows[i].scrollIntoView({behavior:'smooth',block:'center'});break;}
+  }
+}
 var wins=parseInt(localStorage.getItem('mgm_wins')||'0');
 var losses=parseInt(localStorage.getItem('mgm_losses')||'0');
 var photo=localStorage.getItem('mgm_photo')||'';
@@ -158,31 +185,6 @@ var avEl=document.getElementById('myAv');
 if(photo){avEl.innerHTML='<img src="'+photo+'">';}else{avEl.textContent=(name[0]||'?').toUpperCase();}
 var cur=document.getElementById('ti-'+tn);
 if(cur)cur.classList.add('current');
-function drawEloSpark(){
-  var canvas=document.getElementById('eloSpark');
-  if(!canvas)return;
-  var ctx=canvas.getContext('2d');
-  var history=[];
-  try{history=JSON.parse(localStorage.getItem('mgm_elo_history')||'[]')||[];}catch(e){history=[];}
-  if(!history.length)history=[Math.max(0, elo-20), elo, Math.max(elo, parseInt(localStorage.getItem('mgm_peakElo')||elo))];
-  history=history.slice(-30).map(function(v){return parseInt(v)||400;});
-  var w=canvas.width,h=canvas.height,pad=5,min=Math.min.apply(null,history),max=Math.max.apply(null,history);
-  if(min===max){min-=20;max+=20;}
-  ctx.clearRect(0,0,w,h);
-  ctx.strokeStyle='rgba(255,255,255,0.1)';
-  ctx.beginPath();ctx.moveTo(0,h-1);ctx.lineTo(w,h-1);ctx.stroke();
-  var grad=ctx.createLinearGradient(0,0,w,0);
-  grad.addColorStop(0,'#0df2c8');grad.addColorStop(1,'#4A9EFF');
-  ctx.strokeStyle=grad;ctx.lineWidth=2;
-  ctx.beginPath();
-  history.forEach(function(v,i){
-    var x=pad+(i/(history.length-1||1))*(w-pad*2);
-    var y=h-pad-((v-min)/(max-min))*(h-pad*2);
-    if(i)ctx.lineTo(x,y);else ctx.moveTo(x,y);
-  });
-  ctx.stroke();
-}
-drawEloSpark();
 var endDate=new Date('2026-06-06T00:00:00Z');
 function tick(){var d=endDate-Date.now();if(d<=0)return;document.getElementById('rD').textContent=String(Math.floor(d/864e5)).padStart(2,'0');document.getElementById('rH').textContent=String(Math.floor((d%864e5)/36e5)).padStart(2,'0');document.getElementById('rM').textContent=String(Math.floor((d%36e5)/6e4)).padStart(2,'0');document.getElementById('rS').textContent=String(Math.floor((d%6e4)/1e3)).padStart(2,'0');}
 tick();setInterval(tick,1000);
