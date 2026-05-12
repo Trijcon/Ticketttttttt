@@ -227,7 +227,86 @@ body { padding-right:0!important; }
   .vs-col{height:44px;} .arena-header,.arena-bottom{padding-left:14px;padding-right:14px;}
   .status-ticker{margin-left:14px;margin-right:14px;}
 }
-</style>
+
+/* ── TIER BORDER GLOW ── */
+.feed-wrap.tier-Slayer { border-color:rgba(255,61,107,0.5); box-shadow:0 0 30px rgba(255,61,107,0.12); }
+.feed-wrap.tier-Chad   { border-color:rgba(245,166,35,0.5); box-shadow:0 0 30px rgba(245,166,35,0.12); }
+.feed-wrap.tier-Chadlite { border-color:rgba(123,97,255,0.5); box-shadow:0 0 30px rgba(123,97,255,0.1); }
+.feed-wrap.tier-HTN    { border-color:rgba(13,242,200,0.4); box-shadow:0 0 24px rgba(13,242,200,0.08); }
+.feed-wrap.tier-MTN    { border-color:rgba(74,158,255,0.4); box-shadow:0 0 24px rgba(74,158,255,0.08); }
+
+/* ── CONFIDENCE BAR ── */
+.confidence-bar-wrap {
+  position:absolute; bottom:14px; right:14px; z-index:10;
+  display:none; flex-direction:column; align-items:flex-end; gap:3px;
+}
+.confidence-label { font-family:'JetBrains Mono',monospace; font-size:7px; letter-spacing:1.5px; color:var(--muted2); }
+.confidence-track { width:80px; height:3px; background:rgba(255,255,255,0.06); border-radius:999px; overflow:hidden; }
+.confidence-fill { height:100%; background:linear-gradient(90deg,var(--red),var(--amber),var(--green)); border-radius:999px; width:0%; transition:width 0.6s ease; }
+
+/* ── STREAK BADGE ── */
+.streak-badge {
+  position:absolute; bottom:14px; right:14px; z-index:10; display:none;
+  background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.35);
+  border-radius:6px; padding:5px 10px; text-align:center;
+  font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--amber);
+  letter-spacing:0.5px;
+}
+
+/* ── PEAK ELO TAG ── */
+.peak-elo-tag {
+  font-family:'JetBrains Mono',monospace; font-size:8px; color:rgba(245,166,35,0.6);
+  letter-spacing:0.5px; margin-top:3px; display:none;
+}
+
+/* ── RANK UP OVERLAY ── */
+.rankup-overlay {
+  display:none; position:fixed; inset:0; z-index:600;
+  align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.75); backdrop-filter:blur(20px);
+}
+.rankup-overlay.show { display:flex; animation:ruFade 0.3s ease; }
+@keyframes ruFade { from{opacity:0} to{opacity:1} }
+.rankup-box { text-align:center; animation:ruIn 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes ruIn { from{opacity:0;transform:scale(0.8) translateY(20px)} to{opacity:1;transform:none} }
+.ru-icon { font-size:80px; margin-bottom:16px; filter:drop-shadow(0 0 30px rgba(245,166,35,0.6)); animation:ruSpin 0.6s ease; }
+@keyframes ruSpin { from{transform:rotate(-10deg) scale(0.6)} to{transform:rotate(0deg) scale(1)} }
+.ru-label { font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:4px; color:var(--muted); margin-bottom:8px; }
+.ru-tier { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:56px; letter-spacing:-1px; color:#fff; margin-bottom:6px; text-shadow:0 0 40px rgba(245,166,35,0.5); }
+.ru-sub { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); margin-bottom:24px; }
+.ru-close { background:none; border:1px solid rgba(255,255,255,0.12); border-radius:6px; padding:8px 28px; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:1px; cursor:pointer; transition:all 0.2s; }
+.ru-close:hover { color:var(--silver); border-color:rgba(255,255,255,0.2); }
+.ru-particles { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+.ru-p { position:absolute; width:4px; height:4px; border-radius:50%; animation:ruP 1.2s ease-out forwards; }
+@keyframes ruP { 0%{opacity:1;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)} }
+
+/* ── REMATCH WINDOW ── */
+.rematch-banner {
+  display:none; position:fixed; bottom:90px; left:50%; transform:translateX(-50%);
+  z-index:450; background:rgba(0,0,0,0.92); border:1px solid rgba(74,158,255,0.3);
+  border-radius:10px; padding:14px 24px; text-align:center; backdrop-filter:blur(16px);
+  animation:rmbIn 0.3s ease;
+}
+@keyframes rmbIn { from{opacity:0;transform:translateX(-50%) translateY(10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+.rematch-banner.show { display:block; }
+.rmb-text { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:1px; margin-bottom:10px; }
+.rmb-timer { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:28px; color:#fff; margin-bottom:10px; }
+.rmb-btn { background:var(--blue); border:none; border-radius:6px; padding:8px 24px; color:#000; font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:opacity 0.2s; }
+.rmb-btn:hover { opacity:0.85; }
+.rmb-waiting { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--green); margin-top:8px; display:none; }
+
+/* ── DAILY CHALLENGE BANNER ── */
+.daily-banner {
+  position:fixed; top:calc(var(--nav-h) + 4px); left:50%; transform:translateX(-50%);
+  z-index:290; background:rgba(0,0,0,0.88); border:1px solid rgba(245,158,11,0.3);
+  border-radius:8px; padding:8px 18px; display:none; align-items:center; gap:10px;
+  font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.5px; color:var(--amber);
+  backdrop-filter:blur(12px); cursor:pointer; transition:border-color 0.2s;
+}
+.daily-banner:hover { border-color:rgba(245,158,11,0.5); }
+.daily-banner.show { display:flex; }
+.daily-progress { font-size:12px; font-weight:700; color:#fff; }
+
 </head>
 <body>
 <div class="page-wrap" style="padding:0;">
@@ -267,11 +346,17 @@ body { padding-right:0!important; }
         <div class="sp-label">Overall Score</div>
         <div class="sp-score" id="myScoreVal">—</div>
         <div class="sp-tier" id="myTierVal">—</div>
+        <div class="peak-elo-tag" id="peakEloTag"></div>
         <div class="sp-div"></div>
         <div class="sp-dom" id="myDom">—</div>
         <div class="sp-flaw" id="myFlaw">—</div>
         <div class="sp-sym">SYM <span id="mySym">—</span></div>
       </div>
+      <div class="confidence-bar-wrap" id="confBarWrap">
+        <div class="confidence-label">SCAN CONF</div>
+        <div class="confidence-track"><div class="confidence-fill" id="confFill"></div></div>
+      </div>
+      <div class="streak-badge" id="streakBadge"></div>
       <div class="name-pill" id="myNamePill">
         <div class="np-tag">Your Scan</div>
         <div class="np-name" id="myTRName">You</div>
@@ -348,6 +433,33 @@ body { padding-right:0!important; }
   </div>
 </div>
 
+<!-- RANK UP OVERLAY -->
+<div class="rankup-overlay" id="rankupOverlay">
+  <div class="ru-particles" id="ruParticles"></div>
+  <div class="rankup-box">
+    <div class="ru-label">RANK UP</div>
+    <div class="ru-icon" id="ruIcon">👑</div>
+    <div class="ru-tier" id="ruTier">Chad</div>
+    <div class="ru-sub" id="ruSub">You've reached a new tier</div>
+    <button class="ru-close" onclick="document.getElementById('rankupOverlay').classList.remove('show')">Continue</button>
+  </div>
+</div>
+
+<!-- REMATCH BANNER -->
+<div class="rematch-banner" id="rematchBanner">
+  <div class="rmb-text">🔄 REMATCH AVAILABLE</div>
+  <div class="rmb-timer" id="rmbTimer">10</div>
+  <button class="rmb-btn" onclick="requestRematch()">Accept Rematch</button>
+  <div class="rmb-waiting" id="rmbWaiting">Waiting for opponent...</div>
+</div>
+
+<!-- DAILY CHALLENGE BANNER -->
+<div class="daily-banner" id="dailyBanner" onclick="toggleDailyModal()">
+  <span>🎯 DAILY</span>
+  <span>Beat 3 opponents above your ELO</span>
+  <span class="daily-progress" id="dailyProgress">0/3</span>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script src="shared.js"></script>
 <script type="module" src="auth.js"></script>
@@ -355,14 +467,55 @@ body { padding-right:0!important; }
 var state='idle',myStream=null,faceMesh=null,fmReady=false,myLandmarks=null;
 var peerConn=null,oppSocketId=null,myRole=null,myLastScore=0,oppLastScore=0;
 var queueTimer=null,queueStart=0;
+var prevTier='', winStreak=parseInt(localStorage.getItem('mgm_winStreak')||'0');
+var peakElo=parseInt(localStorage.getItem('mgm_peakElo')||localStorage.getItem('mgm_elo')||'400');
+var rematchTimer=null, rematchRequested=false, rematchOppReady=false;
+var dailyWins=0, dailyDate='', DAILY_GOAL=3;
 var ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]};
 var _elo=parseInt(localStorage.getItem('mgm_elo')||'400');
 var _name=localStorage.getItem('mgm_username')||localStorage.getItem('mgm_name')||'You';
+
 document.getElementById('myTRName').textContent=_name;
 document.getElementById('myTRElo').textContent=_elo+' ELO · '+getTierName(_elo);
 document.getElementById('myMogName').textContent=_name;
+prevTier=getTierName(_elo);
+
+// Show peak ELO if interesting
+if(peakElo>_elo+50){
+  var pt=document.getElementById('peakEloTag');
+  if(pt){pt.style.display='block';pt.textContent='PEAK '+peakElo+' ELO';}
+}
+
+// Daily challenge init
+(function(){
+  var today=new Date().toDateString();
+  var saved=localStorage.getItem('mgm_daily');
+  if(saved){try{var d=JSON.parse(saved);if(d.date===today){dailyWins=d.wins;dailyDate=today;}}catch(e){}}
+  if(!dailyDate){dailyDate=today;dailyWins=0;}
+  updateDailyBanner();
+})();
+
+// Streak badge
+function updateStreakBadge(){
+  var el=document.getElementById('streakBadge');
+  if(!el)return;
+  if(winStreak>=3){el.style.display='block';el.textContent='🔥 '+winStreak+' WIN STREAK';}
+  else el.style.display='none';
+}
+updateStreakBadge();
+
 injectSharedUI(); connectWS(onMsg);
 setTimeout(startCam,400);
+
+// Apply tier border to my feed
+function applyTierBorder(){
+  var wrap=document.getElementById('myFeedWrap');
+  if(!wrap)return;
+  wrap.className=wrap.className.replace(/\btier-\S+/g,'').trim();
+  var t=getTierName(_elo);
+  if(['Slayer','Chad','Chadlite','HTN','MTN'].indexOf(t)>=0) wrap.classList.add('tier-'+t);
+}
+applyTierBorder();
 
 function startQTimer(){queueStart=Date.now();if(queueTimer)clearInterval(queueTimer);queueTimer=setInterval(function(){var s=Math.floor((Date.now()-queueStart)/1000);var m=Math.floor(s/60),ss=s%60;document.getElementById('soTimer').textContent=String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0');},200);}
 function stopQTimer(){if(queueTimer){clearInterval(queueTimer);queueTimer=null;}document.getElementById('soTimer').textContent='00:00';}
@@ -372,17 +525,37 @@ function onMsg(msg){
     case 'queue_joined':
       setS('searching','Searching for opponent...');
       document.getElementById('myFeedWrap').classList.add('searching-state');
+      // Hide score pill during search
+      document.getElementById('myScorePill').style.display='none';
       document.getElementById('skipBtn').style.display='flex';
       document.getElementById('mainBtn').style.display='none';
       state='searching'; startQTimer(); break;
     case 'queue_update': document.getElementById('qText').textContent=msg.size>0?msg.size+' in queue':''; break;
-    case 'match_found': stopQTimer(); document.getElementById('myFeedWrap').classList.remove('searching-state'); onMatchFound(msg); break;
+    case 'match_found':
+      stopQTimer();
+      document.getElementById('myFeedWrap').classList.remove('searching-state');
+      // Show score pill again when match found
+      document.getElementById('myScorePill').style.display='block';
+      onMatchFound(msg); break;
     case 'match_result': onResult(msg); break;
     case 'score_submitted': setS('searching','Score locked — awaiting opponent...'); break;
     case 'score_error': setS('connected',msg.error||'Scan error'); state='matched'; showScanBtn(true); break;
-    case 'opponent_disconnected': stopQTimer(); document.getElementById('myFeedWrap').classList.remove('searching-state'); setS('','Opponent disconnected'); resetOpp(); closeRTC(); state='camera'; showScanBtn(false); document.getElementById('skipBtn').style.display='none'; break;
-    case 'opponent_skipped': stopQTimer(); document.getElementById('myFeedWrap').classList.remove('searching-state'); setS('','You were skipped'); resetOpp(); closeRTC(); state='camera'; showScanBtn(false); document.getElementById('skipBtn').style.display='none'; break;
-    case 'rtc_timeout': setS('','Camera timed out'); resetOpp(); closeRTC(); state='camera'; showScanBtn(false); break;
+    case 'opponent_disconnected':
+      stopQTimer(); document.getElementById('myFeedWrap').classList.remove('searching-state');
+      document.getElementById('myScorePill').style.display='block';
+      setS('','Opponent disconnected'); resetOpp(); closeRTC(); state='camera'; showScanBtn(false); document.getElementById('skipBtn').style.display='none'; break;
+    case 'opponent_skipped':
+      stopQTimer(); document.getElementById('myFeedWrap').classList.remove('searching-state');
+      document.getElementById('myScorePill').style.display='block';
+      setS('','You were skipped'); resetOpp(); closeRTC(); state='camera'; showScanBtn(false); document.getElementById('skipBtn').style.display='none'; break;
+    case 'rtc_timeout':
+      document.getElementById('myScorePill').style.display='block';
+      setS('','Camera timed out'); resetOpp(); closeRTC(); state='camera'; showScanBtn(false); break;
+    case 'rematch_ready':
+      // Opponent also clicked rematch — pair them
+      rematchOppReady=true;
+      var rw=document.getElementById('rmbWaiting'); if(rw) rw.style.display='none';
+      setS('connected','Rematch confirmed — rejoining...'); break;
     case 'webrtc_offer': handleOffer(msg); break;
     case 'webrtc_answer': handleAnswer(msg); break;
     case 'webrtc_ice': handleIce(msg); break;
@@ -401,6 +574,7 @@ function startCam(){
       document.getElementById('myPH').style.display='none';
       document.getElementById('myScorePill').style.display='block';
       document.getElementById('myNamePill').style.display='block';
+      document.getElementById('confBarWrap').style.display='flex';
       document.getElementById('myFeedWrap').classList.add('active');
       state='camera'; setS('','Camera active — joining queue...');
       var btn=document.getElementById('mainBtn'); btn.disabled=false; btn.textContent='Find Match →'; btn.style.display='block'; btn.onclick=mainAction;
@@ -420,13 +594,21 @@ function initFM(v,c){
     var ctx=c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height);
     if(r.multiFaceLandmarks&&r.multiFaceLandmarks.length>0){
       myLandmarks=r.multiFaceLandmarks[0]; drawMesh(c,myLandmarks);
-      if(state==='camera'||state==='matched'||state==='searching'){
+      // Only update score display when NOT searching
+      if(state==='camera'||state==='matched'){
         var res=calcScore(myLandmarks); myLastScore=res.score;
         document.getElementById('myScoreVal').textContent=res.score.toFixed(1);
         document.getElementById('myTierVal').textContent=getTierName(scoreToElo(res.score));
-        document.getElementById('myDom').textContent=res.dom; document.getElementById('myFlaw').textContent=res.flaw;
+        document.getElementById('myDom').textContent=res.dom;
+        document.getElementById('myFlaw').textContent=res.flaw;
         document.getElementById('mySym').textContent=Math.round(res.sym*100)+'%';
         updateMogBar(res.score,oppLastScore);
+        // Confidence: based on face centering and size
+        var nose=myLandmarks[1];
+        var faceW=Math.sqrt(Math.pow(myLandmarks[234].x-myLandmarks[454].x,2)+Math.pow(myLandmarks[234].y-myLandmarks[454].y,2));
+        var centerDist=Math.sqrt(Math.pow(nose.x-0.5,2)+Math.pow(nose.y-0.48,2));
+        var conf=Math.max(0,Math.min(1,(faceW-0.1)*3.5*(1-centerDist*4)));
+        var cf=document.getElementById('confFill'); if(cf) cf.style.width=Math.round(conf*100)+'%';
       }
     }else{ myLandmarks=null; }
   });
@@ -554,6 +736,7 @@ function runScan(){
 function onResult(msg){
   state='result'; myLastScore=msg.myScore||0; oppLastScore=msg.opponentScore||0;
   updateMogBar(myLastScore,oppLastScore);
+  var oppElo=parseInt(document.getElementById('oppTRElo').textContent)||400;
   document.getElementById('oppScoreVal').textContent=oppLastScore.toFixed(1);
   document.getElementById('oppTierVal').textContent=getTierName(scoreToElo(oppLastScore));
   document.getElementById('rMy').textContent=myLastScore.toFixed(1);
@@ -569,8 +752,100 @@ function onResult(msg){
   document.getElementById('rMyElo').innerHTML='<span style="color:'+(chg>=0?'#22c55e':'#ef4444')+'">'+(chg>=0?'+':'')+chg+' ELO</span>';
   document.getElementById('resultOverlay').classList.add('show');
   document.getElementById('mainBtn').style.display='none'; document.getElementById('skipBtn').style.display='none';
+
+  // Update ELO and check rank-up
+  var newElo=msg.newElo||(_elo+chg);
+  var newTier=getTierName(newElo);
+  var tierOrder=['Molecule','Sub3','LTN','MTN','HTN','Chadlite','Chad','Slayer'];
+  var oldIdx=tierOrder.indexOf(prevTier), newIdx=tierOrder.indexOf(newTier);
+  if(newIdx>oldIdx && prevTier) setTimeout(function(){showRankUp(newTier);},1200);
+  prevTier=newTier; _elo=newElo;
+
+  // Streak
+  if(won){winStreak++;localStorage.setItem('mgm_winStreak',winStreak);}
+  else{winStreak=0;localStorage.setItem('mgm_winStreak',0);}
+  updateStreakBadge();
+
+  // Peak ELO
+  if(newElo>peakElo){peakElo=newElo;localStorage.setItem('mgm_peakElo',peakElo);}
+
+  // Daily challenge
+  if(won&&oppElo>_elo-chg){
+    dailyWins++;
+    localStorage.setItem('mgm_daily',JSON.stringify({date:dailyDate,wins:dailyWins}));
+    updateDailyBanner();
+    if(dailyWins>=DAILY_GOAL){setTimeout(showDailyComplete,800);}
+  }
+
+  // Start rematch window
+  startRematchWindow();
 }
+
+function showRankUp(tier){
+  var icons={Slayer:'💀',Chad:'👑',Chadlite:'🔥',HTN:'⭐',MTN:'⚡',LTN:'🌙',Sub3:'🔴',Molecule:'🧪'};
+  document.getElementById('ruIcon').textContent=icons[tier]||'🏆';
+  document.getElementById('ruTier').textContent=tier.toUpperCase();
+  document.getElementById('ruSub').textContent='You\'ve climbed to '+tier;
+  document.getElementById('rankupOverlay').classList.add('show');
+  // Spawn particles
+  var pc=document.getElementById('ruParticles');
+  if(pc){
+    pc.innerHTML='';
+    var colors=['#f5a623','#ff3d6b','#4A9EFF','#0df2c8','#7b61ff'];
+    for(var i=0;i<24;i++){
+      var p=document.createElement('div'); p.className='ru-p';
+      var tx=(Math.random()-0.5)*400, ty=(Math.random()-0.5)*400;
+      p.style.cssText='left:50%;top:50%;background:'+colors[i%colors.length]+';--tx:'+tx+'px;--ty:'+ty+'px;animation-delay:'+(Math.random()*0.4)+'s;';
+      pc.appendChild(p);
+    }
+  }
+}
+
+function startRematchWindow(){
+  rematchRequested=false; rematchOppReady=false;
+  var banner=document.getElementById('rematchBanner');
+  var timerEl=document.getElementById('rmbTimer');
+  var waitEl=document.getElementById('rmbWaiting');
+  if(!banner||!timerEl) return;
+  banner.classList.add('show');
+  var t=10;
+  timerEl.textContent=t;
+  if(waitEl) waitEl.style.display='none';
+  rematchTimer=setInterval(function(){
+    t--;
+    timerEl.textContent=t;
+    if(t<=0){clearInterval(rematchTimer);banner.classList.remove('show');}
+  },1000);
+}
+
+function requestRematch(){
+  rematchRequested=true;
+  document.getElementById('rmbWaiting').style.display='block';
+  wsSend({type:'request_rematch',targetId:oppSocketId});
+}
+
+function updateDailyBanner(){
+  var el=document.getElementById('dailyBanner');
+  var prog=document.getElementById('dailyProgress');
+  if(!el) return;
+  if(dailyWins<DAILY_GOAL){el.classList.add('show');if(prog)prog.textContent=dailyWins+'/'+DAILY_GOAL;}
+  else{el.classList.remove('show');}
+}
+
+function showDailyComplete(){
+  // Show brief toast
+  var toast=document.createElement('div');
+  toast.style.cssText='position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:700;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);border-radius:8px;padding:14px 24px;font-family:\'JetBrains Mono\',monospace;font-size:11px;color:#f59e0b;letter-spacing:1px;text-align:center;backdrop-filter:blur(12px);animation:rmbIn 0.3s ease;';
+  toast.innerHTML='🎯 DAILY CHALLENGE COMPLETE<br><span style="font-size:9px;color:var(--muted);">Streak defended · Badge earned</span>';
+  document.body.appendChild(toast);
+  setTimeout(function(){toast.remove();},4000);
+}
+
+function toggleDailyModal(){}
+
 function rematch(){
+  if(rematchTimer) clearInterval(rematchTimer);
+  document.getElementById('rematchBanner').classList.remove('show');
   document.getElementById('resultOverlay').classList.remove('show');
   document.getElementById('mainBtn').style.display='block';
   state='camera'; setS('','Finding next opponent...'); showScanBtn(false);
