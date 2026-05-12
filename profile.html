@@ -381,6 +381,14 @@
         <div class="stat-tile-label">Wins</div>
         <div class="stat-tile-val" id="pWins">0</div>
       </div>
+      <div class="stat-tile">
+        <div class="stat-tile-label">Peak</div>
+        <div class="stat-tile-val" id="pPeak">400</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-tile-label">Streak</div>
+        <div class="stat-tile-val" id="pStreak">-</div>
+      </div>
       <div class="stat-tile season-tile">
         <div class="stat-tile-label">Season</div>
         <div class="stat-tile-val">S1</div>
@@ -676,6 +684,8 @@ function renderProfile(user, p) {
   const elo    = p.elo || 400;
   const wins   = p.wins || 0;
   const losses = p.losses || 0;
+  const peak   = p.peakElo || elo;
+  const streak = p.winStreak || 0;
 
   // Photo
   const photoEl = document.getElementById('pPhoto');
@@ -696,6 +706,8 @@ function renderProfile(user, p) {
   document.getElementById('pAppeal').textContent = (wins+losses) ? Math.round(wins/(wins+losses)*100)+'%' : '—';
   document.getElementById('pElo').textContent  = elo;
   document.getElementById('pWins').textContent = wins;
+  document.getElementById('pPeak').textContent = peak;
+  document.getElementById('pStreak').textContent = streak ? streak + 'W' : '-';
 
   document.getElementById('nameDisplay').textContent = p.username || '—';
   document.getElementById('emailDisplay').textContent = user.email || '—';

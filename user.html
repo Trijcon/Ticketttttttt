@@ -269,7 +269,7 @@
 .uh-pill { border-radius:4px; background:rgba(0,0,0,0.26); }
 .uh-pill.gold { color:#f5a623; }
 .uh-pill.violet { color:#b6d4ff; border-color:rgba(74,158,255,0.28); background:rgba(74,158,255,0.08); }
-.uh-stats { grid-template-columns:repeat(4,1fr); gap:10px; }
+.uh-stats { grid-template-columns:repeat(6,1fr); gap:10px; }
 .uh-stat {
   border-radius:var(--radius);
   background:rgba(0,0,0,0.46);
@@ -336,6 +336,8 @@
     <div class="uh-stats">
       <div class="uh-stat"><div class="uh-stat-lbl">ELO</div><div class="uh-stat-val" id="sElo">—</div></div>
       <div class="uh-stat"><div class="uh-stat-lbl">Wins</div><div class="uh-stat-val" id="sWins">—</div></div>
+      <div class="uh-stat"><div class="uh-stat-lbl">Peak</div><div class="uh-stat-val" id="sPeak">-</div></div>
+      <div class="uh-stat"><div class="uh-stat-lbl">Streak</div><div class="uh-stat-val" id="sStreak">-</div></div>
       <div class="uh-stat"><div class="uh-stat-lbl">Comments</div><div class="uh-stat-val" id="sComments">—</div></div>
       <div class="uh-stat"><div class="uh-stat-lbl">Win Rate</div><div class="uh-stat-val" id="sWR">—</div></div>
     </div>
@@ -463,6 +465,8 @@ function renderProfile(p) {
   // Stats
   document.getElementById('sElo').textContent  = elo;
   document.getElementById('sWins').textContent = p.wins || 0;
+  document.getElementById('sPeak').textContent = p.peakElo || elo;
+  document.getElementById('sStreak').textContent = p.winStreak ? p.winStreak + 'W' : '-';
   const games = (p.wins || 0) + (p.losses || 0);
   const wrEl = document.getElementById('sWR');
   if (wrEl) wrEl.textContent = games ? Math.round((p.wins || 0) / games * 100) + '%' : '—';
