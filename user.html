@@ -431,6 +431,7 @@ async function loadProfile(unameLower) {
     renderProfile(_profileData);
     loadComments();
     computeArenaRank();
+    updateViewerActions();
   } catch(e) {
     console.error('Load profile error:', e);
     document.getElementById('uName').textContent = 'Error loading profile';
@@ -535,12 +536,16 @@ onAuthStateChanged(auth, async (user) => {
     const snap = await getDoc(doc(db,'users',user.uid));
     if (snap.exists()) _viewerProfile = snap.data();
   } catch(e){}
-  if (_profileUid && _profileUid !== user.uid) {
+  updateViewerActions();
+});
+
+function updateViewerActions(){
+  if (_viewer && _profileUid && _profileUid !== _viewer.uid) {
     document.getElementById('followBtn').style.display = '';
     document.getElementById('msgBtn').style.display = '';
     updateFollowButton();
   }
-});
+}
 
 function updateFollowButton(){
   const btn = document.getElementById('followBtn');
@@ -552,8 +557,11 @@ function updateFollowButton(){
 }
 
 window.openMessage = function(){
-  if (!_profileData || !_profileData.username) return;
-  window.location.href = 'messages.html?to=' + encodeURIComponent(_profileData.username);
+  if (!_profileUid) return;
+  var params = new URLSearchParams();
+  params.set('uid', _profileUid);
+  if (_profileData && _profileData.username) params.set('to', _profileData.username);
+  window.location.href = 'messages.html?' + params.toString();
 };
 
 window.toggleFollow = async function(){

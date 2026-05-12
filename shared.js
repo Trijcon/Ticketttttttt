@@ -342,12 +342,12 @@ function injectSharedUI() {
   nav.innerHTML=`
     <a class="nav-logo" href="index.html">MOGME.TV</a>
     <div class="nav-links">
-      <a class="nav-link" href="index.html">Home</a>
-      <a class="nav-link" href="arena.html">Arena</a>
-      <button class="nav-link nav-link-locked" type="button" onclick="openLabSoonModal()">Lab</button>
-      <a class="nav-link" href="rank.html">Rank</a>
-      <a class="nav-link" href="private.html">Private</a>
-      <a class="nav-link nav-inbox-link" href="messages.html">Inbox <span id="navInboxBadge" class="nav-inbox-badge">0</span></a>
+      <a class="nav-link" href="index.html">🏠 Home</a>
+      <a class="nav-link" href="arena.html">⚔️ Arena</a>
+      <button class="nav-link nav-link-locked" type="button" onclick="openLabSoonModal()">🧪 Lab</button>
+      <a class="nav-link" href="rank.html">🏆 Rank</a>
+      <a class="nav-link" href="private.html">🎟️ Private</a>
+      <a class="nav-link nav-inbox-link" href="messages.html">✉️ Inbox <span id="navInboxBadge" class="nav-inbox-badge">0</span></a>
     </div>
     <div class="nav-right">
       <div class="nav-online"><div class="nav-dot"></div><span class="online-count-val">— online</span></div>

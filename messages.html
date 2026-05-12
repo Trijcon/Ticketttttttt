@@ -61,10 +61,8 @@
 .convo-pane {
   display:flex; flex-direction:column;
   background:
-    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.014) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255,255,255,0.016), rgba(255,255,255,0.004)),
     #000;
-  background-size:42px 42px;
 }
 
 .convo-head {
@@ -236,34 +234,42 @@ onAuthStateChanged(auth, async (user) => {
     if(snap.exists()) _profile = snap.data();
   } catch(e){}
   loadInbox();
-  // Auto-open from URL ?to=username
-  const toUser = new URLSearchParams(location.search).get('to');
-  if(toUser) openWithUsername(toUser.toLowerCase());
+  // Auto-open from URL ?uid=... or ?to=username
+  const params = new URLSearchParams(location.search);
+  const toUid = params.get('uid');
+  const toUser = params.get('to');
+  if(toUid) openWithUid(toUid, toUser || '');
+  else if(toUser) openWithUsername(toUser.toLowerCase());
 });
 
 async function openWithUsername(uname){
   try {
     const usnap = await getDoc(doc(db,'usernames',uname));
     if(!usnap.exists()){ showError('User not found'); return; }
-    const uid = usnap.data().uid;
-    if(uid===_user.uid) return;
+    await openWithUid(usnap.data().uid, usnap.data().username || uname);
+  } catch(e){ showError('Could not open conversation: '+e.message); }
+}
+
+async function openWithUid(uid, fallbackName){
+  try {
+    if(!uid||uid===_user.uid) return;
     const psnap = await getDoc(doc(db,'users',uid));
-    if(!psnap.exists()) return;
+    if(!psnap.exists()){ showError('User not found'); return; }
     const other = psnap.data();
+    const otherName = other.username || fallbackName || 'User';
     const cid = convoId(_user.uid, uid);
-    // Create conversation doc if it doesn't exist
     const cref = doc(db,'conversations',cid);
     const cdoc = await getDoc(cref);
     if(!cdoc.exists()){
       await setDoc(cref,{
         participants:[_user.uid,uid].sort(),
-        lastMessage:'', lastAt:serverTimestamp(),
+        lastMessage:'', lastAt:serverTimestamp(), updatedAt:serverTimestamp(),
         unread:{[_user.uid]:0,[uid]:0},
-        names:{[_user.uid]:_profile?.username||'Me',[uid]:other.username||'User'},
+        names:{[_user.uid]:_profile?.username||'Me',[uid]:otherName},
         photos:{[_user.uid]:_profile?.photoURL||'',[uid]:other.photoURL||''},
       });
     }
-    openConvo(cid,{uid,username:other.username,photoURL:other.photoURL});
+    openConvo(cid,{uid,username:otherName,photoURL:other.photoURL||''});
   } catch(e){ showError('Could not open conversation: '+e.message); }
 }
 

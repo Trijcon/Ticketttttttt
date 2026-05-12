@@ -4,7 +4,7 @@
    Loaded as type="module" on every page
 ═══════════════════════════════════ */
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup,
          signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -21,10 +21,11 @@ const FIREBASE_CONFIG = {
   appId: "1:1067675943117:web:9545a8bbfa7f68d5db2984",
 };
 
-const fbApp  = initializeApp(FIREBASE_CONFIG);
+const fbApp  = getApps().length ? getApps()[0] : initializeApp(FIREBASE_CONFIG);
 const auth   = getAuth(fbApp);
 const db     = getFirestore(fbApp);
 const gProvider = new GoogleAuthProvider();
+gProvider.setCustomParameters({ prompt: 'select_account' });
 
 window._auth = auth;
 window._db   = db;
@@ -68,11 +69,26 @@ window.signOutUser = async function() {
   try {
     await signOut(auth);
     _currentUser = null; _currentProfile = null;
-    ['mgm_name','mgm_elo','mgm_wins','mgm_losses','mgm_uid','mgm_photo','mgm_username','mgm_idToken','mgm_peakElo','mgm_winStreak']
-      .forEach(k => localStorage.removeItem(k));
+    clearLocalAuthState();
     window.location.href = 'index.html';
   } catch(e) { console.error(e); }
 };
+
+function clearLocalAuthState() {
+  ['mgm_name','mgm_elo','mgm_wins','mgm_losses','mgm_uid','mgm_photo','mgm_username','mgm_idToken','mgm_peakElo','mgm_winStreak','mgm_hd_clip']
+    .forEach(k => localStorage.removeItem(k));
+  Object.keys(localStorage).forEach(k => {
+    if (k.startsWith('firebase:') || k.startsWith('firebaseLocalStorage')) localStorage.removeItem(k);
+  });
+  Object.keys(sessionStorage).forEach(k => {
+    if (k.startsWith('firebase:') || k.startsWith('firebaseLocalStorage') || k.startsWith('mgm_')) sessionStorage.removeItem(k);
+  });
+  document.cookie.split(';').forEach(c => {
+    const name = c.split('=')[0].trim();
+    if (name) document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;SameSite=Lax';
+  });
+}
+window.clearLocalAuthState = clearLocalAuthState;
 
 /* ══════════════════════════════════
    FIRESTORE PROFILE
@@ -170,7 +186,7 @@ function updateNavForUser(user, profile) {
       btn.innerHTML = photo
         ? `<img src="${photo}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;box-shadow:0 0 14px rgba(74,158,255,0.2);"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`
         : `<div style="width:30px;height:30px;border-radius:50%;background:rgba(74,158,255,0.1);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#4A9EFF;box-shadow:0 0 14px rgba(74,158,255,0.16);">${(uname[0]||'?').toUpperCase()}</div><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`;
-      btn.onclick = () => window.toggleUserMenu && window.toggleUserMenu();
+      btn.onclick = () => { window.location.href = 'profile.html'; };
     }
     if (banner) banner.style.display = 'none';
     document.body.style.paddingTop = 'var(--nav-h)';
