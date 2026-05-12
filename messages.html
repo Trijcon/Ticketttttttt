@@ -9,130 +9,174 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 <style>
-.msg-shell { max-width:920px; margin:0 auto; }
-.msg-grid {
-  display:grid; grid-template-columns:280px 1fr; gap:10px;
-  background:var(--glass); border:1px solid var(--border);
-  border-radius:14px; overflow:hidden;
-  height:calc(100vh - 160px); min-height:560px;
+.msg-wrap { max-width:1000px; margin:0 auto; }
+
+/* Full-height message shell */
+.msg-shell {
+  display:grid; grid-template-columns:280px 1fr;
+  background:var(--glass); border:1px solid var(--border); border-radius:10px;
+  overflow:hidden; height:calc(100vh - 140px); min-height:520px;
 }
 
-/* Inbox */
-.inbox { border-right:1px solid var(--border); display:flex; flex-direction:column; }
-.inbox-head {
-  padding:14px 16px; border-bottom:1px solid var(--border);
-  font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px; color:var(--white);
+/* ── INBOX ── */
+.inbox {
+  border-right:1px solid var(--border);
+  display:flex; flex-direction:column; background:var(--bg1);
 }
+.inbox-head {
+  padding:16px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.inbox-head-title { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; color:var(--white); }
+.inbox-count { font-family:'JetBrains Mono',monospace; font-size:9px; padding:2px 7px; border-radius:999px; background:var(--blue-dim); color:var(--blue); letter-spacing:0.5px; }
 .inbox-list { flex:1; overflow-y:auto; }
-.inbox-empty { padding:30px 16px; text-align:center; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2); letter-spacing:0.5px; }
+.inbox-empty { padding:32px 16px; text-align:center; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2); letter-spacing:0.5px; line-height:1.8; }
+
 .convo-item {
-  display:flex; align-items:center; gap:10px; padding:11px 14px;
+  display:flex; align-items:center; gap:10px; padding:12px 14px;
   cursor:pointer; border-bottom:1px solid rgba(255,255,255,0.03);
-  transition:background 0.15s;
+  transition:background 0.15s; position:relative;
 }
 .convo-item:hover { background:rgba(255,255,255,0.03); }
-.convo-item.active { background:rgba(74,158,255,0.08); border-left:2px solid var(--blue); padding-left:12px; }
-.convo-photo {
-  width:38px; height:38px; border-radius:50%;
-  background:var(--bg4); border:1px solid var(--border2);
-  display:flex; align-items:center; justify-content:center;
-  font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:700;
-  color:var(--silver); overflow:hidden; flex-shrink:0;
+.convo-item.active { background:rgba(74,158,255,0.07); border-left:2px solid var(--blue); padding-left:12px; }
+.convo-av {
+  width:36px; height:36px; border-radius:50%; background:var(--bg4);
+  border:1px solid var(--border2); display:flex; align-items:center; justify-content:center;
+  font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700;
+  color:var(--muted); overflow:hidden; flex-shrink:0;
 }
-.convo-photo img { width:100%; height:100%; object-fit:cover; }
+.convo-av img { width:100%; height:100%; object-fit:cover; }
 .convo-info { flex:1; min-width:0; }
-.convo-name { font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600; color:var(--silver); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.convo-preview { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.convo-time { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2); flex-shrink:0; }
-.convo-unread {
-  min-width:18px; height:18px; border-radius:9px;
-  background:var(--blue); color:#000; font-family:'JetBrains Mono',monospace;
-  font-size:9px; font-weight:700; display:flex; align-items:center; justify-content:center; padding:0 6px;
-  flex-shrink:0;
-}
+.convo-name { font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600; color:var(--silver); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px; }
+.convo-preview { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.convo-meta { display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
+.convo-time { font-family:'JetBrains Mono',monospace; font-size:8px; color:var(--muted2); }
+.convo-badge { min-width:16px; height:16px; border-radius:8px; background:var(--blue); color:#000; font-family:'JetBrains Mono',monospace; font-size:8px; font-weight:700; display:flex; align-items:center; justify-content:center; padding:0 4px; }
 
-/* Conversation pane */
-.convo-pane { display:flex; flex-direction:column; min-width:0; }
+/* ── CONVERSATION PANE ── */
+.convo-pane { display:flex; flex-direction:column; background:#000; }
+
 .convo-head {
   padding:14px 18px; border-bottom:1px solid var(--border);
-  display:flex; align-items:center; gap:12px;
+  display:flex; align-items:center; gap:12px; background:var(--bg1);
+  flex-shrink:0;
 }
-.convo-head-name { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px; color:var(--white); }
-.convo-head a { color:var(--blue); text-decoration:none; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1px; margin-left:auto; }
-.convo-head a:hover { text-decoration:underline; }
+.convo-head-av { width:32px; height:32px; border-radius:50%; background:var(--bg4); border:1px solid var(--border2); display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:700; color:var(--muted); overflow:hidden; flex-shrink:0; }
+.convo-head-av img { width:100%; height:100%; object-fit:cover; }
+.convo-head-name { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; color:var(--white); }
+.convo-head-status { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2); margin-top:1px; }
+.convo-head-link { margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); text-decoration:none; letter-spacing:0.5px; transition:color 0.2s; }
+.convo-head-link:hover { color:var(--blue); }
 
 .convo-msgs {
   flex:1; overflow-y:auto; padding:16px 18px;
-  display:flex; flex-direction:column; gap:8px;
+  display:flex; flex-direction:column; gap:6px;
+  scrollbar-width:thin; scrollbar-color:var(--bg4) transparent;
 }
-.convo-empty {
-  flex:1; display:flex; align-items:center; justify-content:center;
-  font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted2); letter-spacing:0.5px;
-  padding:30px;
-}
+.convo-msgs::-webkit-scrollbar { width:3px; }
+.convo-msgs::-webkit-scrollbar-thumb { background:var(--bg4); border-radius:999px; }
+
+.msg-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2); letter-spacing:0.5px; text-align:center; padding:20px; }
+.msg-empty-icon { font-size:32px; opacity:0.3; }
+
+/* Day separator */
+.day-sep { text-align:center; margin:10px 0; }
+.day-sep span { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:1px; color:var(--muted2); background:var(--bg2); padding:2px 10px; border-radius:999px; }
+
+/* Bubbles */
+.bubble-wrap { display:flex; flex-direction:column; max-width:72%; }
+.bubble-wrap.out { align-self:flex-end; align-items:flex-end; }
+.bubble-wrap.in { align-self:flex-start; align-items:flex-start; }
 .bubble {
-  max-width:75%; padding:9px 13px; border-radius:14px;
-  font-size:13px; color:var(--silver); line-height:1.5;
-  word-break:break-word;
+  padding:9px 13px; border-radius:12px; font-size:13px; line-height:1.5;
+  color:var(--silver); word-break:break-word;
 }
-.bubble.in { background:var(--bg3); border:1px solid var(--border); align-self:flex-start; border-bottom-left-radius:4px; }
-.bubble.out { background:var(--blue); color:#000; align-self:flex-end; border-bottom-right-radius:4px; }
-.bubble-time { font-family:'JetBrains Mono',monospace; font-size:8px; color:var(--muted2); margin-top:3px; }
-.bubble.out .bubble-time { color:rgba(0,0,0,0.5); text-align:right; }
+.bubble.in { background:var(--bg3); border:1px solid var(--border); border-bottom-left-radius:3px; }
+.bubble.out { background:var(--blue); color:#000; font-weight:500; border-bottom-right-radius:3px; }
+.bubble-time { font-family:'JetBrains Mono',monospace; font-size:8px; color:var(--muted2); margin-top:3px; padding:0 2px; }
+.bubble-wrap.out .bubble-time { text-align:right; }
 
-.compose {
-  border-top:1px solid var(--border); padding:12px 16px;
-  display:flex; gap:8px;
+/* Compose */
+.compose-wrap { border-top:1px solid var(--border); padding:12px 16px; display:flex; gap:8px; flex-shrink:0; background:var(--bg1); }
+.compose-input {
+  flex:1; background:var(--bg3); border:1px solid var(--border2); border-radius:8px;
+  padding:10px 14px; font-family:'Inter',sans-serif; font-size:13px; color:var(--white);
+  outline:none; resize:none; transition:border-color 0.2s; max-height:100px; overflow-y:auto;
 }
-.compose input {
-  flex:1; background:var(--bg3); border:1px solid var(--border2);
-  border-radius:8px; padding:10px 14px; outline:none;
-  font-family:'Inter',sans-serif; font-size:13px; color:var(--white);
+.compose-input:focus { border-color:rgba(74,158,255,0.3); }
+.compose-input::placeholder { color:var(--muted2); }
+.compose-send {
+  width:38px; height:38px; border-radius:8px; border:none; background:var(--blue);
+  color:#000; font-size:15px; cursor:pointer; flex-shrink:0; transition:opacity 0.2s;
+  display:flex; align-items:center; justify-content:center; align-self:flex-end;
 }
-.compose input:focus { border-color:rgba(74,158,255,0.35); }
-.compose button {
-  padding:0 18px; border-radius:8px; border:none;
-  background:var(--blue); color:#000; font-family:'Space Grotesk',sans-serif;
-  font-size:13px; font-weight:600; cursor:pointer;
-}
-.compose button:disabled { opacity:0.4; cursor:not-allowed; }
+.compose-send:hover { opacity:0.85; }
+.compose-send:disabled { opacity:0.3; cursor:not-allowed; }
 
-@media(max-width:760px){
-  .msg-grid { grid-template-columns:1fr; height:auto; }
-  .msg-grid.has-active .inbox { display:none; }
-  .msg-grid:not(.has-active) .convo-pane { display:none; }
-  .convo-pane { min-height:60vh; }
+/* No conversation selected */
+.no-convo {
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:10px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2);
+  letter-spacing:0.5px; text-align:center; padding:20px;
+}
+.no-convo-icon { font-size:36px; opacity:0.2; margin-bottom:4px; }
+
+/* Error banner */
+.msg-error {
+  margin:10px 18px; padding:10px 14px; background:rgba(239,68,68,0.08);
+  border:1px solid rgba(239,68,68,0.2); border-radius:6px;
+  font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--red); letter-spacing:0.3px; display:none;
+}
+
+@media(max-width:700px){
+  .msg-shell{grid-template-columns:1fr;}
+  .msg-shell.has-convo .inbox{display:none;}
+  .msg-shell:not(.has-convo) .convo-pane{display:none;}
 }
 </style>
 </head>
 <body>
 <div class="page-wrap">
-<div class="msg-shell">
+<div class="msg-wrap">
 
-  <div class="msg-grid" id="msgGrid">
-    <!-- Inbox -->
+  <div class="msg-shell" id="msgShell">
+
+    <!-- INBOX -->
     <div class="inbox">
-      <div class="inbox-head">Messages</div>
+      <div class="inbox-head">
+        <div class="inbox-head-title">Messages</div>
+        <div class="inbox-count" id="inboxCount">0</div>
+      </div>
       <div class="inbox-list" id="inboxList">
-        <div class="inbox-empty">Loading...</div>
+        <div class="inbox-empty" id="inboxEmpty">Loading conversations...</div>
       </div>
     </div>
 
-    <!-- Active conversation -->
+    <!-- CONVERSATION PANE -->
     <div class="convo-pane">
-      <div class="convo-head" id="convoHead" style="display:none;">
-        <div class="convo-photo" id="convoHeadPhoto">?</div>
-        <div class="convo-head-name" id="convoHeadName">—</div>
-        <a href="#" id="convoHeadView">View profile →</a>
+      <div class="no-convo" id="noConvo">
+        <div class="no-convo-icon">✉</div>
+        <div>Select a conversation</div>
+        <div style="color:var(--muted2);font-size:9px;margin-top:4px;">or visit a user profile to start one</div>
       </div>
-      <div class="convo-msgs" id="convoMsgs">
-        <div class="convo-empty">Select a conversation, or open one from a user profile.</div>
-      </div>
-      <div class="compose" id="compose" style="display:none;">
-        <input type="text" id="composeInput" placeholder="Message..." maxlength="400" onkeydown="if(event.key==='Enter')sendMsg()">
-        <button onclick="sendMsg()">Send</button>
+      <div id="activeConvo" style="display:none;flex:1;display:none;flex-direction:column;">
+        <div class="convo-head" id="convoHead">
+          <div class="convo-head-av" id="convoHeadAv">?</div>
+          <div>
+            <div class="convo-head-name" id="convoHeadName">—</div>
+            <div class="convo-head-status" id="convoHeadStatus">—</div>
+          </div>
+          <a class="convo-head-link" id="convoHeadLink" href="#">View profile →</a>
+        </div>
+        <div class="msg-error" id="msgError"></div>
+        <div class="convo-msgs" id="convoMsgs"></div>
+        <div class="compose-wrap">
+          <input type="text" class="compose-input" id="composeInput" placeholder="Message..." maxlength="400" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}">
+          <button class="compose-send" onclick="sendMsg()" id="sendBtn">➤</button>
+        </div>
       </div>
     </div>
+
   </div>
 
 </div>
@@ -142,8 +186,9 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where,
-         orderBy, limit, getDocs, addDoc, serverTimestamp, onSnapshot, increment }
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection,
+         query, where, orderBy, limit, getDocs, addDoc, serverTimestamp,
+         onSnapshot, increment }
   from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const fbApp = initializeApp({
@@ -159,193 +204,165 @@ const db   = getFirestore(fbApp);
 injectSharedUI();
 connectWS();
 
-let _user = null;
-let _userProfile = null;
-let _activeConvoId = null;
-let _activeOther = null;
-let _inboxUnsub = null;
-let _convoUnsub = null;
+let _user = null, _profile = null;
+let _activeConvoId = null, _activeOther = null;
+let _inboxUnsub = null, _convoUnsub = null;
 
-// Conversation ID = sorted UIDs joined with "_"
-function convoIdOf(uidA, uidB){
-  return [uidA, uidB].sort().join('_');
-}
+function convoId(a, b){ return [a,b].sort().join('_'); }
+
+function showError(msg){ const el=document.getElementById('msgError'); el.textContent=msg; el.style.display='block'; setTimeout(()=>el.style.display='none',5000); }
 
 onAuthStateChanged(auth, async (user) => {
-  if (!user) { window.location.href = 'index.html'; return; }
+  if(!user){ window.location.href='index.html'; return; }
   _user = user;
   try {
     const snap = await getDoc(doc(db,'users',user.uid));
-    if (snap.exists()) _userProfile = snap.data();
+    if(snap.exists()) _profile = snap.data();
   } catch(e){}
   loadInbox();
-  // Auto-open conversation if URL has ?to=username
-  const params = new URLSearchParams(location.search);
-  const toUsername = params.get('to');
-  if (toUsername) startConversationWithUsername(toUsername.toLowerCase());
+  // Auto-open from URL ?to=username
+  const toUser = new URLSearchParams(location.search).get('to');
+  if(toUser) openWithUsername(toUser.toLowerCase());
 });
 
-async function startConversationWithUsername(unameLower){
+async function openWithUsername(uname){
   try {
-    const usnap = await getDoc(doc(db,'usernames',unameLower));
-    if (!usnap.exists()) { alert('User not found'); return; }
-    const otherUid = usnap.data().uid;
-    if (otherUid === _user.uid) return;
-    const otherSnap = await getDoc(doc(db,'users',otherUid));
-    const other = otherSnap.exists() ? otherSnap.data() : null;
-    if (!other) return;
-
-    // Ensure conversation doc exists
-    const cid = convoIdOf(_user.uid, otherUid);
+    const usnap = await getDoc(doc(db,'usernames',uname));
+    if(!usnap.exists()){ showError('User not found'); return; }
+    const uid = usnap.data().uid;
+    if(uid===_user.uid) return;
+    const psnap = await getDoc(doc(db,'users',uid));
+    if(!psnap.exists()) return;
+    const other = psnap.data();
+    const cid = convoId(_user.uid, uid);
+    // Create conversation doc if it doesn't exist
     const cref = doc(db,'conversations',cid);
     const cdoc = await getDoc(cref);
-    if (!cdoc.exists()) {
-      await setDoc(cref, {
-        participants: [_user.uid, otherUid].sort(),
-        lastMessage: '',
-        lastAt: serverTimestamp(),
-        unread: { [_user.uid]: 0, [otherUid]: 0 },
-        names: { [_user.uid]: _userProfile?.username || 'Unknown', [otherUid]: other.username || 'Unknown' },
-        photos: { [_user.uid]: _userProfile?.photoURL || '', [otherUid]: other.photoURL || '' },
+    if(!cdoc.exists()){
+      await setDoc(cref,{
+        participants:[_user.uid,uid].sort(),
+        lastMessage:'', lastAt:serverTimestamp(),
+        unread:{[_user.uid]:0,[uid]:0},
+        names:{[_user.uid]:_profile?.username||'Me',[uid]:other.username||'User'},
+        photos:{[_user.uid]:_profile?.photoURL||'',[uid]:other.photoURL||''},
       });
     }
-    openConversation(cid, { uid: otherUid, username: other.username, photoURL: other.photoURL });
-  } catch(e) { console.error(e); }
+    openConvo(cid,{uid,username:other.username,photoURL:other.photoURL});
+  } catch(e){ showError('Could not open conversation: '+e.message); }
 }
 
 function loadInbox(){
-  if (_inboxUnsub) _inboxUnsub();
-  // Drop server-side orderBy to avoid composite-index requirement.
-  // Sort client-side by lastAt instead.
-  const q = query(
-    collection(db,'conversations'),
-    where('participants','array-contains', _user.uid),
-    limit(50)
-  );
+  if(_inboxUnsub) _inboxUnsub();
+  const q = query(collection(db,'conversations'), where('participants','array-contains',_user.uid), limit(50));
   _inboxUnsub = onSnapshot(q, (snap) => {
     const list = document.getElementById('inboxList');
-    if (snap.empty) {
-      list.innerHTML = '<div class="inbox-empty">No conversations yet.<br>Open a user profile and tap Message.</div>';
+    const empty = document.getElementById('inboxEmpty');
+    if(snap.empty){
+      empty.style.display='block'; empty.textContent='No conversations yet.\nVisit a user profile to send a message.';
+      document.getElementById('inboxCount').textContent='0';
       return;
     }
-    const myUid = _user.uid;
+    empty.style.display='none';
+    document.getElementById('inboxCount').textContent=snap.size;
     // Sort by lastAt desc client-side
-    const docs = snap.docs.slice().sort((a,b) => {
-      const ta = a.data().lastAt?.toMillis ? a.data().lastAt.toMillis() : 0;
-      const tb = b.data().lastAt?.toMillis ? b.data().lastAt.toMillis() : 0;
-      return tb - ta;
+    const docs = snap.docs.slice().sort((a,b)=>{
+      const ta=a.data().lastAt?.toMillis?a.data().lastAt.toMillis():0;
+      const tb=b.data().lastAt?.toMillis?b.data().lastAt.toMillis():0;
+      return tb-ta;
     });
-    list.innerHTML = docs.map(d => {
-      const c = d.data();
-      const other = (c.participants||[]).find(p => p !== myUid);
-      const oName = (c.names && c.names[other]) || 'Unknown';
-      const oPhoto = (c.photos && c.photos[other]) || '';
-      const photoHTML = oPhoto
-        ? `<div class="convo-photo"><img src="${oPhoto}"></div>`
-        : `<div class="convo-photo">${(oName[0]||'?').toUpperCase()}</div>`;
-      const unread = (c.unread && c.unread[myUid]) || 0;
-      const when = c.lastAt?.toDate ? formatTime(c.lastAt.toDate()) : '';
-      const preview = (c.lastMessage || '').slice(0, 60);
-      return `<div class="convo-item ${d.id===_activeConvoId?'active':''}" data-cid="${d.id}" data-other="${other}" data-name="${escapeHtml(oName)}" data-photo="${escapeHtml(oPhoto||'')}">
-        ${photoHTML}
+    list.innerHTML='';
+    docs.forEach(d=>{
+      const c=d.data(), myUid=_user.uid;
+      const otherId=(c.participants||[]).find(p=>p!==myUid)||'';
+      const oName=c.names?.[otherId]||'Unknown';
+      const oPhoto=c.photos?.[otherId]||'';
+      const unread=(c.unread?.[myUid])||0;
+      const when=c.lastAt?.toDate?fmtTime(c.lastAt.toDate()):'';
+      const el=document.createElement('div');
+      el.className='convo-item'+(d.id===_activeConvoId?' active':'');
+      el.innerHTML=`
+        <div class="convo-av">${oPhoto?`<img src="${esc(oPhoto)}">`:(oName[0]||'?').toUpperCase()}</div>
         <div class="convo-info">
-          <div class="convo-name">${escapeHtml(oName)}</div>
-          <div class="convo-preview">${escapeHtml(preview) || '— no messages yet —'}</div>
+          <div class="convo-name">${esc(oName)}</div>
+          <div class="convo-preview">${esc((c.lastMessage||'').slice(0,60))||'— start the conversation —'}</div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <div class="convo-meta">
           <div class="convo-time">${when}</div>
-          ${unread > 0 ? `<div class="convo-unread">${unread}</div>` : ''}
-        </div>
-      </div>`;
-    }).join('');
-    // Wire clicks
-    list.querySelectorAll('.convo-item').forEach(el => {
-      el.addEventListener('click', () => {
-        openConversation(el.dataset.cid, {
-          uid: el.dataset.other,
-          username: el.dataset.name,
-          photoURL: el.dataset.photo,
-        });
-      });
+          ${unread>0?`<div class="convo-badge">${unread}</div>`:''}
+        </div>`;
+      el.onclick=()=>openConvo(d.id,{uid:otherId,username:oName,photoURL:oPhoto});
+      list.appendChild(el);
     });
-  });
+  }, (err)=>{ console.error('Inbox error:',err); showError('Could not load inbox. Check Firestore rules.'); });
 }
 
-async function openConversation(cid, other){
-  _activeConvoId = cid;
-  _activeOther = other;
-  document.getElementById('msgGrid').classList.add('has-active');
-  // Mark unread cleared
-  try {
-    await updateDoc(doc(db,'conversations',cid), { [`unread.${_user.uid}`]: 0 });
-  } catch(e){}
-
+function openConvo(cid, other){
+  _activeConvoId=cid; _activeOther=other;
+  document.getElementById('msgShell').classList.add('has-convo');
+  // Mark read
+  updateDoc(doc(db,'conversations',cid),{[`unread.${_user.uid}`]:0}).catch(()=>{});
   // Header
-  document.getElementById('convoHead').style.display = '';
-  document.getElementById('compose').style.display = '';
-  const hp = document.getElementById('convoHeadPhoto');
-  if (other.photoURL) hp.innerHTML = `<img src="${other.photoURL}">`;
-  else hp.textContent = (other.username||'?')[0].toUpperCase();
-  document.getElementById('convoHeadName').textContent = other.username || 'Unknown';
-  document.getElementById('convoHeadView').href = `user.html?u=${encodeURIComponent(other.username||'')}`;
-
+  const av=document.getElementById('convoHeadAv');
+  av.innerHTML=other.photoURL?`<img src="${esc(other.photoURL)}">`:(other.username||'?')[0].toUpperCase();
+  document.getElementById('convoHeadName').textContent=other.username||'User';
+  document.getElementById('convoHeadStatus').textContent='Direct message';
+  document.getElementById('convoHeadLink').href=`user.html?u=${encodeURIComponent(other.username||'')}`;
+  // Show pane
+  document.getElementById('noConvo').style.display='none';
+  const ac=document.getElementById('activeConvo'); ac.style.display='flex'; ac.style.flexDirection='column';
+  // Highlight in inbox
+  document.querySelectorAll('.convo-item').forEach(el=>el.classList.remove('active'));
   // Subscribe to messages
-  if (_convoUnsub) _convoUnsub();
-  const q = query(collection(db,'conversations',cid,'messages'), orderBy('createdAt','asc'), limit(200));
-  _convoUnsub = onSnapshot(q, (snap) => {
-    const wrap = document.getElementById('convoMsgs');
-    if (snap.empty) {
-      wrap.innerHTML = '<div class="convo-empty">No messages yet — say something!</div>';
-      return;
-    }
-    wrap.innerHTML = snap.docs.map(d => {
-      const m = d.data();
-      const out = m.fromUid === _user.uid;
-      const when = m.createdAt?.toDate ? formatTime(m.createdAt.toDate()) : '';
-      return `<div class="bubble ${out?'out':'in'}">
-        <div>${escapeHtml(m.text||'')}</div>
-        <div class="bubble-time">${when}</div>
-      </div>`;
-    }).join('');
-    wrap.scrollTop = wrap.scrollHeight;
-  });
+  if(_convoUnsub) _convoUnsub();
+  const q=query(collection(db,'conversations',cid,'messages'),orderBy('createdAt','asc'),limit(100));
+  _convoUnsub=onSnapshot(q,(snap)=>{
+    const wrap=document.getElementById('convoMsgs');
+    if(snap.empty){wrap.innerHTML='<div class="msg-empty"><div class="msg-empty-icon">👋</div><div>No messages yet</div><div style="font-size:9px;color:var(--muted2);margin-top:4px;">Say something first!</div></div>';return;}
+    let prevDate='', html='';
+    snap.docs.forEach(d=>{
+      const m=d.data(), out=m.fromUid===_user.uid;
+      const ts=m.createdAt?.toDate?m.createdAt.toDate():new Date();
+      const dateStr=ts.toDateString();
+      if(dateStr!==prevDate){prevDate=dateStr;html+=`<div class="day-sep"><span>${fmtDate(ts)}</span></div>`;}
+      html+=`<div class="bubble-wrap ${out?'out':'in'}"><div class="bubble ${out?'out':'in'}">${esc(m.text||'')}</div><div class="bubble-time">${fmtTime(ts)}</div></div>`;
+    });
+    wrap.innerHTML=html;
+    wrap.scrollTop=wrap.scrollHeight;
+  },(err)=>{ console.error('Messages error:',err); showError('Could not load messages. Firestore rules may need updating.'); });
 }
 
-window.sendMsg = async function(){
-  const input = document.getElementById('composeInput');
-  const text = input.value.trim();
-  if (!text || !_user || !_activeConvoId || !_activeOther) return;
-  // Profanity filter
-  if (window.containsProfanity && window.containsProfanity(text)) {
-    alert('Message blocked — restricted language');
-    return;
-  }
-  input.value = '';
+window.sendMsg=async function(){
+  const input=document.getElementById('composeInput');
+  const text=input.value.trim();
+  if(!text||!_user||!_activeConvoId||!_activeOther) return;
+  if(window.containsProfanity&&window.containsProfanity(text)){showError('Message blocked — restricted language');return;}
+  const btn=document.getElementById('sendBtn'); btn.disabled=true;
+  input.value='';
   try {
-    await addDoc(collection(db,'conversations',_activeConvoId,'messages'), {
-      fromUid: _user.uid,
-      fromUsername: _userProfile?.username || 'Unknown',
-      text: text.slice(0, 400),
-      createdAt: serverTimestamp(),
+    await addDoc(collection(db,'conversations',_activeConvoId,'messages'),{
+      fromUid:_user.uid,
+      fromUsername:_profile?.username||'Unknown',
+      text:text.slice(0,400),
+      createdAt:serverTimestamp(),
     });
-    // Update conversation summary + unread for the recipient
-    await updateDoc(doc(db,'conversations',_activeConvoId), {
-      lastMessage: text.slice(0, 100),
-      lastAt: serverTimestamp(),
-      [`unread.${_activeOther.uid}`]: increment(1),
+    await updateDoc(doc(db,'conversations',_activeConvoId),{
+      lastMessage:text.slice(0,100), lastAt:serverTimestamp(),
+      [`unread.${_activeOther.uid}`]:increment(1),
     });
-  } catch(e) {
-    alert('Send failed — make sure Firestore rules allow conversations. ' + e.message);
-  }
+  } catch(e){
+    showError('Send failed — '+e.message+'. Make sure Firestore rules allow conversations.');
+    input.value=text; // restore
+  } finally { btn.disabled=false; input.focus(); }
 };
 
-function formatTime(d){
-  const today = new Date();
-  if (d.toDateString() === today.toDateString()) {
-    return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-  }
-  return d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+function fmtTime(d){ return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
+function fmtDate(d){
+  const today=new Date(), yest=new Date(today); yest.setDate(yest.getDate()-1);
+  if(d.toDateString()===today.toDateString()) return 'Today';
+  if(d.toDateString()===yest.toDateString()) return 'Yesterday';
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
 }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 </script>
 <script type="module" src="auth.js"></script>
 </body>
