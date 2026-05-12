@@ -1,369 +1,291 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MogMe.TV — Messages</title>
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared.css">
-<style>
-.msg-wrap { max-width:1000px; margin:0 auto; }
+/* ═══════════════════════════════════
+   MOGME.TV — AUTH.JS
+   Firebase Auth + Firestore profile system
+   Loaded as type="module" on every page
+═══════════════════════════════════ */
 
-/* Full-height message shell */
-.msg-shell {
-  display:grid; grid-template-columns:280px 1fr;
-  background:var(--glass); border:1px solid var(--border); border-radius:10px;
-  overflow:hidden; height:calc(100vh - 140px); min-height:520px;
-}
-
-/* ── INBOX ── */
-.inbox {
-  border-right:1px solid var(--border);
-  display:flex; flex-direction:column; background:var(--bg1);
-}
-.inbox-head {
-  padding:16px; border-bottom:1px solid var(--border);
-  display:flex; align-items:center; justify-content:space-between;
-}
-.inbox-head-title { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; color:var(--white); }
-.inbox-count { font-family:'JetBrains Mono',monospace; font-size:9px; padding:2px 7px; border-radius:999px; background:var(--blue-dim); color:var(--blue); letter-spacing:0.5px; }
-.inbox-list { flex:1; overflow-y:auto; }
-.inbox-empty { padding:32px 16px; text-align:center; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2); letter-spacing:0.5px; line-height:1.8; }
-
-.convo-item {
-  display:flex; align-items:center; gap:10px; padding:12px 14px;
-  cursor:pointer; border-bottom:1px solid rgba(255,255,255,0.03);
-  transition:background 0.15s; position:relative;
-}
-.convo-item:hover { background:rgba(255,255,255,0.03); }
-.convo-item.active { background:rgba(74,158,255,0.07); border-left:2px solid var(--blue); padding-left:12px; }
-.convo-av {
-  width:36px; height:36px; border-radius:50%; background:var(--bg4);
-  border:1px solid var(--border2); display:flex; align-items:center; justify-content:center;
-  font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700;
-  color:var(--muted); overflow:hidden; flex-shrink:0;
-}
-.convo-av img { width:100%; height:100%; object-fit:cover; }
-.convo-info { flex:1; min-width:0; }
-.convo-name { font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600; color:var(--silver); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px; }
-.convo-preview { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.convo-meta { display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
-.convo-time { font-family:'JetBrains Mono',monospace; font-size:8px; color:var(--muted2); }
-.convo-badge { min-width:16px; height:16px; border-radius:8px; background:var(--blue); color:#000; font-family:'JetBrains Mono',monospace; font-size:8px; font-weight:700; display:flex; align-items:center; justify-content:center; padding:0 4px; }
-
-/* ── CONVERSATION PANE ── */
-.convo-pane { display:flex; flex-direction:column; background:#000; }
-
-.convo-head {
-  padding:14px 18px; border-bottom:1px solid var(--border);
-  display:flex; align-items:center; gap:12px; background:var(--bg1);
-  flex-shrink:0;
-}
-.convo-head-av { width:32px; height:32px; border-radius:50%; background:var(--bg4); border:1px solid var(--border2); display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:700; color:var(--muted); overflow:hidden; flex-shrink:0; }
-.convo-head-av img { width:100%; height:100%; object-fit:cover; }
-.convo-head-name { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; color:var(--white); }
-.convo-head-status { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2); margin-top:1px; }
-.convo-head-link { margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); text-decoration:none; letter-spacing:0.5px; transition:color 0.2s; }
-.convo-head-link:hover { color:var(--blue); }
-
-.convo-msgs {
-  flex:1; overflow-y:auto; padding:16px 18px;
-  display:flex; flex-direction:column; gap:6px;
-  scrollbar-width:thin; scrollbar-color:var(--bg4) transparent;
-}
-.convo-msgs::-webkit-scrollbar { width:3px; }
-.convo-msgs::-webkit-scrollbar-thumb { background:var(--bg4); border-radius:999px; }
-
-.msg-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2); letter-spacing:0.5px; text-align:center; padding:20px; }
-.msg-empty-icon { font-size:32px; opacity:0.3; }
-
-/* Day separator */
-.day-sep { text-align:center; margin:10px 0; }
-.day-sep span { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:1px; color:var(--muted2); background:var(--bg2); padding:2px 10px; border-radius:999px; }
-
-/* Bubbles */
-.bubble-wrap { display:flex; flex-direction:column; max-width:72%; }
-.bubble-wrap.out { align-self:flex-end; align-items:flex-end; }
-.bubble-wrap.in { align-self:flex-start; align-items:flex-start; }
-.bubble {
-  padding:9px 13px; border-radius:12px; font-size:13px; line-height:1.5;
-  color:var(--silver); word-break:break-word;
-}
-.bubble.in { background:var(--bg3); border:1px solid var(--border); border-bottom-left-radius:3px; }
-.bubble.out { background:var(--blue); color:#000; font-weight:500; border-bottom-right-radius:3px; }
-.bubble-time { font-family:'JetBrains Mono',monospace; font-size:8px; color:var(--muted2); margin-top:3px; padding:0 2px; }
-.bubble-wrap.out .bubble-time { text-align:right; }
-
-/* Compose */
-.compose-wrap { border-top:1px solid var(--border); padding:12px 16px; display:flex; gap:8px; flex-shrink:0; background:var(--bg1); }
-.compose-input {
-  flex:1; background:var(--bg3); border:1px solid var(--border2); border-radius:8px;
-  padding:10px 14px; font-family:'Inter',sans-serif; font-size:13px; color:var(--white);
-  outline:none; resize:none; transition:border-color 0.2s; max-height:100px; overflow-y:auto;
-}
-.compose-input:focus { border-color:rgba(74,158,255,0.3); }
-.compose-input::placeholder { color:var(--muted2); }
-.compose-send {
-  width:38px; height:38px; border-radius:8px; border:none; background:var(--blue);
-  color:#000; font-size:15px; cursor:pointer; flex-shrink:0; transition:opacity 0.2s;
-  display:flex; align-items:center; justify-content:center; align-self:flex-end;
-}
-.compose-send:hover { opacity:0.85; }
-.compose-send:disabled { opacity:0.3; cursor:not-allowed; }
-
-/* No conversation selected */
-.no-convo {
-  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:10px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2);
-  letter-spacing:0.5px; text-align:center; padding:20px;
-}
-.no-convo-icon { font-size:36px; opacity:0.2; margin-bottom:4px; }
-
-/* Error banner */
-.msg-error {
-  margin:10px 18px; padding:10px 14px; background:rgba(239,68,68,0.08);
-  border:1px solid rgba(239,68,68,0.2); border-radius:6px;
-  font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--red); letter-spacing:0.3px; display:none;
-}
-
-@media(max-width:700px){
-  .msg-shell{grid-template-columns:1fr;}
-  .msg-shell.has-convo .inbox{display:none;}
-  .msg-shell:not(.has-convo) .convo-pane{display:none;}
-}
-</style>
-</head>
-<body>
-<div class="page-wrap">
-<div class="msg-wrap">
-
-  <div class="msg-shell" id="msgShell">
-
-    <!-- INBOX -->
-    <div class="inbox">
-      <div class="inbox-head">
-        <div class="inbox-head-title">Messages</div>
-        <div class="inbox-count" id="inboxCount">0</div>
-      </div>
-      <div class="inbox-list" id="inboxList">
-        <div class="inbox-empty" id="inboxEmpty">Loading conversations...</div>
-      </div>
-    </div>
-
-    <!-- CONVERSATION PANE -->
-    <div class="convo-pane">
-      <div class="no-convo" id="noConvo">
-        <div class="no-convo-icon">✉</div>
-        <div>Select a conversation</div>
-        <div style="color:var(--muted2);font-size:9px;margin-top:4px;">or visit a user profile to start one</div>
-      </div>
-      <div id="activeConvo" style="display:none;flex:1;display:none;flex-direction:column;">
-        <div class="convo-head" id="convoHead">
-          <div class="convo-head-av" id="convoHeadAv">?</div>
-          <div>
-            <div class="convo-head-name" id="convoHeadName">—</div>
-            <div class="convo-head-status" id="convoHeadStatus">—</div>
-          </div>
-          <a class="convo-head-link" id="convoHeadLink" href="#">View profile →</a>
-        </div>
-        <div class="msg-error" id="msgError"></div>
-        <div class="convo-msgs" id="convoMsgs"></div>
-        <div class="compose-wrap">
-          <input type="text" class="compose-input" id="composeInput" placeholder="Message..." maxlength="400" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}">
-          <button class="compose-send" onclick="sendMsg()" id="sendBtn">➤</button>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-</div>
-</div>
-
-<script src="shared.js"></script>
-<script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup,
+         signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, collection,
-         query, where, orderBy, limit, getDocs, addDoc, serverTimestamp,
-         onSnapshot, increment }
+         query, orderBy, limit, getDocs, serverTimestamp, increment }
   from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-const fbApp = initializeApp({
-  apiKey:"AIzaSyBpMuv59Rlhc2roSiTPBzjKKHjuwqe0TFs",
-  authDomain:"mogmetv.firebaseapp.com", projectId:"mogmetv",
-  storageBucket:"mogmetv.firebasestorage.app",
-  messagingSenderId:"1067675943117",
-  appId:"1:1067675943117:web:9545a8bbfa7f68d5db2984"
-});
-const auth = getAuth(fbApp);
-const db   = getFirestore(fbApp);
-
-injectSharedUI();
-connectWS();
-
-let _user = null, _profile = null;
-let _activeConvoId = null, _activeOther = null;
-let _inboxUnsub = null, _convoUnsub = null;
-
-function convoId(a, b){ return [a,b].sort().join('_'); }
-
-function showError(msg){ const el=document.getElementById('msgError'); el.textContent=msg; el.style.display='block'; setTimeout(()=>el.style.display='none',5000); }
-
-onAuthStateChanged(auth, async (user) => {
-  if(!user){ window.location.href='index.html'; return; }
-  _user = user;
-  try {
-    const snap = await getDoc(doc(db,'users',user.uid));
-    if(snap.exists()) _profile = snap.data();
-  } catch(e){}
-  loadInbox();
-  // Auto-open from URL ?to=username
-  const toUser = new URLSearchParams(location.search).get('to');
-  if(toUser) openWithUsername(toUser.toLowerCase());
-});
-
-async function openWithUsername(uname){
-  try {
-    const usnap = await getDoc(doc(db,'usernames',uname));
-    if(!usnap.exists()){ showError('User not found'); return; }
-    const uid = usnap.data().uid;
-    if(uid===_user.uid) return;
-    const psnap = await getDoc(doc(db,'users',uid));
-    if(!psnap.exists()) return;
-    const other = psnap.data();
-    const cid = convoId(_user.uid, uid);
-    // Create conversation doc if it doesn't exist
-    const cref = doc(db,'conversations',cid);
-    const cdoc = await getDoc(cref);
-    if(!cdoc.exists()){
-      await setDoc(cref,{
-        participants:[_user.uid,uid].sort(),
-        lastMessage:'', lastAt:serverTimestamp(),
-        unread:{[_user.uid]:0,[uid]:0},
-        names:{[_user.uid]:_profile?.username||'Me',[uid]:other.username||'User'},
-        photos:{[_user.uid]:_profile?.photoURL||'',[uid]:other.photoURL||''},
-      });
-    }
-    openConvo(cid,{uid,username:other.username,photoURL:other.photoURL});
-  } catch(e){ showError('Could not open conversation: '+e.message); }
-}
-
-function loadInbox(){
-  if(_inboxUnsub) _inboxUnsub();
-  const q = query(collection(db,'conversations'), where('participants','array-contains',_user.uid), limit(50));
-  _inboxUnsub = onSnapshot(q, (snap) => {
-    const list = document.getElementById('inboxList');
-    const empty = document.getElementById('inboxEmpty');
-    if(snap.empty){
-      empty.style.display='block'; empty.textContent='No conversations yet.\nVisit a user profile to send a message.';
-      document.getElementById('inboxCount').textContent='0';
-      return;
-    }
-    empty.style.display='none';
-    document.getElementById('inboxCount').textContent=snap.size;
-    // Sort by lastAt desc client-side
-    const docs = snap.docs.slice().sort((a,b)=>{
-      const ta=a.data().lastAt?.toMillis?a.data().lastAt.toMillis():0;
-      const tb=b.data().lastAt?.toMillis?b.data().lastAt.toMillis():0;
-      return tb-ta;
-    });
-    list.innerHTML='';
-    docs.forEach(d=>{
-      const c=d.data(), myUid=_user.uid;
-      const otherId=(c.participants||[]).find(p=>p!==myUid)||'';
-      const oName=c.names?.[otherId]||'Unknown';
-      const oPhoto=c.photos?.[otherId]||'';
-      const unread=(c.unread?.[myUid])||0;
-      const when=c.lastAt?.toDate?fmtTime(c.lastAt.toDate()):'';
-      const el=document.createElement('div');
-      el.className='convo-item'+(d.id===_activeConvoId?' active':'');
-      el.innerHTML=`
-        <div class="convo-av">${oPhoto?`<img src="${esc(oPhoto)}">`:(oName[0]||'?').toUpperCase()}</div>
-        <div class="convo-info">
-          <div class="convo-name">${esc(oName)}</div>
-          <div class="convo-preview">${esc((c.lastMessage||'').slice(0,60))||'— start the conversation —'}</div>
-        </div>
-        <div class="convo-meta">
-          <div class="convo-time">${when}</div>
-          ${unread>0?`<div class="convo-badge">${unread}</div>`:''}
-        </div>`;
-      el.onclick=()=>openConvo(d.id,{uid:otherId,username:oName,photoURL:oPhoto});
-      list.appendChild(el);
-    });
-  }, (err)=>{ console.error('Inbox error:',err); showError('Could not load inbox. Check Firestore rules.'); });
-}
-
-function openConvo(cid, other){
-  _activeConvoId=cid; _activeOther=other;
-  document.getElementById('msgShell').classList.add('has-convo');
-  // Mark read
-  updateDoc(doc(db,'conversations',cid),{[`unread.${_user.uid}`]:0}).catch(()=>{});
-  // Header
-  const av=document.getElementById('convoHeadAv');
-  av.innerHTML=other.photoURL?`<img src="${esc(other.photoURL)}">`:(other.username||'?')[0].toUpperCase();
-  document.getElementById('convoHeadName').textContent=other.username||'User';
-  document.getElementById('convoHeadStatus').textContent='Direct message';
-  document.getElementById('convoHeadLink').href=`user.html?u=${encodeURIComponent(other.username||'')}`;
-  // Show pane
-  document.getElementById('noConvo').style.display='none';
-  const ac=document.getElementById('activeConvo'); ac.style.display='flex'; ac.style.flexDirection='column';
-  // Highlight in inbox
-  document.querySelectorAll('.convo-item').forEach(el=>el.classList.remove('active'));
-  // Subscribe to messages
-  if(_convoUnsub) _convoUnsub();
-  const q=query(collection(db,'conversations',cid,'messages'),orderBy('createdAt','asc'),limit(100));
-  _convoUnsub=onSnapshot(q,(snap)=>{
-    const wrap=document.getElementById('convoMsgs');
-    if(snap.empty){wrap.innerHTML='<div class="msg-empty"><div class="msg-empty-icon">👋</div><div>No messages yet</div><div style="font-size:9px;color:var(--muted2);margin-top:4px;">Say something first!</div></div>';return;}
-    let prevDate='', html='';
-    snap.docs.forEach(d=>{
-      const m=d.data(), out=m.fromUid===_user.uid;
-      const ts=m.createdAt?.toDate?m.createdAt.toDate():new Date();
-      const dateStr=ts.toDateString();
-      if(dateStr!==prevDate){prevDate=dateStr;html+=`<div class="day-sep"><span>${fmtDate(ts)}</span></div>`;}
-      html+=`<div class="bubble-wrap ${out?'out':'in'}"><div class="bubble ${out?'out':'in'}">${esc(m.text||'')}</div><div class="bubble-time">${fmtTime(ts)}</div></div>`;
-    });
-    wrap.innerHTML=html;
-    wrap.scrollTop=wrap.scrollHeight;
-  },(err)=>{ console.error('Messages error:',err); showError('Could not load messages. Firestore rules may need updating.'); });
-}
-
-window.sendMsg=async function(){
-  const input=document.getElementById('composeInput');
-  const text=input.value.trim();
-  if(!text||!_user||!_activeConvoId||!_activeOther) return;
-  if(window.containsProfanity&&window.containsProfanity(text)){showError('Message blocked — restricted language');return;}
-  const btn=document.getElementById('sendBtn'); btn.disabled=true;
-  input.value='';
-  try {
-    await addDoc(collection(db,'conversations',_activeConvoId,'messages'),{
-      fromUid:_user.uid,
-      fromUsername:_profile?.username||'Unknown',
-      text:text.slice(0,400),
-      createdAt:serverTimestamp(),
-    });
-    await updateDoc(doc(db,'conversations',_activeConvoId),{
-      lastMessage:text.slice(0,100), lastAt:serverTimestamp(),
-      [`unread.${_activeOther.uid}`]:increment(1),
-    });
-  } catch(e){
-    showError('Send failed — '+e.message+'. Make sure Firestore rules allow conversations.');
-    input.value=text; // restore
-  } finally { btn.disabled=false; input.focus(); }
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBpMuv59Rlhc2roSiTPBzjKKHjuwqe0TFs",
+  authDomain: "mogmetv.firebaseapp.com",
+  projectId: "mogmetv",
+  storageBucket: "mogmetv.firebasestorage.app",
+  messagingSenderId: "1067675943117",
+  appId: "1:1067675943117:web:9545a8bbfa7f68d5db2984",
 };
 
-function fmtTime(d){ return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
-function fmtDate(d){
-  const today=new Date(), yest=new Date(today); yest.setDate(yest.getDate()-1);
-  if(d.toDateString()===today.toDateString()) return 'Today';
-  if(d.toDateString()===yest.toDateString()) return 'Yesterday';
-  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+const fbApp  = initializeApp(FIREBASE_CONFIG);
+const auth   = getAuth(fbApp);
+const db     = getFirestore(fbApp);
+const gProvider = new GoogleAuthProvider();
+
+window._auth = auth;
+window._db   = db;
+
+let _currentUser    = null;
+let _currentProfile = null;
+
+/* ── TIER HELPER ── */
+function getTierFromElo(elo) {
+  if (elo >= 5001) return { name:'Slayer',   emoji:'💀', color:'#ff3d6b' };
+  if (elo >= 3501) return { name:'Chad',     emoji:'👑', color:'#f5a623' };
+  if (elo >= 2001) return { name:'Chadlite', emoji:'🔥', color:'#7b61ff' };
+  if (elo >= 1501) return { name:'HTN',      emoji:'⭐', color:'#0df2c8' };
+  if (elo >= 1001) return { name:'MTN',      emoji:'⚡', color:'#f5a623' };
+  if (elo >= 501)  return { name:'LTN',      emoji:'🌙', color:'#7090d0' };
+  if (elo >= 1)    return { name:'Sub3',     emoji:'🔴', color:'#ff3d6b' };
+  return                   { name:'Molecule',emoji:'🧪', color:'#888aaa' };
 }
-function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-</script>
-<script type="module" src="auth.js"></script>
-</body>
-</html>
+
+/* ══════════════════════════════════
+   SIGN IN / OUT
+══════════════════════════════════ */
+window.signInWithGoogle = async function() {
+  const btn = document.getElementById('googleSignInBtn');
+  if (btn) { btn.textContent = 'Opening Google...'; btn.disabled = true; }
+  try {
+    const result = await signInWithPopup(auth, gProvider);
+    console.log('Popup sign-in success:', result.user.email);
+    // onAuthStateChanged will fire automatically
+  } catch(e) {
+    console.error('Sign in error:', e.code, e.message);
+    if (btn) { btn.innerHTML = googleBtnHTML(); btn.disabled = false; }
+    if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+      alert('Sign in failed: ' + e.message);
+    }
+  }
+};
+
+window.signOutUser = async function() {
+  try {
+    await signOut(auth);
+    _currentUser = null; _currentProfile = null;
+    ['mgm_name','mgm_elo','mgm_wins','mgm_losses','mgm_uid','mgm_photo','mgm_username']
+      .forEach(k => localStorage.removeItem(k));
+    window.location.href = 'index.html';
+  } catch(e) { console.error(e); }
+};
+
+/* ══════════════════════════════════
+   FIRESTORE PROFILE
+══════════════════════════════════ */
+async function loadOrCreateProfile(user) {
+  const ref  = doc(db, 'users', user.uid);
+  const snap = await getDoc(ref);
+
+  if (snap.exists()) {
+    const data = snap.data();
+    // Sync to localStorage
+    localStorage.setItem('mgm_uid',      user.uid);
+    localStorage.setItem('mgm_name',     data.username || user.displayName);
+    localStorage.setItem('mgm_username', data.username || '');
+    localStorage.setItem('mgm_elo',      data.elo      || 400);
+    localStorage.setItem('mgm_wins',     data.wins     || 0);
+    localStorage.setItem('mgm_losses',   data.losses   || 0);
+    localStorage.setItem('mgm_photo',    data.photoURL || user.photoURL || '');
+    await updateDoc(ref, { lastSeen: serverTimestamp() });
+    return data;
+  }
+  // New user — redirect to setup
+  return null;
+}
+
+window.saveEloToFirestore = async function(elo, wins, losses) {
+  const uid = localStorage.getItem('mgm_uid');
+  if (!uid) return;
+  try {
+    await updateDoc(doc(db, 'users', uid), {
+      elo, wins, losses, lastSeen: serverTimestamp()
+    });
+    localStorage.setItem('mgm_elo',    elo);
+    localStorage.setItem('mgm_wins',   wins);
+    localStorage.setItem('mgm_losses', losses);
+  } catch(e) { console.error('Save ELO error:', e); }
+};
+
+window.getFirestoreLeaderboard = async function(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  try {
+    const q = query(collection(db,'users'), orderBy('elo','desc'), limit(20));
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      el.innerHTML = '<div style="padding:24px;text-align:center;font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--muted2);">No ranked players yet — be the first!</div>';
+      return;
+    }
+    const medals = ['🥇','🥈','🥉'];
+    el.innerHTML = snap.docs.map((d,i) => {
+      const u = d.data();
+      const t = getTierFromElo(u.elo || 400);
+      const userHref = `user.html?u=${encodeURIComponent(u.username||'')}`;
+      const photo = u.photoURL
+        ? `<img src="${u.photoURL}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
+        : `<div class="lb-av">${(u.username||'?')[0].toUpperCase()}</div>`;
+      return `<a class="lb-row tier-${t.name}" href="${userHref}">
+        <div class="lb-rank">${medals[i]||('#'+(i+1))}</div>
+        <div class="lb-info">
+          ${photo}
+          <div>
+            <div class="lb-name">${escHtml(u.username||'Unknown')}</div>
+            <div class="lb-sub">${t.emoji} ${t.name} · ${u.wins||0}W ${u.losses||0}L${u.winStreak>1?' · 🔥'+u.winStreak+'W':''}</div>
+          </div>
+        </div>
+        <div class="lb-elo">${u.elo||400} ELO</div>
+      </a>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="padding:24px;text-align:center;font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--muted2);">Could not load leaderboard</div>';
+  }
+};
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ══════════════════════════════════
+   UI UPDATES
+══════════════════════════════════ */
+function updateNavForUser(user, profile) {
+  const btn    = document.getElementById('navClaimBtn');
+  const banner = document.getElementById('guestBanner');
+  const chatInput = document.getElementById('chatMsgIn');
+  const chatName  = document.getElementById('chatNameIn');
+
+  if (user && profile) {
+    // Logged in
+    if (btn) {
+      const photo = profile.photoURL || user.photoURL;
+      const uname = profile.username || user.displayName?.split(' ')[0] || 'Profile';
+      btn.style.cssText = 'display:flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;border-radius:999px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);cursor:pointer;';
+      btn.innerHTML = photo
+        ? `<img src="${photo}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`
+        : `<div style="width:24px;height:24px;border-radius:50%;background:rgba(74,158,255,0.1);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#4A9EFF;">${(uname[0]||'?').toUpperCase()}</div><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`;
+      btn.onclick = () => window.toggleUserMenu && window.toggleUserMenu();
+    }
+    if (banner) banner.style.display = 'none';
+    document.body.style.paddingTop = 'var(--nav-h)';
+
+    // Enable chat
+    if (chatInput) { chatInput.disabled = false; chatInput.placeholder = 'Say something...'; }
+    if (chatName)  { chatName.value = profile.username||user.displayName; chatName.disabled = true; }
+  } else {
+    // Guest
+    if (btn) {
+      btn.style.cssText = '';
+      btn.textContent = 'CLAIM RANK';
+      btn.onclick = () => window.openClaimModal && window.openClaimModal();
+    }
+    if (banner) banner.style.display = 'flex';
+    document.body.style.paddingTop = 'calc(var(--nav-h) + 36px)';
+
+    // Disable chat for guests
+    if (chatInput) { chatInput.disabled = true; chatInput.placeholder = 'Sign in to chat'; }
+  }
+}
+
+function injectUserMenu() {
+  if (document.getElementById('userMenu')) return;
+  const menu = document.createElement('div');
+  menu.id = 'userMenu';
+  menu.style.cssText = 'position:fixed;top:calc(var(--nav-h)+8px);right:calc(var(--chat-w)+8px);background:#1a1a28;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:8px;min-width:210px;z-index:500;display:none;box-shadow:0 12px 40px rgba(0,0,0,0.6);';
+  menu.innerHTML = `
+    <div id="uMenuHead" style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:6px;display:flex;align-items:center;gap:10px;">
+      <div id="uMenuPhoto" style="width:38px;height:38px;border-radius:50%;background:var(--teal-dim);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;overflow:hidden;"></div>
+      <div>
+        <div id="uMenuName" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:#f2f2ff;"></div>
+        <div id="uMenuElo" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#0df2c8;margin-top:1px;"></div>
+      </div>
+    </div>
+    <a href="profile.html" style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;color:#6b6b8f;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:11px;transition:all 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.05)';this.style.color='#f2f2ff'" onmouseout="this.style.background='';this.style.color='#6b6b8f'">👤 My Profile</a>
+    <a href="rank.html" style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;color:#6b6b8f;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:11px;transition:all 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.05)';this.style.color='#f2f2ff'" onmouseout="this.style.background='';this.style.color='#6b6b8f'">🏆 Global Rank</a>
+    <div style="height:1px;background:rgba(255,255,255,0.06);margin:6px 0;"></div>
+    <button onclick="signOutUser()" style="width:100%;display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;color:#ff3d6b;background:none;border:none;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;text-align:left;" onmouseover="this.style.background='rgba(255,61,107,0.08)'" onmouseout="this.style.background=''">↩ Sign Out</button>`;
+  document.body.appendChild(menu);
+  document.addEventListener('click', e => {
+    const btn = document.querySelector('.nav-claim-btn');
+    if (menu.style.display==='block' && !menu.contains(e.target) && e.target!==btn && !btn?.contains(e.target)) {
+      menu.style.display = 'none';
+    }
+  });
+}
+
+window.toggleUserMenu = function() {
+  const menu = document.getElementById('userMenu');
+  if (!menu) return;
+  if (menu.style.display === 'block') { menu.style.display = 'none'; return; }
+  const elo  = parseInt(localStorage.getItem('mgm_elo')||'400');
+  const name = localStorage.getItem('mgm_username') || localStorage.getItem('mgm_name') || 'User';
+  const photo = localStorage.getItem('mgm_photo') || '';
+  const t = getTierFromElo(elo);
+  const nameEl  = document.getElementById('uMenuName');
+  const eloEl   = document.getElementById('uMenuElo');
+  const photoEl = document.getElementById('uMenuPhoto');
+  if (nameEl)  nameEl.textContent  = name;
+  if (eloEl)   eloEl.textContent   = elo+' ELO · '+t.name;
+  if (photoEl) photoEl.innerHTML   = photo ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;">` : name[0]||'?';
+  menu.style.display = 'block';
+};
+
+function googleBtnHTML() {
+  return `<svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Continue with Google`;
+}
+
+/* ══════════════════════════════════
+   AUTH STATE LISTENER
+══════════════════════════════════ */
+onAuthStateChanged(auth, async (user) => {
+  console.log('Auth state changed:', user ? user.email : 'no user');
+  if (user) {
+    _currentUser = user;
+    try {
+      const profile = await loadOrCreateProfile(user);
+      if (!profile) {
+        if (!window.location.pathname.includes('setup.html')) {
+          window.location.href = 'setup.html';
+          return;
+        }
+      } else {
+        _currentProfile = profile;
+        injectUserMenu();
+        updateNavForUser(user, profile);
+        const cm = document.getElementById('claimModal');
+        if (cm) cm.classList.remove('open');
+
+        // ── Send Firebase ID Token to WebSocket server for JWT verification ──
+        try {
+          const idToken = await user.getIdToken(false); // false = use cached token
+          if (window.wsSend) {
+            window.wsSend({
+              type:     'set_user',
+              idToken,  // Server verifies this via admin.auth().verifyIdToken()
+              name:     profile.username || user.displayName,
+              username: profile.username || '',
+              uid:      user.uid,
+              photoURL: profile.photoURL || user.photoURL || '',
+            });
+          }
+        } catch(tokenErr) {
+          console.warn('Could not get ID token:', tokenErr.message);
+        }
+      }
+    } catch(e) {
+      console.error('Auth state error:', e);
+      updateNavForUser(null, null);
+    }
+  } else {
+    _currentUser    = null;
+    _currentProfile = null;
+    updateNavForUser(null, null);
+  }
+});
+
+window.getCurrentUser    = () => _currentUser;
+window.getCurrentProfile = () => _currentProfile;
+window.isLoggedIn        = () => !!_currentUser && !!_currentProfile;
