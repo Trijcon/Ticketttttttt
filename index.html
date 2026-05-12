@@ -405,206 +405,176 @@ startActivityFeed();
 setTimeout(function(){loadLeaderboard('lbPreview');},1500);
 setInterval(function(){loadLeaderboard('lbPreview');},30000);
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* ════════════════════════════════
-   DASHBOARD HOLOGRAM
-   Real-time face tracking with
-   zero delay — runs every frame
+   DASHBOARD HOLOGRAM — COSMETIC ONLY
+   Pure Three.js wireframe face mesh
+   with ambient particle drift
 ════════════════════════════════ */
-var hCam=null, hFM=null, hLM=null, hRunning=false;
-var hR,hS,hC,hG; // renderer, scene, camera, group
-var hSY=0,hSP=0,hSR=0; // smoothed yaw/pitch/roll
-var hT=0; // idle timer
-var hMouth=false;
+var hR,hS,hC,hG,hParticles; var hT=0;
 
-// Init Three.js — wait for DOM to be ready
 window.addEventListener('load', function() {
-  var card = document.getElementById('holoCard');
-  var canvas = document.getElementById('dashHoloCanvas');
-  var W = card.offsetWidth || 320;
-  var H = card.offsetHeight || 240;
+  var card=document.getElementById('holoCard');
+  var canvas=document.getElementById('dashHoloCanvas');
+  if(!card||!canvas||!window.THREE) return;
+  var W=card.offsetWidth||320, H=card.offsetHeight||240;
+  canvas.width=W; canvas.height=H;
 
-  // Set actual canvas pixel dimensions
-  canvas.width = W;
-  canvas.height = H;
-
-  hR = new THREE.WebGLRenderer({canvas:canvas, antialias:true, alpha:false});
-  hR.setPixelRatio(Math.min(devicePixelRatio, 1.5));
-  hR.setSize(W, H, false);
-  hR.setClearColor(0x000000, 1);
-  hS = new THREE.Scene();
-  hC = new THREE.PerspectiveCamera(50, W/H, 0.1, 100);
-  hC.position.z = 2.1;
-  hG = new THREE.Group();
+  hR=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:false});
+  hR.setPixelRatio(Math.min(devicePixelRatio,1.5));
+  hR.setSize(W,H,false);
+  hR.setClearColor(0x000000,1);
+  hS=new THREE.Scene();
+  hC=new THREE.PerspectiveCamera(46,W/H,0.1,100);
+  hC.position.z=2.4;
+  hG=new THREE.Group();
   hS.add(hG);
 
-  // Grid floor
-  var gv = [];
-  for(var i=-8;i<=8;i++){
-    gv.push(-8*0.15,-0.9,i*0.15,  8*0.15,-0.9,i*0.15);
-    gv.push(i*0.15,-0.9,-8*0.15,  i*0.15,-0.9,8*0.15);
+  // Subtle grid floor
+  var gv=[];
+  for(var i=-10;i<=10;i++){
+    gv.push(-10*0.14,-1.0,i*0.14, 10*0.14,-1.0,i*0.14);
+    gv.push(i*0.14,-1.0,-10*0.14, i*0.14,-1.0,10*0.14);
   }
-  var gg = new THREE.BufferGeometry();
-  gg.setAttribute('position', new THREE.Float32BufferAttribute(gv, 3));
-  hS.add(new THREE.LineSegments(gg, new THREE.LineBasicMaterial({color:0x4A9EFF,transparent:true,opacity:0.05})));
-  hS.add(new THREE.AmbientLight(0x4A9EFF, 0.3));
-  var pt = new THREE.PointLight(0x4A9EFF, 1.2, 8);
-  pt.position.set(0,0,3); hS.add(pt);
+  var gg=new THREE.BufferGeometry(); gg.setAttribute('position',new THREE.Float32BufferAttribute(gv,3));
+  hS.add(new THREE.LineSegments(gg,new THREE.LineBasicMaterial({color:0x4A9EFF,transparent:true,opacity:0.04})));
 
-  hBuildDefault();
+  // Ambient fill light
+  hS.add(new THREE.AmbientLight(0x4A9EFF,0.25));
+  var kl=new THREE.PointLight(0x4A9EFF,0.8,10); kl.position.set(0.5,0.5,2); hS.add(kl);
+
+  // Build face wireframe
+  buildFaceWireframe();
+
+  // Ambient particles
+  buildParticles();
+
+  // Hide camera button — hologram is cosmetic now
+  var btn=document.getElementById('holoCamBtn');
+  if(btn) btn.style.display='none';
+
   hLoop();
 });
 
-function hLoop(){
-  requestAnimationFrame(hLoop);
-  hT+=0.01;
-  if(hLM){
-    if(Math.round(hT*100)%6===0) hBuildLive();
-    hG.rotation.y=hSY*1.2;
-    hG.rotation.x=hSP*0.85;
-    hG.rotation.z=-hSR*0.65;
-    hG.position.y=Math.sin(hT*0.7)*0.007;
-  }else{
-    hG.rotation.y=Math.sin(hT*0.38)*0.5;
-    hG.rotation.x=Math.sin(hT*0.22)*0.08;
-    hG.rotation.z=0;
-    hG.position.y=Math.sin(hT*0.55)*0.02;
-  }
-  hR.render(hS,hC);
-}
-
-function hClear(){while(hG.children.length)hG.remove(hG.children[0]);}
-
 function hLine(pts,op,col){
   var g=new THREE.BufferGeometry().setFromPoints(pts);
-  hG.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:col||0x4A9EFF,transparent:true,opacity:op||0.5})));
+  hG.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:col||0x4A9EFF,transparent:true,opacity:op||0.5,depthTest:false})));
 }
 
-function hBuildDefault(){
-  hClear();
-  var B=0x4A9EFF,LT=0x88CCFF;
-  // Face oval
-  var o=[]; for(var i=0;i<=80;i++){var a=(i/80)*Math.PI*2;o.push(new THREE.Vector3(Math.cos(a)*0.42,Math.sin(a)*0.56,0));}
-  hLine(o,0.45,B);
-  // Scan lines
-  for(var y=-0.5;y<=0.5;y+=0.07){var hw=Math.sqrt(Math.max(0,1-Math.pow(y/0.56,2)))*0.42;hLine([new THREE.Vector3(-hw,y,0),new THREE.Vector3(hw,y,0)],0.1,B);}
-  // Eyes
+function buildFaceWireframe(){
+  var B=0x4A9EFF, LT=0xaad4ff, DIM=0x224466;
+
+  // ── FACE OVAL ──
+  var oval=[]; for(var i=0;i<=96;i++){var a=(i/96)*Math.PI*2; oval.push(new THREE.Vector3(Math.cos(a)*0.44,Math.sin(a)*0.58,0));}
+  hLine(oval,0.5,B);
+
+  // ── TOPOLOGY SCAN LINES (horizontal) ──
+  var scanYs=[-0.50,-0.36,-0.22,-0.08,0.07,0.22,0.37,0.50];
+  scanYs.forEach(function(y){
+    var hw=Math.sqrt(Math.max(0,1-Math.pow(y/0.58,2)))*0.44;
+    hLine([new THREE.Vector3(-hw,y,0),new THREE.Vector3(hw,y,0)],0.08,DIM);
+  });
+
+  // ── VERTICAL CENTER ──
+  hLine([new THREE.Vector3(0,0.55,0),new THREE.Vector3(0,-0.55,0)],0.05,DIM);
+
+  // ── EYEBROWS ──
+  [[-0.16,1],[ 0.16,-1]].forEach(function(b){
+    var ex=b[0], side=b[1];
+    var bp=[new THREE.Vector3(ex-0.09*side,0.24,0.04),new THREE.Vector3(ex-0.03*side,0.27,0.05),new THREE.Vector3(ex+0.05*side,0.25,0.04),new THREE.Vector3(ex+0.10*side,0.21,0.03)];
+    hLine(bp,0.55,B);
+  });
+
+  // ── EYES — almond shape ──
   [-0.16,0.16].forEach(function(ex){
-    var ep=[]; for(var i=0;i<=36;i++){var a=(i/36)*Math.PI*2;ep.push(new THREE.Vector3(ex+Math.cos(a)*0.09,0.1+Math.sin(a)*0.046,0));}
-    hLine(ep,0.8,LT);
-    var pg=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(ex,0.1,0)]);
-    hG.add(new THREE.Points(pg,new THREE.PointsMaterial({color:LT,size:0.022,transparent:true,opacity:0.9})));
+    // Upper lid
+    var ul=[]; for(var i=0;i<=28;i++){var a=(i/28)*Math.PI;ul.push(new THREE.Vector3(ex+Math.cos(a)*0.11,0.12+Math.sin(a)*0.048,0.05));}
+    hLine(ul,0.85,LT);
+    // Lower lid (flatter)
+    var ll=[]; for(var i=0;i<=28;i++){var a=Math.PI+(i/28)*Math.PI;ll.push(new THREE.Vector3(ex+Math.cos(a)*0.11,0.12+Math.sin(a)*0.026,0.05));}
+    hLine(ll,0.5,LT);
+    // Inner glow circle
+    var ic=[]; for(var i=0;i<=20;i++){var a=(i/20)*Math.PI*2;ic.push(new THREE.Vector3(ex+Math.cos(a)*0.045,0.12+Math.sin(a)*0.045,0.07));}
+    hLine(ic,0.6,LT);
+    // Pupil dot
+    var pg=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(ex,0.12,0.08)]);
+    hG.add(new THREE.Points(pg,new THREE.PointsMaterial({color:LT,size:0.028,transparent:true,opacity:0.95,depthTest:false})));
   });
-  // Brows
-  [[-0.16,-0.05,0.07],[0.16,0.05,0.07]].forEach(function(b){
-    hLine([new THREE.Vector3(b[0]-b[2],0.2,0),new THREE.Vector3(b[0],0.22,0),new THREE.Vector3(b[0]+b[2],0.2,0)],0.5,B);
-  });
-  // Nose
-  hLine([new THREE.Vector3(0,0.07,0),new THREE.Vector3(-0.04,-0.09,0),new THREE.Vector3(0.04,-0.09,0),new THREE.Vector3(0,0.07,0)],0.4,B);
-  [-0.05,0.05].forEach(function(nx){var np=[];for(var i=0;i<=18;i++){var a=(i/18)*Math.PI*2;np.push(new THREE.Vector3(nx+Math.cos(a)*0.025,-0.12+Math.sin(a)*0.016,0));}hLine(np,0.3,B);});
-  // Mouth
-  var mt=[];for(var i=0;i<=36;i++){var a=(i/36)*Math.PI;mt.push(new THREE.Vector3(Math.cos(a)*0.12,-0.25+Math.sin(a)*0.032,0));}
-  hLine(mt,0.75,LT);
-  // Jaw
-  var jaw=[];for(var i=0;i<=24;i++){var a=Math.PI+(i/24)*Math.PI;jaw.push(new THREE.Vector3(Math.cos(a)*0.42,Math.sin(a)*0.56,0));}
-  hLine(jaw,0.65,B);
-  // Cheekbones
-  hLine([new THREE.Vector3(-0.42,0.04,0),new THREE.Vector3(-0.3,-0.12,0),new THREE.Vector3(-0.18,-0.22,0)],0.18,B);
-  hLine([new THREE.Vector3(0.42,0.04,0),new THREE.Vector3(0.3,-0.12,0),new THREE.Vector3(0.18,-0.22,0)],0.18,B);
+
+  // ── NOSE BRIDGE ──
+  hLine([new THREE.Vector3(0,0.16,0.08),new THREE.Vector3(-0.01,0.02,0.12),new THREE.Vector3(0,-0.06,0.13)],0.45,B);
+  // Nose base
+  hLine([new THREE.Vector3(-0.08,-0.10,0.09),new THREE.Vector3(-0.03,-0.13,0.12),new THREE.Vector3(0,-0.14,0.13),new THREE.Vector3(0.03,-0.13,0.12),new THREE.Vector3(0.08,-0.10,0.09)],0.5,B);
+  // Nostril circles
+  var nc1=[],nc2=[];
+  for(var i=0;i<=16;i++){var a=(i/16)*Math.PI*2;nc1.push(new THREE.Vector3(-0.055+Math.cos(a)*0.03,-0.13+Math.sin(a)*0.019,0.08));nc2.push(new THREE.Vector3(0.055+Math.cos(a)*0.03,-0.13+Math.sin(a)*0.019,0.08));}
+  hLine(nc1,0.35,B); hLine(nc2,0.35,B);
+
+  // ── MOUTH — cupid's bow upper + lower ──
+  hLine([new THREE.Vector3(-0.13,-0.27,0.07),new THREE.Vector3(-0.06,-0.25,0.10),new THREE.Vector3(0,-0.27,0.09),new THREE.Vector3(0.06,-0.25,0.10),new THREE.Vector3(0.13,-0.27,0.07)],0.8,LT);
+  var lo=[]; for(var i=0;i<=32;i++){var a=(i/32)*Math.PI;lo.push(new THREE.Vector3(Math.cos(a)*0.115,-0.30+Math.sin(a)*0.036,0.08));}
+  hLine(lo,0.65,LT);
+  hLine([new THREE.Vector3(-0.13,-0.27,0.07),new THREE.Vector3(0.13,-0.27,0.07)],0.35,LT);
+
+  // ── JAW LINE ──
+  var jaw=[]; for(var i=0;i<=32;i++){var a=Math.PI+(i/32)*Math.PI;jaw.push(new THREE.Vector3(Math.cos(a)*0.44,Math.sin(a)*0.58,-0.02));}
+  hLine(jaw,0.7,B);
+
+  // ── CHEEKBONE STRUCTURE ──
+  hLine([new THREE.Vector3(-0.44,0.06,0),new THREE.Vector3(-0.32,-0.10,0.04),new THREE.Vector3(-0.20,-0.20,0.06)],0.22,B);
+  hLine([new THREE.Vector3(0.44,0.06,0),new THREE.Vector3(0.32,-0.10,0.04),new THREE.Vector3(0.20,-0.20,0.06)],0.22,B);
+
+  // ── PHILTRUM ──
+  hLine([new THREE.Vector3(-0.025,-0.14,0.12),new THREE.Vector3(-0.028,-0.25,0.10)],0.22,B);
+  hLine([new THREE.Vector3(0.025,-0.14,0.12),new THREE.Vector3(0.028,-0.25,0.10)],0.22,B);
+
+  // ── KEY LANDMARK DOTS ──
+  var kpts=[[0,0.58,0],[0,-0.58,0],[-0.44,0,0],[0.44,0,0],[-0.16,0.12,0.06],[0.16,0.12,0.06],[0,-0.14,0.13],[0,-0.27,0.09],[0,0,0]];
+  var kv=[]; kpts.forEach(function(p){kv.push(p[0],p[1],p[2]);});
+  var kg=new THREE.BufferGeometry(); kg.setAttribute('position',new THREE.Float32BufferAttribute(kv,3));
+  hG.add(new THREE.Points(kg,new THREE.PointsMaterial({color:LT,size:0.024,transparent:true,opacity:0.85,depthTest:false})));
+
+  // ── FOREHEAD STRUCTURE LINES ──
+  hLine([new THREE.Vector3(-0.38,0.42,0),new THREE.Vector3(-0.10,0.50,0),new THREE.Vector3(0.10,0.50,0),new THREE.Vector3(0.38,0.42,0)],0.18,DIM);
+  hLine([new THREE.Vector3(-0.20,0.56,0),new THREE.Vector3(0,0.60,0),new THREE.Vector3(0.20,0.56,0)],0.12,DIM);
 }
 
-function hBuildLive(){
-  hClear();
-  if(!hLM)return hBuildDefault();
-  var W=640,H=480,B=0x4A9EFF,LT=0x88CCFF;
-  function v3(i){var p=hLM[i];return new THREE.Vector3((p.x-0.5)*1.7*(W/H),-(p.y-0.5)*1.7,-p.z*1.5);}
-  function poly(idx,op,col){hLine(idx.map(function(i){return v3(i);}),op,col);}
-  // Face contour
-  poly([10,338,297,332,284,251,389,356,454,323,361,288,397,365,379,378,400,377,152,148,176,149,150,136,172,58,132,93,234,127,162,21,54,103,67,109,10],0.5,B);
-  // Topology lines
-  [[54,103,67,109,10,338,297,332],[323,361,288,397,365,379],[162,21,54,103],[454,323,361,288]].forEach(function(r){poly(r,0.1,B);});
-  // Eyes
-  poly([33,7,163,144,145,153,154,155,133,173,157,158,159,160,161,246,33],0.85,LT);
-  poly([362,382,381,380,374,373,390,249,263,466,388,387,386,385,384,398,362],0.85,LT);
-  // Iris dots
-  var ip=[]; [468,469,470,471,472,473,474,475,476,477].forEach(function(i){if(hLM[i]){var p=v3(i);ip.push(p.x,p.y,p.z);}});
-  if(ip.length){var ig=new THREE.BufferGeometry();ig.setAttribute('position',new THREE.Float32BufferAttribute(ip,3));hG.add(new THREE.Points(ig,new THREE.PointsMaterial({color:LT,size:0.018,transparent:true,opacity:0.9})));}
-  // Brows
-  poly([70,63,105,66,107],0.55,B);poly([300,293,334,296,336],0.55,B);
-  // Nose
-  poly([168,6,197,195,5,4,1,19,94],0.45,B);poly([2,326,327,328,94,98,97,2],0.4,B);
-  // Mouth outer
-  poly([61,185,40,39,37,0,267,269,270,409,291,375,321,405,314,17,84,181,91,146,61],0.8,LT);
-  // Mouth inner — only when open
-  if(hMouth){poly([78,191,80,81,82,13,312,311,310,415,308,324,318,402,317,14,87,178,88,95,78],0.65,LT);}
-  // Jaw emphasis
-  poly([234,93,132,58,172,136,150,149,176,148,152,377,400,378,379,365,397,288,361,323,454],0.7,B);
-  // Cheeks
-  poly([234,116,93],0.22,B);poly([454,345,323],0.22,B);
-  // Key dots
-  var kd=[1,4,10,152,234,454,61,291,33,263];
-  var kv=[];kd.forEach(function(i){var p=v3(i);kv.push(p.x,p.y,p.z);});
-  var kg=new THREE.BufferGeometry();kg.setAttribute('position',new THREE.Float32BufferAttribute(kv,3));
-  hG.add(new THREE.Points(kg,new THREE.PointsMaterial({color:LT,size:0.025,transparent:true,opacity:0.9})));
+function buildParticles(){
+  // Floating ambient particles that drift slowly
+  var N=80, pv=[], sizes=[];
+  for(var i=0;i<N;i++){
+    pv.push((Math.random()-0.5)*3,(Math.random()-0.5)*3,(Math.random()-0.5)*1.5);
+    sizes.push(Math.random()*0.015+0.004);
+  }
+  var pg=new THREE.BufferGeometry();
+  pg.setAttribute('position',new THREE.Float32BufferAttribute(pv,3));
+  hParticles=new THREE.Points(pg,new THREE.PointsMaterial({color:0x4A9EFF,transparent:true,opacity:0.35,size:0.008,depthTest:false}));
+  hS.add(hParticles);
 }
 
-function toggleHoloCam(){
-  if(hCam){hStopCam();}else{hStartCam();}
-}
+function hLoop(){
+  requestAnimationFrame(hLoop);
+  hT+=0.008;
 
-function hStartCam(){
-  navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'},audio:false})
-  .then(function(stream){
-    hCam=stream;
-    var v=document.createElement('video');
-    v.srcObject=stream;v.autoplay=true;v.muted=true;v.playsInline=true;
-    v.onloadedmetadata=function(){
-      document.getElementById('holoCamBtn').textContent='Deactivate';
-      document.getElementById('holoStatus').textContent='TRACKING';
-      hInitFM(v);
-    };
-  }).catch(function(){
-    document.getElementById('holoStatus').textContent='DENIED';
-  });
-}
+  // Gentle idle sway — front-facing, no full rotation
+  hG.rotation.y=Math.sin(hT*0.35)*0.12;
+  hG.rotation.x=-0.04+Math.sin(hT*0.22)*0.04;
+  hG.position.y=Math.sin(hT*0.6)*0.018;
 
-function hStopCam(){
-  if(hCam){hCam.getTracks().forEach(function(t){t.stop();});hCam=null;}
-  hRunning=false;hLM=null;
-  document.getElementById('holoCamBtn').textContent='Activate Camera';
-  document.getElementById('holoStatus').textContent='STANDBY';
-  hBuildDefault();
-}
+  // Drift particles
+  if(hParticles){
+    var pos=hParticles.geometry.attributes.position.array;
+    for(var i=0;i<pos.length;i+=3){
+      pos[i+1]+=0.0005;
+      pos[i]+=Math.sin(hT*0.7+i)*0.0003;
+      if(pos[i+1]>1.5) pos[i+1]=-1.5;
+    }
+    hParticles.geometry.attributes.position.needsUpdate=true;
+    hParticles.rotation.y+=0.001;
+  }
 
-function hInitFM(video){
-  // Use a hidden canvas for MediaPipe input
-  var c=document.createElement('canvas');c.width=640;c.height=480;
-  hFM=new FaceMesh({locateFile:function(f){return 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/'+f;}});
-  hFM.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.55,minTrackingConfidence:0.55});
-  hFM.onResults(function(r){
-    if(!r.multiFaceLandmarks||!r.multiFaceLandmarks.length){hLM=null;document.getElementById('holoStatus').textContent='SEARCHING';return;}
-    hLM=r.multiFaceLandmarks[0];
-    document.getElementById('holoStatus').textContent='LIVE';
-    // Head pose
-    var nose=hLM[4],chin=hLM[152],fh=hLM[10],le=hLM[234],re=hLM[454];
-    var tY=(nose.x-0.5)*2.0;
-    var fcy=(fh.y+chin.y)/2;
-    var tP=(nose.y-fcy)*2.8;
-    var tR=Math.atan2(re.y-le.y,re.x-le.x);
-    var s=0.18; // Higher = faster/less smooth
-    hSY+=(tY-hSY)*s;hSP+=(tP-hSP)*s;hSR+=(tR-hSR)*s;
-    // Mouth
-    function d(a,b){return Math.sqrt(Math.pow(hLM[a].x-hLM[b].x,2)+Math.pow(hLM[a].y-hLM[b].y,2));}
-    hMouth=d(13,14)/Math.max(d(61,291),0.001)>0.055;
-  });
-  hRunning=true;
-  // Run MediaPipe as fast as possible — no throttle
-  (function loop(){
-    if(!hRunning||!hCam)return;
-    hFM.send({image:video}).then(function(){requestAnimationFrame(loop);});
-  })();
+  hR.render(hS,hC);
 }
 </script>
 </body>
