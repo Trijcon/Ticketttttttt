@@ -30,20 +30,10 @@
   --green:     #22c55e;
   --red:       #ef4444;
   --amber:     #f59e0b;
-  --crimson:   #ef4444;
-  --icon-glow: rgba(74,158,255,0.55);
-
-  /* ── LEGACY ALIASES (kept for older pages) ── */
-  --surface:   rgba(255,255,255,0.03);
-  --surface2:  rgba(255,255,255,0.05);
-  --teal:      #0df2c8;
-  --teal-dim:  rgba(13,242,200,0.1);
-  --violet:    #7b61ff;
-  --violet-dim:rgba(123,97,255,0.1);
 
   /* ── LAYOUT ── */
-  --nav-h:   64px;
-  --chat-w:  280px;
+  --nav-h:   56px;
+  --chat-w:  260px;
   --radius:  6px;
 }
 
@@ -54,11 +44,11 @@ body {
   background: var(--bg);
   color: var(--silver);
   font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.6;
   min-height: 100vh;
   padding-top: calc(var(--nav-h) + 36px);
-  padding-left: var(--chat-w);
+  padding-right: var(--chat-w);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
@@ -74,7 +64,7 @@ body::before {
    NAVIGATION
 ════════════════════════════════ */
 .top-nav {
-  position: fixed; top: 0; right: 0; left: var(--chat-w);
+  position: fixed; top: 0; left: 0; right: var(--chat-w);
   height: var(--nav-h); z-index: 300;
   background: rgba(0,0,0,0.92);
   border-bottom: 1px solid var(--border);
@@ -85,21 +75,21 @@ body::before {
 
 .nav-logo {
   font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700; font-size: 19px;
+  font-weight: 700; font-size: 18px;
   letter-spacing: 0.5px; color: var(--white);
-  text-decoration: none; margin-right: 22px; flex-shrink: 0;
+  text-decoration: none; margin-right: 18px; flex-shrink: 0;
 }
 
 .nav-links {
-  display: flex; align-items: center; gap: 4px;
+  display: flex; align-items: center; gap: 2px;
   flex: 1; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
 }
 .nav-links::-webkit-scrollbar { display: none; }
 
 .nav-link {
-  padding: 9px 18px; border-radius: var(--radius);
+  padding: 7px 15px; border-radius: var(--radius);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 12px; letter-spacing: 1.2px;
+  font-size: 11px; letter-spacing: 1px;
   color: var(--muted); text-decoration: none;
   transition: color 0.2s, background 0.2s;
   border: 1px solid transparent; white-space: nowrap;
@@ -108,56 +98,30 @@ body::before {
 .nav-link.active {
   color: var(--blue); background: var(--blue-dim);
   border-color: rgba(74,158,255,0.15);
-  text-shadow: 0 0 10px var(--icon-glow);
 }
 .nav-link-disabled {
-  padding: 9px 18px; border-radius: var(--radius);
+  padding: 7px 15px; border-radius: var(--radius);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 12px; letter-spacing: 1.2px;
+  font-size: 11px; letter-spacing: 1px;
   color: var(--muted2); cursor: pointer;
   white-space: nowrap; border: 1px solid transparent;
 }
 .nav-link-disabled:hover { color: var(--muted); background: var(--glass); }
-.nav-link,
-.nav-link-disabled,
-.chat-head-title,
-.rank-pill,
-.tier-icon,
-.priv-icon,
-.feed-ph-icon,
-.lb-rank,
-.uh-trophy {
-  transition: color 0.2s, background 0.2s, filter 0.25s, text-shadow 0.25s, box-shadow 0.25s;
-}
-.nav-link:hover,
-.nav-link-disabled:hover,
-.chat-head-title,
-.priv-icon,
-.feed-ph-icon,
-.tier-icon:hover,
-.uh-trophy:hover,
-.lb-row:hover .lb-rank {
-  filter: drop-shadow(0 0 7px var(--icon-glow));
-}
-.priv-icon,
-.feed-ph-icon {
-  box-shadow: 0 0 22px rgba(74,158,255,0.12);
-}
 
-.nav-right { display: flex; align-items: center; gap: 14px; margin-left: auto; flex-shrink: 0; }
+.nav-right { display: flex; align-items: center; gap: 12px; margin-left: auto; flex-shrink: 0; }
 .nav-online {
-  display: flex; align-items: center; gap: 7px;
-  font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted);
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted);
 }
 .nav-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--green); opacity: 0.85;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--green); opacity: 0.8;
 }
 .nav-claim-btn {
-  padding: 9px 20px; border-radius: var(--radius);
+  padding: 8px 18px; border-radius: var(--radius);
   background: var(--blue); border: none;
   color: #000; font-family: 'JetBrains Mono', monospace;
-  font-size: 12px; letter-spacing: 1.2px; font-weight: 700;
+  font-size: 11px; letter-spacing: 1px; font-weight: 700;
   cursor: pointer; transition: opacity 0.2s; white-space: nowrap;
 }
 .nav-claim-btn:hover { opacity: 0.85; }
@@ -166,12 +130,12 @@ body::before {
    GUEST BANNER
 ════════════════════════════════ */
 .guest-banner {
-  position: fixed; top: var(--nav-h); right: 0; left: var(--chat-w); z-index: 200;
+  position: fixed; top: var(--nav-h); left: 0; right: var(--chat-w); z-index: 200;
   padding: 8px 24px;
   background: rgba(74,158,255,0.06);
   border-bottom: 1px solid rgba(74,158,255,0.12);
   display: flex; align-items: center; justify-content: center; gap: 10px;
-  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
   letter-spacing: 0.5px; color: var(--muted);
 }
 .guest-banner a { color: var(--blue); text-decoration: none; }
@@ -186,10 +150,10 @@ body::before {
    CHAT SIDEBAR
 ════════════════════════════════ */
 .chat-sidebar {
-  position: fixed; top: 0; left: 0; bottom: 0;
+  position: fixed; top: 0; right: 0; bottom: 0;
   width: var(--chat-w); z-index: 250;
   background: var(--bg1);
-  border-right: 1px solid var(--border);
+  border-left: 1px solid var(--border);
   display: flex; flex-direction: column;
 }
 .chat-head {
@@ -318,25 +282,6 @@ body::before {
 }
 .btn-danger:hover { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); }
 
-.btn-amber {
-  padding: 12px 22px; border-radius: var(--radius);
-  border: none; background: var(--blue);
-  color: #000; font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px; font-weight: 600; letter-spacing: 0.3px;
-  cursor: pointer; transition: opacity 0.2s;
-}
-.btn-amber:hover { opacity: 0.85; }
-.btn-amber:disabled { background: var(--bg4); color: var(--muted2); cursor: not-allowed; }
-
-.btn-outline {
-  padding: 11px 22px; border-radius: var(--radius);
-  border: 1px solid var(--border2); background: transparent;
-  color: var(--muted); font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px; font-weight: 500;
-  cursor: pointer; transition: all 0.2s;
-}
-.btn-outline:hover { color: var(--silver); border-color: var(--border3); background: var(--glass2); }
-
 /* ════════════════════════════════
    GLASSMORPHISM CARDS
 ════════════════════════════════ */
@@ -387,22 +332,33 @@ body::before {
   display: grid; grid-template-columns: 44px 1fr auto;
   align-items: center; gap: 12px; padding: 12px 16px;
   border-bottom: 1px solid var(--border);
-  transition: background 0.15s;
+  border-left: 2px solid transparent;
+  transition: background 0.15s, border-left-color 0.2s;
+  text-decoration: none; color: inherit;
 }
 .lb-row:last-child { border-bottom: none; }
 .lb-row:hover { background: var(--glass); }
+
+/* Tier accent borders on lb rows */
+.lb-row.tier-Slayer   { border-left-color: rgba(255,61,107,0.5); }
+.lb-row.tier-Chad     { border-left-color: rgba(245,166,35,0.5); }
+.lb-row.tier-Chadlite { border-left-color: rgba(123,97,255,0.45); }
+.lb-row.tier-HTN      { border-left-color: rgba(13,242,200,0.35); }
+.lb-row.tier-MTN      { border-left-color: rgba(74,158,255,0.35); }
+.lb-row.tier-LTN      { border-left-color: rgba(74,158,255,0.2); }
+
 .lb-rank { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--muted2); text-align: center; }
 .lb-info { display: flex; align-items: center; gap: 10px; }
 .lb-av {
-  width: 30px; height: 30px; border-radius: 50%;
+  width: 32px; height: 32px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 600;
+  font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600;
   background: var(--bg4); border: 1px solid var(--border2); color: var(--muted);
 }
 .lb-av img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-.lb-name { font-weight: 500; font-size: 13px; color: var(--silver); }
-.lb-sub { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted2); margin-top: 1px; letter-spacing: 0.5px; }
-.lb-elo { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--blue); }
+.lb-name { font-weight: 600; font-size: 14px; color: var(--silver); }
+.lb-sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted2); margin-top: 2px; letter-spacing: 0.5px; }
+.lb-elo { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--blue); font-weight: 700; }
 
 /* ════════════════════════════════
    SKELETON SCREENS
@@ -450,8 +406,8 @@ body::before {
 @media(max-width:900px) {
   :root { --chat-w: 0px; }
   .chat-sidebar { display: none; }
-  body { padding-left: 0; }
-  .top-nav, .guest-banner { left: 0; }
+  body { padding-right: 0; }
+  .top-nav, .guest-banner { right: 0; }
 }
 @media(max-width:600px) { .page-wrap { padding: 20px 16px 60px; } }
 
