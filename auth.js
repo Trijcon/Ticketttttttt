@@ -9,7 +9,7 @@ import { getAuth, GoogleAuthProvider, signInWithPopup,
          signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, collection,
-         query, orderBy, limit, getDocs, serverTimestamp, increment }
+         query, where, orderBy, limit, getDocs, serverTimestamp, increment, onSnapshot }
   from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const FIREBASE_CONFIG = {
@@ -31,6 +31,7 @@ window._db   = db;
 
 let _currentUser    = null;
 let _currentProfile = null;
+let _inboxBadgeUnsub = null;
 
 /* ── TIER HELPER ── */
 function getTierFromElo(elo) {
@@ -67,7 +68,7 @@ window.signOutUser = async function() {
   try {
     await signOut(auth);
     _currentUser = null; _currentProfile = null;
-    ['mgm_name','mgm_elo','mgm_wins','mgm_losses','mgm_uid','mgm_photo','mgm_username']
+    ['mgm_name','mgm_elo','mgm_wins','mgm_losses','mgm_uid','mgm_photo','mgm_username','mgm_idToken','mgm_peakElo','mgm_winStreak']
       .forEach(k => localStorage.removeItem(k));
     window.location.href = 'index.html';
   } catch(e) { console.error(e); }
@@ -90,6 +91,8 @@ async function loadOrCreateProfile(user) {
     localStorage.setItem('mgm_wins',     data.wins     || 0);
     localStorage.setItem('mgm_losses',   data.losses   || 0);
     localStorage.setItem('mgm_photo',    data.photoURL || user.photoURL || '');
+    localStorage.setItem('mgm_peakElo',  data.peakElo  || data.elo || 400);
+    localStorage.setItem('mgm_winStreak',data.winStreak|| 0);
     await updateDoc(ref, { lastSeen: serverTimestamp() });
     return data;
   }
@@ -163,10 +166,10 @@ function updateNavForUser(user, profile) {
     if (btn) {
       const photo = profile.photoURL || user.photoURL;
       const uname = profile.username || user.displayName?.split(' ')[0] || 'Profile';
-      btn.style.cssText = 'display:flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;border-radius:999px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);cursor:pointer;';
+      btn.style.cssText = 'display:flex;align-items:center;gap:9px;padding:6px 14px 6px 7px;border-radius:999px;background:rgba(255,255,255,0.05);border:1px solid rgba(74,158,255,0.16);cursor:pointer;box-shadow:0 0 16px rgba(74,158,255,0.08);';
       btn.innerHTML = photo
-        ? `<img src="${photo}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`
-        : `<div style="width:24px;height:24px;border-radius:50%;background:rgba(74,158,255,0.1);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#4A9EFF;">${(uname[0]||'?').toUpperCase()}</div><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`;
+        ? `<img src="${photo}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;box-shadow:0 0 14px rgba(74,158,255,0.2);"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`
+        : `<div style="width:30px;height:30px;border-radius:50%;background:rgba(74,158,255,0.1);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#4A9EFF;box-shadow:0 0 14px rgba(74,158,255,0.16);">${(uname[0]||'?').toUpperCase()}</div><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`;
       btn.onclick = () => window.toggleUserMenu && window.toggleUserMenu();
     }
     if (banner) banner.style.display = 'none';
@@ -240,6 +243,17 @@ function googleBtnHTML() {
 /* ══════════════════════════════════
    AUTH STATE LISTENER
 ══════════════════════════════════ */
+function startInboxBadge(uid) {
+  if (_inboxBadgeUnsub) { _inboxBadgeUnsub(); _inboxBadgeUnsub = null; }
+  if (!uid || !window.updateInboxBadge) return;
+  const q = query(collection(db,'conversations'), where('participants','array-contains',uid), limit(50));
+  _inboxBadgeUnsub = onSnapshot(q, snap => {
+    let unread = 0;
+    snap.forEach(d => { unread += Number(d.data().unread?.[uid] || 0); });
+    window.updateInboxBadge(unread);
+  }, () => window.updateInboxBadge(0));
+}
+
 onAuthStateChanged(auth, async (user) => {
   console.log('Auth state changed:', user ? user.email : 'no user');
   if (user) {
@@ -255,22 +269,28 @@ onAuthStateChanged(auth, async (user) => {
         _currentProfile = profile;
         injectUserMenu();
         updateNavForUser(user, profile);
+        startInboxBadge(user.uid);
         const cm = document.getElementById('claimModal');
         if (cm) cm.classList.remove('open');
 
         // ── Send Firebase ID Token to WebSocket server for JWT verification ──
         try {
           const idToken = await user.getIdToken(false); // false = use cached token
-          if (window.wsSend) {
-            window.wsSend({
-              type:     'set_user',
-              idToken,  // Server verifies this via admin.auth().verifyIdToken()
-              name:     profile.username || user.displayName,
-              username: profile.username || '',
-              uid:      user.uid,
-              photoURL: profile.photoURL || user.photoURL || '',
-            });
-          }
+          localStorage.setItem('mgm_idToken', idToken);
+          const payload = {
+            idToken,
+            name:profile.username || user.displayName,
+            username:profile.username || '',
+            uid:user.uid,
+            photoURL:profile.photoURL || user.photoURL || '',
+            elo:profile.elo || 400,
+            wins:profile.wins || 0,
+            losses:profile.losses || 0,
+            peakElo:profile.peakElo || profile.elo || 400,
+            winStreak:profile.winStreak || 0,
+          };
+          if (window.mgmSetAuthState) window.mgmSetAuthState(payload);
+          else if (window.wsSend) window.wsSend({ type:'set_user', ...payload });
         } catch(tokenErr) {
           console.warn('Could not get ID token:', tokenErr.message);
         }
@@ -282,6 +302,8 @@ onAuthStateChanged(auth, async (user) => {
   } else {
     _currentUser    = null;
     _currentProfile = null;
+    startInboxBadge(null);
+    if (window.updateInboxBadge) window.updateInboxBadge(0);
     updateNavForUser(null, null);
   }
 });
