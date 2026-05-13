@@ -36,13 +36,6 @@ body { padding-right:0!important; }
 .arena-title { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:22px; color:var(--white); letter-spacing:-0.3px; }
 .arena-online { display:flex; align-items:center; gap:6px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2); }
 .arena-online-dot { width:5px; height:5px; border-radius:50%; background:var(--green); opacity:0.8; }
-.arena-head-actions { display:flex; align-items:center; gap:10px; }
-.sound-toggle {
-  border:1px solid rgba(74,158,255,0.22); background:rgba(74,158,255,0.08); color:var(--blue);
-  border-radius:999px; padding:7px 11px; font-family:'JetBrains Mono',monospace; font-size:10px;
-  letter-spacing:0.8px; cursor:pointer; box-shadow:0 0 16px rgba(74,158,255,0.08);
-}
-.sound-toggle.off { color:var(--muted2); border-color:rgba(255,255,255,0.08); background:rgba(255,255,255,0.03); box-shadow:none; }
 
 .status-ticker {
   position:relative; z-index:10; margin:14px 32px 0;
@@ -125,12 +118,6 @@ body { padding-right:0!important; }
 .feed-ph { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; z-index:7; }
 .feed-ph-icon { opacity:0.12; }
 .feed-ph-text { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2); letter-spacing:1px; }
-.feed-ph.camera-needed {
-  background:radial-gradient(circle at center, rgba(74,158,255,0.1), rgba(0,0,0,0.84) 54%);
-  gap:16px; padding:26px; text-align:center;
-}
-.feed-ph.camera-needed .feed-ph-icon { opacity:0.42; filter:drop-shadow(0 0 18px rgba(74,158,255,0.26)); }
-.feed-ph.camera-needed .feed-ph-text { color:var(--silver); font-size:12px; line-height:1.7; max-width:320px; }
 
 /* Searching overlay — blurs YOUR feed while in queue */
 .search-overlay {
@@ -339,7 +326,6 @@ body { padding-right:0!important; }
 .daily-banner.show { display:flex; }
 .daily-progress { font-size:12px; font-weight:700; color:#fff; }
 
-</style>
 </head>
 <body>
 <div class="page-wrap" style="padding:0;">
@@ -350,10 +336,7 @@ body { padding-right:0!important; }
       <a class="arena-back" href="index.html">← HOME</a>
       <div><div class="arena-eyebrow">Ranked Matchmaking</div><div class="arena-title">⚔ 1V1 Arena</div></div>
     </div>
-    <div class="arena-head-actions">
-      <button class="sound-toggle" id="soundToggle" onclick="toggleSound()">SOUND ON</button>
-      <div class="arena-online"><div class="arena-online-dot"></div><span class="online-count-val">— online</span></div>
-    </div>
+    <div class="arena-online"><div class="arena-online-dot"></div><span class="online-count-val">— online</span></div>
   </div>
 
   <div class="status-ticker">
@@ -400,7 +383,7 @@ body { padding-right:0!important; }
       </div>
       <div class="feed-ph" id="myPH">
         <div class="feed-ph-icon"><svg width="44" height="44" viewBox="0 0 44 44" fill="none"><circle cx="22" cy="22" r="20" stroke="#333" stroke-width="1.2"/><circle cx="22" cy="17" r="7" stroke="#333" stroke-width="1.2"/><path d="M8 40c0-7.73 6.27-14 14-14s14 6.27 14 14" stroke="#333" stroke-width="1.2"/></svg></div>
-        <div class="feed-ph-text" id="myPHText">Opening camera...</div>
+        <div class="feed-ph-text">Opening camera...</div>
       </div>
     </div>
 
@@ -525,25 +508,11 @@ var ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.g
    No assets. All synthesis.
 ═══════════════════════════════ */
 var _audioCtx=null;
-var soundOn=localStorage.getItem('mgm_sound')!=='0';
-function updateSoundButton(){
-  var b=document.getElementById('soundToggle');
-  if(!b) return;
-  b.textContent=soundOn?'SOUND ON':'SOUND OFF';
-  b.classList.toggle('off',!soundOn);
-}
-function toggleSound(){
-  soundOn=!soundOn;
-  localStorage.setItem('mgm_sound',soundOn?'1':'0');
-  updateSoundButton();
-  if(soundOn) playTone(660,'sine',0.12,0.07,0);
-}
 function getAudioCtx(){
   if(!_audioCtx) _audioCtx=new(window.AudioContext||window.webkitAudioContext)();
   return _audioCtx;
 }
 function playTone(freq,type,dur,vol,delay){
-  if(!soundOn) return;
   try{
     var ctx=getAudioCtx();
     var o=ctx.createOscillator(), g=ctx.createGain();
@@ -563,7 +532,6 @@ function soundMatchFound(){
   playTone(880,'sine',0.5,0.10,0.38);
 }
 function soundScanBeep(){
-  if(!soundOn) return;
   // Short digital sweep
   try{
     var ctx=getAudioCtx();
@@ -594,7 +562,6 @@ function soundScanLock(){
 var _elo=parseInt(localStorage.getItem('mgm_elo')||'400');
 var _name=localStorage.getItem('mgm_username')||localStorage.getItem('mgm_name')||'You';
 
-updateSoundButton();
 document.getElementById('myTRName').textContent=_name;
 document.getElementById('myTRElo').textContent=_elo+' ELO · '+getTierName(_elo);
 document.getElementById('myMogName').textContent=_name;
@@ -624,8 +591,7 @@ function updateStreakBadge(){
 }
 updateStreakBadge();
 
-try { injectSharedUI(); connectWS(onMsg); }
-catch(e) { console.error('Arena boot error:', e); }
+injectSharedUI(); connectWS(onMsg);
 setTimeout(startCam,400);
 
 // Apply tier border to my feed
@@ -676,14 +642,7 @@ function onMsg(msg){
       // Opponent also clicked rematch — pair them
       rematchOppReady=true;
       var rw=document.getElementById('rmbWaiting'); if(rw) rw.style.display='none';
-      document.getElementById('resultOverlay').classList.remove('show');
-      document.getElementById('rematchBanner').classList.remove('show');
-      resetOpp(); closeRTC();
-      setS('connected','Rematch confirmed - rejoining...'); break;
-    case 'opponent_wants_rematch':
-      startRematchWindow();
-      setS('connected','Opponent wants a rematch');
-      break;
+      setS('connected','Rematch confirmed — rejoining...'); break;
     case 'webrtc_offer': handleOffer(msg); break;
     case 'webrtc_answer': handleAnswer(msg); break;
     case 'webrtc_ice': handleIce(msg); break;
@@ -692,21 +651,8 @@ function onMsg(msg){
 
 function mainAction(){ if(state==='camera') findMatch(); }
 
-function showCameraIssue(message, detail){
-  setS('', message);
-  var ph=document.getElementById('myPH');
-  var phText=document.getElementById('myPHText');
-  if(ph){ph.classList.add('camera-needed'); ph.style.display='flex';}
-  if(phText) phText.innerHTML=message+'<br><span style="color:var(--muted2);font-size:10px;">'+detail+'</span>';
-  var btn=document.getElementById('mainBtn');
-  if(btn){btn.disabled=false; btn.textContent='Retry Camera'; btn.style.display='block'; btn.onclick=startCam;}
-}
-
 function startCam(){
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-    showCameraIssue('Camera unavailable','Open the site over HTTPS or localhost and allow camera access to enter the arena.');
-    return;
-  }
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){showCameraIssue('Camera unavailable','Open the site over HTTPS and allow camera access.');return;}
   navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},facingMode:'user'},audio:false})
   .then(function(stream){
     myStream=stream;
@@ -729,10 +675,6 @@ function startCam(){
 }
 
 function initFM(v,c){
-  if(!window.FaceMesh){
-    showCameraIssue('Face scanner failed to load','Refresh the page. If this keeps happening, the MediaPipe CDN is being blocked.');
-    return false;
-  }
   faceMesh=new FaceMesh({locateFile:function(f){return 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/'+f;}});
   faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.6,minTrackingConfidence:0.6});
   faceMesh.onResults(function(r){
@@ -759,33 +701,110 @@ function initFM(v,c){
   });
   fmReady=true;
   (function loop(){if(!fmReady||!myStream)return;faceMesh.send({image:v}).then(function(){requestAnimationFrame(loop);});})();
-  return true;
 }
 
 function drawMesh(canvas,lm){
   var ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
-  var sc=Math.max(1,w/900);
-  function pt(i){return lm[i]?{x:lm[i].x*w,y:lm[i].y*h}:null;}
-  function trace(ids,col,lw,glow){
-    ctx.save();ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.lineCap='round';ctx.lineJoin='round';
-    ctx.shadowColor='rgba(74,158,255,0.5)';ctx.shadowBlur=glow||0;ctx.beginPath();var s=false;
-    for(var ii=0;ii<ids.length;ii++){var p=pt(ids[ii]);if(!p)continue;if(!s){ctx.moveTo(p.x,p.y);s=true;}else ctx.lineTo(p.x,p.y);}
-    if(s)ctx.stroke();ctx.restore();
+  var sc=Math.max(0.6,w/1000);
+  function p(i){return lm[i]?[lm[i].x*w,lm[i].y*h]:null;}
+  function line(ids,col,lw,blur){
+    ctx.save();ctx.beginPath();ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.lineCap='round';ctx.lineJoin='round';
+    if(blur){ctx.shadowColor=col;ctx.shadowBlur=blur;}
+    var started=false;
+    for(var k=0;k<ids.length;k++){var pt=p(ids[k]);if(!pt)continue;if(!started){ctx.moveTo(pt[0],pt[1]);started=true;}else ctx.lineTo(pt[0],pt[1]);}
+    if(started)ctx.stroke();ctx.restore();
   }
-  ctx.save();ctx.globalCompositeOperation='lighter';
-  trace([234,93,132,58,172,136,150,149,176,148,152,377,400,378,379,365,397,288,361,323,454],'rgba(184,222,255,0.5)',1.4*sc,6);
-  trace([33,160,158,133],'rgba(222,244,255,0.5)',1.1*sc,4);
-  trace([362,385,387,263],'rgba(222,244,255,0.5)',1.1*sc,4);
-  trace([70,63,105,66,107],'rgba(125,198,255,0.4)',1.0*sc,3);
-  trace([336,296,334,293,300],'rgba(125,198,255,0.4)',1.0*sc,3);
-  trace([168,6,197,195,5,4,1,19,94,2],'rgba(222,244,255,0.5)',1.1*sc,4);
-  trace([61,185,40,39,37,0,267,269,270,409,291],'rgba(222,244,255,0.32)',0.9*sc,1);
-  ctx.shadowColor='rgba(0,220,255,0.5)';ctx.shadowBlur=2;
-  ctx.fillStyle='rgba(74,158,255,0.6)';
-  for(var i=0;i<lm.length;i++){ctx.beginPath();ctx.arc(lm[i].x*w,lm[i].y*h,0.7*sc,0,Math.PI*2);ctx.fill();}
-  ctx.fillStyle='rgba(130,215,255,0.9)';ctx.shadowBlur=9;
-  var anch=[10,33,133,362,263,1,4,61,291,152,234,454,172,397,70,300];
-  for(var a=0;a<anch.length;a++){var ap=pt(anch[a]);if(!ap)continue;ctx.beginPath();ctx.arc(ap.x,ap.y,1.7*sc,0,Math.PI*2);ctx.fill();}
+  function dot(i,r,col,blur){
+    var pt=p(i);if(!pt)return;
+    ctx.save();ctx.beginPath();ctx.arc(pt[0],pt[1],r,0,Math.PI*2);ctx.fillStyle=col;
+    if(blur){ctx.shadowColor=col;ctx.shadowBlur=blur;}
+    ctx.fill();ctx.restore();
+  }
+  function poly(ids,fillCol,strokeCol,lw,blur){
+    var pts=ids.map(function(i){return p(i);}).filter(Boolean);if(pts.length<2)return;
+    ctx.save();ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);
+    for(var k=1;k<pts.length;k++)ctx.lineTo(pts[k][0],pts[k][1]);
+    ctx.closePath();
+    if(fillCol){ctx.fillStyle=fillCol;ctx.fill();}
+    if(strokeCol){ctx.strokeStyle=strokeCol;ctx.lineWidth=lw||1;if(blur){ctx.shadowColor=strokeCol;ctx.shadowBlur=blur;}ctx.stroke();}
+    ctx.restore();
+  }
+
+  ctx.save();
+  ctx.globalCompositeOperation='source-over';
+
+  // ── Subtle mesh tessellation (fine, low-opacity) ──
+  var TESS=[[10,338],[338,297],[297,332],[332,284],[284,251],[251,389],[389,356],[356,454],[454,323],[323,361],[361,288],[288,397],[397,365],[365,379],[379,378],[378,400],[400,377],[377,152],[152,148],[148,176],[176,149],[149,150],[150,136],[136,172],[172,58],[58,132],[132,93],[93,234],[234,127],[127,162],[162,21],[21,54],[54,103],[103,67],[67,109],[109,10],[10,151],[151,9],[9,8],[8,168],[168,6],[6,197],[197,195],[195,5],[5,4],[4,1],[1,19],[19,94],[94,2],[2,164],[164,0],[0,11],[11,12],[12,13],[13,14],[14,15],[15,16],[16,17],[17,18],[18,200],[200,199],[199,175],[175,152],[152,377],[377,400],[400,378],[33,7],[7,163],[163,144],[144,145],[145,153],[153,154],[154,155],[155,133],[133,173],[173,157],[157,158],[158,159],[159,160],[160,161],[161,246],[246,33],[362,382],[382,381],[381,380],[380,374],[374,373],[373,390],[390,249],[249,263],[263,466],[466,388],[388,387],[387,386],[386,385],[385,384],[384,398],[398,362]];
+  ctx.strokeStyle='rgba(74,158,255,0.09)';ctx.lineWidth=0.5*sc;ctx.shadowBlur=0;
+  TESS.forEach(function(e){var a=p(e[0]),b=p(e[1]);if(!a||!b)return;ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();});
+
+  // ── Feature zone fills (very subtle glow zones) ──
+  // Eye sockets
+  var LEye=[33,246,161,160,159,158,157,173,133,155,154,153,145,144,163,7];
+  var REye=[362,398,384,385,386,387,388,466,263,249,390,373,374,380,381,382];
+  poly(LEye,'rgba(74,158,255,0.04)','rgba(74,158,255,0.25)',1*sc,8);
+  poly(REye,'rgba(74,158,255,0.04)','rgba(74,158,255,0.25)',1*sc,8);
+
+  // ── Eyebrows with glow ──
+  line([70,63,105,66,107,55,65],'rgba(180,220,255,0.7)',1.8*sc,10);
+  line([336,296,334,293,300,285,295],'rgba(180,220,255,0.7)',1.8*sc,10);
+
+  // ── Eye contours — bright, prominent ──
+  line([33,246,161,160,159,158,157,173,133],'rgba(255,255,255,0.9)',1.4*sc,14);
+  line([362,398,384,385,386,387,388,466,263],'rgba(255,255,255,0.9)',1.4*sc,14);
+  line([133,155,154,153,145,144,163,7,33],'rgba(140,200,255,0.6)',1*sc,6);
+  line([263,249,390,373,374,380,381,382,362],'rgba(140,200,255,0.6)',1*sc,6);
+
+  // Eye pupils as glowing circles
+  var lEyeCenter=p(468)||p(159);var rEyeCenter=p(473)||p(386);
+  if(lEyeCenter){ctx.save();ctx.beginPath();ctx.arc(lEyeCenter[0],lEyeCenter[1],4*sc,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.95)';ctx.shadowColor='rgba(74,158,255,1)';ctx.shadowBlur=12;ctx.fill();ctx.restore();}
+  if(rEyeCenter){ctx.save();ctx.beginPath();ctx.arc(rEyeCenter[0],rEyeCenter[1],4*sc,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.95)';ctx.shadowColor='rgba(74,158,255,1)';ctx.shadowBlur=12;ctx.fill();ctx.restore();}
+
+  // ── Nose bridge + tip prominent ──
+  line([168,6,197,195,5,4,1,19,94,2],'rgba(200,230,255,0.65)',1.4*sc,8);
+  line([64,98,97,2,326,327,294],'rgba(150,200,255,0.4)',0.8*sc,4);
+  // Nostril outline
+  line([218,219,220,237,44,1,274,278,279,360,355,429],'rgba(150,200,255,0.5)',0.9*sc,3);
+
+  // ── Lips — glowing outline ──
+  line([61,185,40,39,37,0,267,269,270,409,291,375,321,405,314,17,84,181,91,146,61],'rgba(255,255,255,0.75)',1.6*sc,10);
+  line([61,185,40,39,37,0,267,269,270,409,291],'rgba(220,240,255,0.8)',1.2*sc,6);
+  line([291,375,321,405,314,17,84,181,91,146,61],'rgba(180,220,255,0.55)',1*sc,4);
+
+  // ── Jawline — strong glow arc ──
+  line([234,93,132,58,172,136,150,149,176,148,152,377,400,378,379,365,397,288,361,323,454],'rgba(74,200,255,0.8)',2.2*sc,16);
+  // Double line for depth
+  line([234,93,132,58,172,136,150,149,176,148,152,377,400,378,379,365,397,288,361,323,454],'rgba(255,255,255,0.3)',0.6*sc,0);
+
+  // ── Cheekbone accent lines ──
+  line([116,117,118,119,120,121,128,234],'rgba(74,158,255,0.35)',0.9*sc,6);
+  line([345,346,347,348,349,350,451,454],'rgba(74,158,255,0.35)',0.9*sc,6);
+
+  // ── Forehead horizontal structure lines ──
+  line([10,109,67,103,54,21,162,127,234],'rgba(74,158,255,0.22)',0.7*sc,4);
+  line([338,297,332,284,251,389,356,454],'rgba(74,158,255,0.22)',0.7*sc,4);
+
+  // ── All landmark dots — tiny, dim ──
+  ctx.save();
+  ctx.fillStyle='rgba(74,158,255,0.35)';ctx.shadowBlur=0;
+  for(var i=0;i<lm.length;i++){var pt2=p(i);if(!pt2)continue;ctx.beginPath();ctx.arc(pt2[0],pt2[1],0.65*sc,0,Math.PI*2);ctx.fill();}
+  ctx.restore();
+
+  // ── Key anchor points — bright with glow ──
+  var anchors=[10,33,133,362,263,1,61,291,152,234,454,172,397,70,300,168,4,0,17];
+  anchors.forEach(function(i){dot(i,2.2*sc,'rgba(255,255,255,0.95)',18);dot(i,1*sc,'rgba(74,158,255,1)',0);});
+
+  // ── Corner scan brackets ──
+  if(lm[234]&&lm[454]&&lm[10]&&lm[152]){
+    var xl=lm[234].x*w-14,xr=lm[454].x*w+14,yt=lm[10].y*h-18,yb=lm[152].y*h+14;
+    var bk=Math.min(22,(xr-xl)*0.12);
+    ctx.save();ctx.strokeStyle='rgba(74,200,255,0.9)';ctx.lineWidth=2*sc;ctx.shadowColor='rgba(74,200,255,0.8)';ctx.shadowBlur=10;ctx.lineCap='round';
+    [[xl,yt,1,1],[xr,yt,-1,1],[xl,yb,1,-1],[xr,yb,-1,-1]].forEach(function(c){
+      ctx.beginPath();ctx.moveTo(c[0]+bk*c[2],c[1]);ctx.lineTo(c[0],c[1]);ctx.lineTo(c[0],c[1]+bk*c[3]);ctx.stroke();
+    });
+    ctx.restore();
+  }
+
   ctx.restore();
 }
 
@@ -821,7 +840,6 @@ function setMMK(pref){
 
 function findMatch(){
   if(!myStream||state==='searching')return;
-  if(typeof connectWS==='function') connectWS(onMsg);
   if(!wsSend({type:'join_queue',mmkPref:mmkPref})){setS('searching','Connecting...');setTimeout(findMatch,700);return;}
 }
 function cancelSearch(){
@@ -856,8 +874,7 @@ function onMatchFound(msg){
   startRTC();
 }
 function startRTC(){
-  if(peerConn){try{peerConn.close();}catch(e){} peerConn=null;}
-  peerConn=new RTCPeerConnection(ICE);
+  closeRTC(); peerConn=new RTCPeerConnection(ICE);
   if(myStream) myStream.getTracks().forEach(function(t){peerConn.addTrack(t,myStream);});
   peerConn.ontrack=function(e){
     var v=document.getElementById('oppVid'); v.srcObject=e.streams[0]; v.style.display='block';
@@ -986,8 +1003,7 @@ function startRematchWindow(){
 
 function requestRematch(){
   rematchRequested=true;
-  var wait=document.getElementById('rmbWaiting');
-  if(wait) wait.style.display='block';
+  document.getElementById('rmbWaiting').style.display='block';
   wsSend({type:'request_rematch',targetId:oppSocketId});
 }
 
@@ -1011,9 +1027,12 @@ function showDailyComplete(){
 function toggleDailyModal(){}
 
 function rematch(){
-  document.getElementById('rematchBanner').classList.add('show');
-  requestRematch();
-  setS('connected','Rematch requested - waiting for opponent...');
+  if(rematchTimer) clearInterval(rematchTimer);
+  document.getElementById('rematchBanner').classList.remove('show');
+  document.getElementById('resultOverlay').classList.remove('show');
+  document.getElementById('mainBtn').style.display='block';
+  state='camera'; setS('','Finding next opponent...'); showScanBtn(false);
+  oppLastScore=0; updateMogBar(myLastScore,0); resetOpp(); setTimeout(findMatch,300);
 }
 function skipOpp(){stopQTimer();wsSend({type:'skip_opponent'});resetOpp();closeRTC();state='camera';setS('','Finding new opponent...');document.getElementById('myFeedWrap').classList.remove('searching-state');showScanBtn(false);document.getElementById('skipBtn').style.display='none';setTimeout(findMatch,300);}
 function resetOpp(){var v=document.getElementById('oppVid');v.srcObject=null;v.style.display='none';document.getElementById('oppPH').style.display='flex';document.getElementById('oppPHText').textContent='Waiting for opponent...';document.getElementById('oppScorePill').style.display='none';document.getElementById('oppNamePill').style.display='none';document.getElementById('reportBtn').style.display='none';document.getElementById('oppFeedWrap').classList.remove('active');}
