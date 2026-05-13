@@ -426,11 +426,11 @@ setInterval(function(){loadLeaderboard('lbPreview');},30000);
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* ════════════════════════════════
-   DASHBOARD HOLOGRAM — COSMETIC ONLY
-   Pure Three.js wireframe face mesh
-   with ambient particle drift
+   DASHBOARD HOLOGRAM
+   Triangulated low-poly wireframe face
+   matching Algorithm Preview reference
 ════════════════════════════════ */
-var hR,hS,hC,hG,hParticles,hScanLine,hScanDir=1; var hT=0;
+var hR,hS,hC,hG,hParticles,hScanLine,hScanDir=1,hScanMat; var hT=0;
 
 window.addEventListener('load', function() {
   var card=document.getElementById('holoCard');
@@ -444,31 +444,19 @@ window.addEventListener('load', function() {
   hR.setSize(W,H,false);
   hR.setClearColor(0x000000,1);
   hS=new THREE.Scene();
-  hC=new THREE.PerspectiveCamera(42,W/H,0.1,100);
-  hC.position.z=2.6;
+  hC=new THREE.PerspectiveCamera(38,W/H,0.1,100);
+  hC.position.z=2.8;
   hG=new THREE.Group();
   hS.add(hG);
 
-  // Fog for depth
-  hS.fog=new THREE.FogExp2(0x000000,0.18);
-
-  // Subtle perspective grid floor
-  var gv=[];
-  for(var gi=-12;gi<=12;gi++){
-    gv.push(gi*0.11,-1.08,-1.5, gi*0.11,-1.08,0.3);
-    gv.push(-1.32,-1.08,gi*0.11, 1.32,-1.08,gi*0.11);
-  }
-  var gg=new THREE.BufferGeometry(); gg.setAttribute('position',new THREE.Float32BufferAttribute(gv,3));
-  hS.add(new THREE.LineSegments(gg,new THREE.LineBasicMaterial({color:0x4A9EFF,transparent:true,opacity:0.055})));
-
-  buildPremiumFace();
+  buildTriMesh();
   buildParticles();
 
-  // Scan line plane
-  var slg=new THREE.PlaneGeometry(1.2,0.004);
-  var slm=new THREE.MeshBasicMaterial({color:0x4A9EFF,transparent:true,opacity:0.6,side:THREE.DoubleSide});
-  hScanLine=new THREE.Mesh(slg,slm);
-  hScanLine.position.z=0.1;
+  // Animated scan line
+  var slg=new THREE.PlaneGeometry(1.1,0.003);
+  hScanMat=new THREE.MeshBasicMaterial({color:0xaaddff,transparent:true,opacity:0.7,side:THREE.DoubleSide});
+  hScanLine=new THREE.Mesh(slg,hScanMat);
+  hScanLine.position.z=0.15;
   hG.add(hScanLine);
 
   var btn=document.getElementById('holoCamBtn');
@@ -477,193 +465,180 @@ window.addEventListener('load', function() {
   hLoop();
 });
 
-function hLine(pts,op,col){
-  var g=new THREE.BufferGeometry().setFromPoints(pts);
-  hG.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:col||0x4A9EFF,transparent:true,opacity:op||0.5,depthTest:false})));
+function seg(ax,ay,az,bx,by,bz,mat){
+  var g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute([ax,ay,az,bx,by,bz],3));
+  hG.add(new THREE.Line(g,mat));
 }
 
-function buildPremiumFace(){
-  var W=0xe8f4ff,  // bright white-blue — primary features
-      B=0x4A9EFF,  // mid blue — structure
-      S=0x1a5c9e,  // soft deep blue — tessellation
-      G=0x8ACDFF;  // glow blue — accents
+function buildTriMesh(){
+  // Wire material — bright white, matching reference image
+  var matBright=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.85,linewidth:1});
+  var matMid   =new THREE.LineBasicMaterial({color:0xccddff,transparent:true,opacity:0.55,linewidth:1});
+  var matDim   =new THREE.LineBasicMaterial({color:0x88aadd,transparent:true,opacity:0.30,linewidth:1});
 
-  // ── FULL HEAD CONTOUR (realistic human proportions) ──
-  // Cranium arc — wider at temples
-  var cranium=[];
-  for(var i=0;i<=60;i++){
-    var a=Math.PI+i/60*Math.PI; // top half
-    var rx=0.46+0.04*Math.sin(i/60*Math.PI); // wider temples
-    cranium.push(new THREE.Vector3(Math.cos(a)*rx, Math.sin(a)*0.55,0));
+  // Build a parametric face surface with proper curvature
+  // The face is a 3D surface: columns=horizontal, rows=vertical
+  // We define it as a grid then triangulate every quad into 2 triangles
+  // and draw all edges — this creates the exact low-poly mesh look
+
+  var COLS=14, ROWS=18;
+
+  // Face surface generator: given (u,v) in [0,1]x[0,1], return [x,y,z]
+  function facePoint(u,v){
+    // u=0 left, u=1 right. v=0 top (crown), v=1 bottom (chin)
+    var y=0.78-v*1.42; // y: 0.78 at top, -0.64 at bottom
+
+    // Face width profile — wider at cheeks, narrower at forehead and chin
+    var widthProfile;
+    if(v<0.15) widthProfile=0.22+v*0.8; // narrow at crown, widening
+    else if(v<0.35) widthProfile=0.34+v*0.2; // mid-forehead
+    else if(v<0.55) widthProfile=0.40+Math.sin((v-0.35)*Math.PI*1.2)*0.06; // cheekbone bulge
+    else if(v<0.75) widthProfile=0.38-((v-0.55)*0.8); // narrowing to jaw
+    else widthProfile=0.22-(v-0.75)*0.55; // jaw to chin taper
+
+    widthProfile=Math.max(0.06,widthProfile);
+    var x=(u*2-1)*widthProfile;
+
+    // Face depth (z) — face curves outward, forehead/chin recede
+    var faceZ;
+    if(v<0.1) faceZ=0.02; // top of head
+    else if(v<0.3) faceZ=0.06+v*0.2; // forehead
+    else if(v<0.45) faceZ=0.18+Math.sin((v-0.3)*Math.PI)*0.22; // brow/nose bridge peak
+    else if(v<0.65) faceZ=0.28+Math.cos((v-0.45)*Math.PI*0.8)*0.08; // nose/cheek
+    else faceZ=0.18-(v-0.65)*0.35; // jaw recede
+
+    // Horizontal face curvature (profile curve from side)
+    var cx=x/widthProfile; // normalized -1 to 1
+    var depthCurve=1.0-Math.pow(Math.abs(cx),1.4)*0.72;
+    var z=faceZ*depthCurve;
+
+    // Feature depressions/protrusions
+    // Eye sockets
+    var eyeLX=-0.28, eyeRX=0.28, eyeY=0.42;
+    var dLE=Math.sqrt((cx*widthProfile-eyeLX)*(cx*widthProfile-eyeLX)+(v-eyeY)*(v-eyeY));
+    var dRE=Math.sqrt((cx*widthProfile-eyeRX)*(cx*widthProfile-eyeRX)+(v-eyeY)*(v-eyeY));
+    if(dLE<0.09) z-=0.04*(1-dLE/0.09);
+    if(dRE<0.09) z-=0.04*(1-dRE/0.09);
+
+    // Nose bridge protrusion
+    var noseX=0.0, noseY=0.48;
+    var dN=Math.sqrt(cx*cx*widthProfile*widthProfile*4+(v-noseY)*(v-noseY)*2);
+    if(dN<0.15 && Math.abs(cx*widthProfile)<0.1) z+=0.06*(1-dN/0.15);
+
+    // Nose tip protrusion  
+    var dNT=Math.sqrt(cx*cx*widthProfile*widthProfile*6+(v-0.62)*(v-0.62)*4);
+    if(dNT<0.1) z+=0.08*(1-dNT/0.1);
+
+    // Lip area slight protrusion
+    var dL=Math.sqrt(cx*cx*widthProfile*widthProfile*3+(v-0.73)*(v-0.73)*3);
+    if(dL<0.09) z+=0.025*(1-dL/0.09);
+
+    return [x,y,z];
   }
-  hLine(cranium,0.55,B);
 
-  // ── FACE OVAL (lower half, from temple down to chin) ──
-  var faceL=[],faceR=[];
-  for(var i=0;i<=20;i++){
-    var t=i/20;
-    var y=0.0-t*0.58;
-    var xW=0.42*(1-t*0.45); // jaw tapers
-    faceL.push(new THREE.Vector3(-xW,y,0.01*t));
-    faceR.push(new THREE.Vector3( xW,y,0.01*t));
+  // Build grid of vertices
+  var grid=[];
+  for(var row=0;row<=ROWS;row++){
+    grid[row]=[];
+    for(var col=0;col<=COLS;col++){
+      var u=col/COLS, v=row/ROWS;
+      grid[row][col]=facePoint(u,v);
+    }
   }
-  hLine(faceL,0.7,B); hLine(faceR,0.7,B);
-  // Chin arc
-  var chin=[];
-  for(var i=0;i<=20;i++){var a=Math.PI+i/20*Math.PI;chin.push(new THREE.Vector3(Math.cos(a)*0.19,-0.58+Math.sin(a)*0.06,0.02));}
-  hLine(chin,0.85,W);
 
-  // ── HORIZONTAL TOPOLOGY LINES (make it look like a real scan) ──
-  var scanYs=[0.42,0.28,0.14,0.0,-0.14,-0.28,-0.42];
-  scanYs.forEach(function(y){
-    var t=(y+0.58)/1.16;
-    var hw=(0.46-0.06*t)*0.9;
-    var scanPts=[];
-    for(var i=0;i<=16;i++){
-      var x=(i/16*2-1)*hw;
-      var z=0.02*Math.sin((x/hw)*Math.PI)*t; // face curvature
-      scanPts.push(new THREE.Vector3(x,y,z));
+  // Draw all triangle edges
+  for(var row=0;row<ROWS;row++){
+    for(var col=0;col<COLS;col++){
+      var A=grid[row][col];
+      var B=grid[row][col+1];
+      var C=grid[row+1][col];
+      var D=grid[row+1][col+1];
+
+      // Pick brightness by region
+      var v=row/ROWS;
+      var mat=(v<0.12||v>0.88)?matDim:(v>0.25&&v<0.75)?matBright:matMid;
+
+      // Top edge
+      seg(A[0],A[1],A[2],B[0],B[1],B[2],mat);
+      // Left edge
+      seg(A[0],A[1],A[2],C[0],C[1],C[2],mat);
+      // Diagonal (triangulate the quad)
+      seg(B[0],B[1],B[2],C[0],C[1],C[2],mat);
+      // Bottom edge (last row only)
+      if(row===ROWS-1) seg(C[0],C[1],C[2],D[0],D[1],D[2],mat);
+      // Right edge (last col only)
+      if(col===COLS-1) seg(B[0],B[1],B[2],D[0],D[1],D[2],mat);
     }
-    hLine(scanPts,0.07,S);
-  });
+  }
 
-  // ── EYEBROWS — arched, distinct ──
-  [[-0.155,1],[0.155,-1]].forEach(function(b){
-    var ex=b[0],side=b[1];
-    var brow=[];
-    for(var i=0;i<=12;i++){
-      var t=i/12;
-      var x=ex+(-0.12+t*0.22)*side;
-      var y=0.225+Math.sin(t*Math.PI)*0.028-(1-t)*0.01;
-      brow.push(new THREE.Vector3(x,y,0.07+t*0.02));
-    }
-    hLine(brow,0.9,W);
-    hLine(brow,0.3,W); // double for glow effect
-  });
+  // Add eye ring highlights (bright circles)
+  var eyeMatL=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.95});
+  var eyeMatR=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.95});
+  function eyeRing(cx,cy,cz,rx,ry,mat,segs){
+    var pts=[]; for(var i=0;i<=segs;i++){var a=i/segs*Math.PI*2;pts.push(new THREE.Vector3(cx+Math.cos(a)*rx,cy+Math.sin(a)*ry,cz));}
+    var g=new THREE.BufferGeometry().setFromPoints(pts);
+    hG.add(new THREE.Line(g,mat));
+  }
+  eyeRing(-0.28,0.115,0.22,0.09,0.046,eyeMatL,24);
+  eyeRing( 0.28,0.115,0.22,0.09,0.046,eyeMatR,24);
+  // Iris
+  var iMat=new THREE.LineBasicMaterial({color:0xaaddff,transparent:true,opacity:0.7});
+  eyeRing(-0.28,0.115,0.24,0.044,0.044,iMat,16);
+  eyeRing( 0.28,0.115,0.24,0.044,0.044,iMat,16);
 
-  // ── EYES — precise almond with iris ──
-  [-0.155,0.155].forEach(function(ex){
-    // Upper lid arc
-    var ul=[];
-    for(var i=0;i<=30;i++){var a=(i/30)*Math.PI; ul.push(new THREE.Vector3(ex+Math.cos(a)*0.115,0.115+Math.sin(a)*0.052,0.08));}
-    hLine(ul,0.95,W);
-    // Lower lid (flatter)
-    var ll=[];
-    for(var i=0;i<=30;i++){var a=Math.PI+(i/30)*Math.PI;ll.push(new THREE.Vector3(ex+Math.cos(a)*0.115,0.115+Math.sin(a)*0.022,0.08));}
-    hLine(ll,0.55,G);
-    // Iris ring — glowing
-    var iris=[];
-    for(var i=0;i<=24;i++){var a=(i/24)*Math.PI*2;iris.push(new THREE.Vector3(ex+Math.cos(a)*0.052,0.115+Math.sin(a)*0.052,0.1));}
-    hLine(iris,0.8,G);
-    // Pupil ring — bright
-    var pupil=[];
-    for(var i=0;i<=16;i++){var a=(i/16)*Math.PI*2;pupil.push(new THREE.Vector3(ex+Math.cos(a)*0.024,0.115+Math.sin(a)*0.024,0.12));}
-    hLine(pupil,0.9,W);
-    // Pupil center dot
-    var pdg=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(ex,0.115,0.13)]);
-    hG.add(new THREE.Points(pdg,new THREE.PointsMaterial({color:0xffffff,size:0.016,transparent:true,opacity:1,depthTest:false})));
-    // Inner corner / outer corner dots
-    var corners=[new THREE.Vector3(ex-0.115,0.115,0.07),new THREE.Vector3(ex+0.115,0.115,0.07)];
-    var cdg=new THREE.BufferGeometry().setFromPoints(corners);
-    hG.add(new THREE.Points(cdg,new THREE.PointsMaterial({color:0xaad4ff,size:0.012,transparent:true,opacity:0.85,depthTest:false})));
-  });
+  // Pupil dots
+  var pdv=[-0.28,0.115,0.25, 0.28,0.115,0.25];
+  var pdg=new THREE.BufferGeometry(); pdg.setAttribute('position',new THREE.Float32BufferAttribute(pdv,3));
+  hG.add(new THREE.Points(pdg,new THREE.PointsMaterial({color:0xffffff,size:0.026,transparent:true,opacity:1,depthTest:false})));
 
-  // ── NOSE — bridge ridge + tip + nostrils ──
-  // Bridge ridge
-  hLine([new THREE.Vector3(-0.02,0.18,0.11),new THREE.Vector3(-0.015,0.10,0.16),new THREE.Vector3(-0.014,0.0,0.20),new THREE.Vector3(-0.012,-0.10,0.22)],0.4,B);
-  hLine([new THREE.Vector3(0.02,0.18,0.11),new THREE.Vector3(0.015,0.10,0.16),new THREE.Vector3(0.014,0.0,0.20),new THREE.Vector3(0.012,-0.10,0.22)],0.4,B);
-  // Nose tip ellipse
-  var nt=[];
-  for(var i=0;i<=20;i++){var a=(i/20)*Math.PI*2;nt.push(new THREE.Vector3(Math.cos(a)*0.055,-0.12+Math.sin(a)*0.030,0.21));}
-  hLine(nt,0.6,G);
-  // Nostrils
-  var nl=[],nr=[];
-  for(var i=0;i<=14;i++){var a=(i/14)*Math.PI*2;nl.push(new THREE.Vector3(-0.06+Math.cos(a)*0.032,-0.13+Math.sin(a)*0.018,0.19));nr.push(new THREE.Vector3(0.06+Math.cos(a)*0.032,-0.13+Math.sin(a)*0.018,0.19));}
-  hLine(nl,0.45,B); hLine(nr,0.45,B);
-  // Nose base line
-  hLine([new THREE.Vector3(-0.09,-0.11,0.17),new THREE.Vector3(-0.06,-0.14,0.2),new THREE.Vector3(0,-0.155,0.22),new THREE.Vector3(0.06,-0.14,0.2),new THREE.Vector3(0.09,-0.11,0.17)],0.55,G);
-
-  // ── LIPS — cupid's bow, defined ──
-  // Upper lip
-  var upperL=[new THREE.Vector3(-0.14,-0.285,0.14)];
-  for(var i=0;i<=20;i++){var t=i/20;upperL.push(new THREE.Vector3(-0.09+t*0.18,-0.265+Math.sin(t*Math.PI)*0.022,0.16+Math.sin(t*Math.PI)*0.02));}
-  upperL.push(new THREE.Vector3(0.14,-0.285,0.14));
-  hLine(upperL,0.9,W);
-  // Lower lip arc
-  var lowerL=[];
-  for(var i=0;i<=22;i++){var t=i/22;lowerL.push(new THREE.Vector3(-0.13+t*0.26,-0.32+Math.sin(t*Math.PI)*0.038,0.14+Math.sin(t*Math.PI)*0.012));}
-  hLine(lowerL,0.75,W);
-  // Mouth corners
-  var mc1=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-0.14,-0.285,0.14),new THREE.Vector3(0.14,-0.285,0.14)]);
-  hG.add(new THREE.Points(mc1,new THREE.PointsMaterial({color:0xaad4ff,size:0.015,transparent:true,opacity:0.9,depthTest:false})));
-
-  // ── PHILTRUM ──
-  hLine([new THREE.Vector3(-0.028,-0.15,0.21),new THREE.Vector3(-0.032,-0.265,0.165)],0.25,B);
-  hLine([new THREE.Vector3(0.028,-0.15,0.21),new THREE.Vector3(0.032,-0.265,0.165)],0.25,B);
-
-  // ── CHEEKBONE DEFINITION ──
-  hLine([new THREE.Vector3(-0.41,0.05,0.02),new THREE.Vector3(-0.34,-0.06,0.08),new THREE.Vector3(-0.26,-0.14,0.11),new THREE.Vector3(-0.18,-0.18,0.12)],0.28,B);
-  hLine([new THREE.Vector3(0.41,0.05,0.02),new THREE.Vector3(0.34,-0.06,0.08),new THREE.Vector3(0.26,-0.14,0.11),new THREE.Vector3(0.18,-0.18,0.12)],0.28,B);
-
-  // ── EARS (simplified) ──
-  [-1,1].forEach(function(side){
-    var ear=[];
-    for(var i=0;i<=20;i++){var a=(i/20)*Math.PI*2;ear.push(new THREE.Vector3(side*(0.46+Math.cos(a)*0.04),0.02+Math.sin(a)*0.12,-0.02));}
-    hLine(ear,0.3,S);
-  });
-
-  // ── NECK ──
-  hLine([new THREE.Vector3(-0.12,-0.58,0.02),new THREE.Vector3(-0.1,-0.74,0),new THREE.Vector3(-0.08,-0.86,0)],0.3,S);
-  hLine([new THREE.Vector3(0.12,-0.58,0.02),new THREE.Vector3(0.1,-0.74,0),new THREE.Vector3(0.08,-0.86,0)],0.3,S);
-
-  // ── KEY LANDMARK DOTS ──
-  var keyPts=[[0,0.54,0],[0,-0.58,0.02],[-0.155,0.115,0.08],[0.155,0.115,0.08],[0,-0.155,0.22],[0,-0.285,0.16],[0,0,0.15],[-0.41,0.05,0],[0.41,0.05,0]];
-  var kv=[]; keyPts.forEach(function(p){kv.push(p[0],p[1],p[2]);});
-  var kdg=new THREE.BufferGeometry(); kdg.setAttribute('position',new THREE.Float32BufferAttribute(kv,3));
-  hG.add(new THREE.Points(kdg,new THREE.PointsMaterial({color:0xffffff,size:0.018,transparent:true,opacity:0.9,depthTest:false})));
-
-  // ── GOLDEN RATIO GUIDES ──
-  hLine([new THREE.Vector3(-0.42,0.115,0),new THREE.Vector3(0.42,0.115,0)],0.04,S);
-  hLine([new THREE.Vector3(-0.42,-0.155,0),new THREE.Vector3(0.42,-0.155,0)],0.04,S);
+  // Lips highlight
+  var lipMat=new THREE.LineBasicMaterial({color:0xeef6ff,transparent:true,opacity:0.9});
+  var lipPts=[];
+  for(var i=0;i<=20;i++){var t=i/20;lipPts.push(new THREE.Vector3(-0.18+t*0.36,-0.325+Math.sin(t*Math.PI)*0.035,0.28));}
+  var lg=new THREE.BufferGeometry().setFromPoints(lipPts);
+  hG.add(new THREE.Line(lg,lipMat));
+  var lipPts2=[];
+  for(var i=0;i<=20;i++){var t=i/20;lipPts2.push(new THREE.Vector3(-0.16+t*0.32,-0.375+Math.sin(t*Math.PI)*0.038,0.27));}
+  var lg2=new THREE.BufferGeometry().setFromPoints(lipPts2);
+  hG.add(new THREE.Line(lg2,new THREE.LineBasicMaterial({color:0xeef6ff,transparent:true,opacity:0.7})));
 }
 
 function buildParticles(){
-  var N=60, pv=[];
+  var N=40, pv=[];
   for(var i=0;i<N;i++){
-    pv.push((Math.random()-0.5)*2.8,(Math.random()-0.5)*2.4,(Math.random()-0.5)*1.2);
+    pv.push((Math.random()-0.5)*2.2,(Math.random()-0.5)*1.8,(Math.random()-0.5)*0.6);
   }
   var pg=new THREE.BufferGeometry();
   pg.setAttribute('position',new THREE.Float32BufferAttribute(pv,3));
-  hParticles=new THREE.Points(pg,new THREE.PointsMaterial({color:0x4A9EFF,transparent:true,opacity:0.28,size:0.007,depthTest:false}));
+  hParticles=new THREE.Points(pg,new THREE.PointsMaterial({color:0x88bbff,transparent:true,opacity:0.18,size:0.006,depthTest:false}));
   hS.add(hParticles);
 }
 
 function hLoop(){
   requestAnimationFrame(hLoop);
-  hT+=0.006;
+  hT+=0.005;
 
-  // Premium idle sway — subtle, professional
-  hG.rotation.y=Math.sin(hT*0.28)*0.09;
-  hG.rotation.x=-0.06+Math.sin(hT*0.18)*0.03;
-  hG.position.y=0.06+Math.sin(hT*0.5)*0.014;
+  // Gentle idle sway
+  hG.rotation.y=Math.sin(hT*0.24)*0.10;
+  hG.rotation.x=-0.06+Math.sin(hT*0.16)*0.022;
+  hG.position.y=0.04+Math.sin(hT*0.42)*0.010;
 
   // Animated scan line
   if(hScanLine){
-    hScanLine.position.y+=0.006*hScanDir;
-    if(hScanLine.position.y>0.62||hScanLine.position.y<-0.72){hScanDir*=-1;}
-    hScanLine.material.opacity=0.45+Math.sin(hT*3)*0.15;
+    hScanLine.position.y+=0.005*hScanDir;
+    if(hScanLine.position.y>0.82||hScanLine.position.y<-0.68){hScanDir*=-1;}
+    if(hScanMat) hScanMat.opacity=0.55+Math.sin(hT*5)*0.25;
   }
 
   // Drift particles
   if(hParticles){
     var pos=hParticles.geometry.attributes.position.array;
     for(var i=0;i<pos.length;i+=3){
-      pos[i+1]+=0.0004;
-      pos[i]+=Math.sin(hT*0.6+i)*0.00025;
-      if(pos[i+1]>1.2) pos[i+1]=-1.2;
+      pos[i+1]+=0.0003;
+      if(pos[i+1]>0.9) pos[i+1]=-0.9;
     }
     hParticles.geometry.attributes.position.needsUpdate=true;
-    hParticles.rotation.y+=0.0008;
   }
 
   hR.render(hS,hC);
