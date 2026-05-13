@@ -15,8 +15,6 @@ let myLosses   = parseInt(localStorage.getItem('mgm_losses')  || '0');
 let myUid      = localStorage.getItem('mgm_uid')      || null;
 let myPhoto    = localStorage.getItem('mgm_photo')    || '';
 let myUsername = localStorage.getItem('mgm_username') || '';
-let myPeakElo  = parseInt(localStorage.getItem('mgm_peakElo') || localStorage.getItem('mgm_elo') || '400');
-let myWinStreak = parseInt(localStorage.getItem('mgm_winStreak') || '0');
 
 /* ── TIER HELPERS ── */
 function getTierName(elo) {
@@ -68,73 +66,6 @@ function updateEloBar(progress){
   });
 }
 
-function syncLocalUserState(){
-  myName = localStorage.getItem('mgm_username') || localStorage.getItem('mgm_name') || myName || 'Anonymous';
-  myUsername = localStorage.getItem('mgm_username') || '';
-  myUid = localStorage.getItem('mgm_uid') || null;
-  myPhoto = localStorage.getItem('mgm_photo') || '';
-  myElo = parseInt(localStorage.getItem('mgm_elo') || myElo || '400');
-  myWins = parseInt(localStorage.getItem('mgm_wins') || myWins || '0');
-  myLosses = parseInt(localStorage.getItem('mgm_losses') || myLosses || '0');
-  myPeakElo = parseInt(localStorage.getItem('mgm_peakElo') || myPeakElo || myElo || '400');
-  myWinStreak = parseInt(localStorage.getItem('mgm_winStreak') || myWinStreak || '0');
-}
-
-function currentUserPayload(){
-  syncLocalUserState();
-  const payload = {
-    type:'set_user',
-    name:myUsername || myName,
-    username:myUsername,
-    uid:myUid,
-    photoURL:myPhoto,
-    elo:myElo,
-    wins:myWins,
-    losses:myLosses,
-    peakElo:myPeakElo,
-    winStreak:myWinStreak,
-  };
-  const idToken = localStorage.getItem('mgm_idToken');
-  if (idToken) payload.idToken = idToken;
-  return payload;
-}
-
-function sendCurrentUserToServer(){
-  return wsSend(currentUserPayload());
-}
-
-function applyChatAuthState(){
-  syncLocalUserState();
-  const section=document.querySelector('.chat-input-section');
-  if(!section) return;
-  const loggedIn=!!myUid&&!!myUsername;
-  if(loggedIn && !document.getElementById('chatMsgIn')){
-    section.innerHTML=`<div class="chat-input-row">
-      <input type="text" class="chat-in" id="chatMsgIn" placeholder="Message the arena..." maxlength="200" onkeydown="if(event.key==='Enter')sendChat()">
-      <button class="chat-send" onclick="sendChat()">SEND</button>
-    </div>`;
-  } else if(!loggedIn && !section.querySelector('.chat-signin-prompt')){
-    section.innerHTML=`<div class="chat-signin-prompt" onclick="openClaimModal()">Sign in to chat</div>`;
-  }
-}
-
-window.mgmSetAuthState=function(data){
-  if(!data) return;
-  if(data.uid) localStorage.setItem('mgm_uid',data.uid);
-  if(data.idToken) localStorage.setItem('mgm_idToken',data.idToken);
-  if(data.username) localStorage.setItem('mgm_username',data.username);
-  if(data.name) localStorage.setItem('mgm_name',data.name);
-  if(data.photoURL) localStorage.setItem('mgm_photo',data.photoURL);
-  if(data.elo!==undefined) localStorage.setItem('mgm_elo',data.elo);
-  if(data.wins!==undefined) localStorage.setItem('mgm_wins',data.wins);
-  if(data.losses!==undefined) localStorage.setItem('mgm_losses',data.losses);
-  if(data.peakElo!==undefined) localStorage.setItem('mgm_peakElo',data.peakElo);
-  if(data.winStreak!==undefined) localStorage.setItem('mgm_winStreak',data.winStreak);
-  syncLocalUserState();
-  applyChatAuthState();
-  sendCurrentUserToServer();
-};
-
 /* ════════════════════════════════
    WEBSOCKET
 ════════════════════════════════ */
@@ -148,8 +79,7 @@ function connectWS(onMsg) {
   }
   ws.onopen = () => {
     chatSys('Connected');
-    applyChatAuthState();
-    sendCurrentUserToServer();
+    wsSend({ type:'set_user', name:myUsername||myName, username:myUsername, uid:myUid, photoURL:myPhoto, elo:myElo, wins:myWins, losses:myLosses });
   };
   ws.onmessage = (e) => {
     let msg; try{msg=JSON.parse(e.data);}catch{return;}
@@ -184,12 +114,6 @@ function handleShared(msg) {
         if(msg.user.elo!==undefined){myElo=msg.user.elo;localStorage.setItem('mgm_elo',myElo);}
         if(msg.user.wins!==undefined){myWins=msg.user.wins;localStorage.setItem('mgm_wins',myWins);}
         if(msg.user.losses!==undefined){myLosses=msg.user.losses;localStorage.setItem('mgm_losses',myLosses);}
-        if(msg.user.uid!==undefined&&msg.user.uid){myUid=msg.user.uid;localStorage.setItem('mgm_uid',myUid);}
-        if(msg.user.username){myUsername=msg.user.username;localStorage.setItem('mgm_username',myUsername);}
-        if(msg.user.photoURL){myPhoto=msg.user.photoURL;localStorage.setItem('mgm_photo',myPhoto);}
-        if(msg.user.peakElo!==undefined){myPeakElo=msg.user.peakElo;localStorage.setItem('mgm_peakElo',myPeakElo);}
-        if(msg.user.winStreak!==undefined){myWinStreak=msg.user.winStreak;localStorage.setItem('mgm_winStreak',myWinStreak);}
-        applyChatAuthState();
       }
       if(msg.progress) updateEloBar(msg.progress);
       break;
@@ -261,8 +185,6 @@ function renderChatMsg(msg) {
 }
 
 function sendChat() {
-  syncLocalUserState();
-  applyChatAuthState();
   const msgEl=document.getElementById('chatMsgIn');
   if(!msgEl) return;
   const text=msgEl.value.trim();
@@ -328,7 +250,6 @@ function startActivityFeed() {
 ════════════════════════════════ */
 function injectSharedUI() {
   const path=window.location.pathname.split('/').pop()||'index.html';
-  syncLocalUserState();
   const isLoggedIn=!!myUid&&!!myUsername;
 
   /* ── FAVICON ── */
@@ -342,12 +263,12 @@ function injectSharedUI() {
   nav.innerHTML=`
     <a class="nav-logo" href="index.html">MOGME.TV</a>
     <div class="nav-links">
-      <a class="nav-link" href="index.html">🏠 Home</a>
-      <a class="nav-link" href="arena.html">⚔️ Arena</a>
-      <button class="nav-link nav-link-locked" type="button" onclick="openLabSoonModal()">🧪 Lab</button>
-      <a class="nav-link" href="rank.html">🏆 Rank</a>
-      <a class="nav-link" href="private.html">🎟️ Private</a>
-      <a class="nav-link nav-inbox-link" href="messages.html">✉️ Inbox <span id="navInboxBadge" class="nav-inbox-badge">0</span></a>
+      <a class="nav-link" href="index.html">Home</a>
+      <a class="nav-link" href="arena.html">Arena</a>
+      <a class="nav-link" href="lab.html">Lab</a>
+      <a class="nav-link" href="rank.html">Rank</a>
+      <a class="nav-link" href="private.html">Private</a>
+      <a class="nav-link" href="messages.html">Inbox</a>
     </div>
     <div class="nav-right">
       <div class="nav-online"><div class="nav-dot"></div><span class="online-count-val">— online</span></div>
@@ -398,29 +319,37 @@ function injectSharedUI() {
       <div class="chat-info-rule">Resets every 45 min</div>
     </div>`;
   document.body.appendChild(chat);
-  applyChatAuthState();
 
   /* ── HOW TO MOG MODAL ── */
   const howModal=document.createElement('div');
   howModal.className='modal-overlay'; howModal.id='howModal';
   howModal.onclick=e=>{if(e.target===howModal)closeModal('howModal');};
   const howItems=[
-    {title:'Eyes on screen',desc:'Face centered, chin level. One face per frame.'},
-    {title:'Win to rise',desc:'Beat higher-ranked opponents for bigger ELO gains.'},
-    {title:'No bailing',desc:'Leaving mid-match costs you ELO. Finish what you start.'},
-    {title:'100% private',desc:'Your camera never leaves your browser. Nothing recorded.'},
-    {title:'Lock in your rank',desc:'Sign in to save ELO, history and identity permanently.'},
-    {title:'Good lighting',desc:'Face the light. Clean your lens for the best scan.'},
+    {icon:'👁',title:'Eyes on screen',desc:'Face centered, chin level. One face per frame.',color:'#4A9EFF'},
+    {icon:'📈',title:'Win to rise',desc:'Beat higher-ranked opponents for bigger ELO gains.',color:'#22c55e'},
+    {icon:'⚔️',title:'No bailing',desc:'Leaving mid-match costs you ELO. Finish what you start.',color:'#ef4444'},
+    {icon:'🔒',title:'100% private',desc:'Your camera never leaves your browser. Nothing recorded.',color:'#7b61ff'},
+    {icon:'🏆',title:'Lock in your rank',desc:'Sign in to save ELO, history and identity permanently.',color:'#f5a623'},
+    {icon:'💡',title:'Good lighting',desc:'Face the light. Clean your lens for the best scan.',color:'#0df2c8'},
   ];
-  howModal.innerHTML=`<div class="modal-box" style="max-width:560px;">
-    <button class="modal-close" onclick="closeModal('howModal')">✕</button>
-    <div class="modal-title">How to Mog</div>
-    <div class="modal-sub">Quick rules for cleaner scans and fairer matches.</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      ${howItems.map(p=>`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
-        <div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;color:var(--silver);margin-bottom:5px;">${p.title}</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.5;">${p.desc}</div>
+  howModal.innerHTML=`<div class="modal-box" style="max-width:580px;background:rgba(6,6,12,0.98);border:1px solid rgba(74,158,255,0.18);border-radius:14px;overflow:hidden;padding:0;">
+    <div style="background:linear-gradient(180deg,rgba(74,158,255,0.12),transparent);padding:28px 28px 0;position:relative;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(74,158,255,0.7);margin-bottom:8px;">RANKED ARENA</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:26px;color:#fff;letter-spacing:-0.5px;margin-bottom:4px;">How to Mog</div>
+      <div style="font-size:13px;color:#666;margin-bottom:22px;">Six rules for cleaner scans and fairer matches.</div>
+      <button onclick="closeModal('howModal')" style="position:absolute;top:18px;right:18px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#666;width:28px;height:28px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,255,255,0.04);margin:0;">
+      ${howItems.map((p,i)=>`<div style="background:rgba(6,6,12,0.98);padding:18px 20px;position:relative;overflow:hidden;transition:background 0.2s;" onmouseover="this.style.background='rgba(74,158,255,0.05)'" onmouseout="this.style.background='rgba(6,6,12,0.98)'">
+        <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,${p.color}33,transparent);"></div>
+        <div style="width:34px;height:34px;border-radius:8px;background:${p.color}14;border:1px solid ${p.color}33;display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:10px;">${p.icon}</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;color:#e8e8e8;margin-bottom:4px;">${p.title}</div>
+        <div style="font-size:12px;color:#555;line-height:1.55;">${p.desc}</div>
       </div>`).join('')}
+    </div>
+    <div style="padding:14px 28px;border-top:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#333;letter-spacing:1px;">ELO RESETS EACH SEASON</div>
+      <button onclick="closeModal('howModal')" style="background:rgba(74,158,255,0.12);border:1px solid rgba(74,158,255,0.25);border-radius:6px;color:#4A9EFF;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 18px;cursor:pointer;">GOT IT</button>
     </div>
   </div>`;
   document.body.appendChild(howModal);
@@ -477,7 +406,6 @@ function injectSharedUI() {
       userMenu.style.display='none';
     }
   });
-  injectDevStatusPanel();
 }
 
 /* ── MODAL HELPERS ── */
@@ -485,26 +413,6 @@ function openModal(id)    { const el=document.getElementById(id); if(el) el.clas
 function closeModal(id)   { const el=document.getElementById(id); if(el) el.classList.remove('open'); }
 function openClaimModal() { openModal('claimModal'); }
 function openHowModal()   { openModal('howModal'); }
-
-function updateInboxBadge(count){
-  const badge=document.getElementById('navInboxBadge');
-  if(!badge) return;
-  const n=Math.max(0,parseInt(count)||0);
-  badge.textContent=n>9?'9+':String(n);
-  badge.classList.toggle('show',n>0);
-}
-window.updateInboxBadge=updateInboxBadge;
-
-function injectDevStatusPanel(){
-  if(document.getElementById('devStatusPanel')) return;
-  const host=window.location.hostname;
-  if(!['localhost','127.0.0.1',''].includes(host)) return;
-  const panel=document.createElement('div');
-  panel.id='devStatusPanel';
-  panel.className='dev-status-panel';
-  panel.innerHTML=`<span class="dev-status-dot"></span><span>LOCAL DEV</span><span class="dev-status-path">${escapeHtml(window.location.pathname.split('/').pop()||'index.html')}</span>`;
-  document.body.appendChild(panel);
-}
 
 window.toggleUserMenu = function() {
   const menu=document.getElementById('userMenu');
