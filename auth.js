@@ -49,6 +49,15 @@ function getTierFromElo(elo) {
 /* ══════════════════════════════════
    SIGN IN / OUT
 ══════════════════════════════════ */
+function safeImageUrl(url) {
+  try {
+    const parsed = new URL(String(url || ''), window.location.href);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:' ? parsed.href : '';
+  } catch {
+    return '';
+  }
+}
+
 window.signInWithGoogle = async function() {
   const btn = document.getElementById('googleSignInBtn');
   if (btn) { btn.textContent = 'Opening Google...'; btn.disabled = true; }
@@ -142,17 +151,26 @@ window.getFirestoreLeaderboard = async function(containerId) {
     const medals = ['🥇','🥈','🥉'];
     el.innerHTML = snap.docs.map((d,i) => {
       const u = d.data();
+      u.elo = Number(u.elo) || 400;
+      u.wins = Number(u.wins) || 0;
+      u.losses = Number(u.losses) || 0;
+      u.winStreak = Number(u.winStreak) || 0;
       const t = getTierFromElo(u.elo || 400);
       const userHref = `user.html?u=${encodeURIComponent(u.username||'')}`;
-      const photo = u.photoURL
-        ? `<img src="${u.photoURL}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
-        : `<div class="lb-av">${(u.username||'?')[0].toUpperCase()}</div>`;
+      const safePhoto = safeImageUrl(u.photoURL);
+      const safeName = escHtml(u.username || 'Unknown');
+      const wins = Number(u.wins) || 0;
+      const losses = Number(u.losses) || 0;
+      const streak = Number(u.winStreak) || 0;
+      const photo = safePhoto
+        ? `<img src="${escHtml(safePhoto)}" alt="" referrerpolicy="no-referrer" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
+        : `<div class="lb-av">${escHtml((u.username||'?')[0].toUpperCase())}</div>`;
       return `<a class="lb-row tier-${t.name}" href="${userHref}">
         <div class="lb-rank">${medals[i]||('#'+(i+1))}</div>
         <div class="lb-info">
           ${photo}
           <div>
-            <div class="lb-name">${escHtml(u.username||'Unknown')}</div>
+            <div class="lb-name">${safeName}</div>
             <div class="lb-sub">${t.emoji} ${t.name} · ${u.wins||0}W ${u.losses||0}L${u.winStreak>1?' · 🔥'+u.winStreak+'W':''}</div>
           </div>
         </div>
@@ -165,7 +183,7 @@ window.getFirestoreLeaderboard = async function(containerId) {
 };
 
 function escHtml(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 /* ══════════════════════════════════
@@ -180,12 +198,14 @@ function updateNavForUser(user, profile) {
   if (user && profile) {
     // Logged in
     if (btn) {
-      const photo = profile.photoURL || user.photoURL;
-      const uname = profile.username || user.displayName?.split(' ')[0] || 'Profile';
+      const photo = safeImageUrl(profile.photoURL || user.photoURL);
+      const rawName = profile.username || user.displayName?.split(' ')[0] || 'Profile';
+      const uname = escHtml(rawName);
+      const initial = escHtml((rawName[0]||'?').toUpperCase());
       btn.style.cssText = 'display:flex;align-items:center;gap:9px;padding:6px 14px 6px 7px;border-radius:999px;background:rgba(255,255,255,0.05);border:1px solid rgba(74,158,255,0.16);cursor:pointer;box-shadow:0 0 16px rgba(74,158,255,0.08);';
       btn.innerHTML = photo
-        ? `<img src="${photo}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;box-shadow:0 0 14px rgba(74,158,255,0.2);"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`
-        : `<div style="width:30px;height:30px;border-radius:50%;background:rgba(74,158,255,0.1);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#4A9EFF;box-shadow:0 0 14px rgba(74,158,255,0.16);">${(uname[0]||'?').toUpperCase()}</div><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`;
+        ? `<img src="${escHtml(photo)}" alt="" referrerpolicy="no-referrer" style="width:30px;height:30px;border-radius:50%;object-fit:cover;box-shadow:0 0 14px rgba(74,158,255,0.2);"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`
+        : `<div style="width:30px;height:30px;border-radius:50%;background:rgba(74,158,255,0.1);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#4A9EFF;box-shadow:0 0 14px rgba(74,158,255,0.16);">${initial}</div><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#E8E8E8;letter-spacing:0.5px;">${uname}</span>`;
       btn.onclick = () => { window.location.href = 'profile.html'; };
     }
     if (banner) banner.style.display = 'none';
@@ -248,7 +268,11 @@ window.toggleUserMenu = function() {
   const photoEl = document.getElementById('uMenuPhoto');
   if (nameEl)  nameEl.textContent  = name;
   if (eloEl)   eloEl.textContent   = elo+' ELO · '+t.name;
-  if (photoEl) photoEl.innerHTML   = photo ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;">` : name[0]||'?';
+  if (photoEl) {
+    const safePhoto = safeImageUrl(photo);
+    if (safePhoto) photoEl.innerHTML = `<img src="${escHtml(safePhoto)}" alt="" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;">`;
+    else photoEl.textContent = name[0]||'?';
+  }
   menu.style.display = 'block';
 };
 
