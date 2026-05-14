@@ -36,6 +36,14 @@ function rankClass(t) {
 function escapeHtml(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+function safeImageUrl(url) {
+  try {
+    const parsed = new URL(String(url || ''), window.location.href);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:' ? parsed.href : '';
+  } catch {
+    return '';
+  }
+}
 function getTime() {
   return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
 }
@@ -166,8 +174,9 @@ function renderChatMsg(msg) {
   const cls=rankClass(tierName);
   const emoji=msg.tierEmoji||getTierEmoji(msg.elo||400);
   const time=msg.timestamp?new Date(msg.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):getTime();
-  const photoHTML=msg.photoURL
-    ?`<img src="${escapeHtml(msg.photoURL)}" class="chat-msg-avatar" onerror="this.style.display='none'">`
+  const safePhoto=safeImageUrl(msg.photoURL);
+  const photoHTML=safePhoto
+    ?`<img src="${escapeHtml(safePhoto)}" class="chat-msg-avatar" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none'">`
     :`<div class="chat-msg-avatar-fallback">${escapeHtml((msg.name||'?')[0].toUpperCase())}</div>`;
   const div=document.createElement('div');
   div.className='chat-msg';
