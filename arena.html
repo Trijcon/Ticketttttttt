@@ -118,6 +118,8 @@ body { padding-right:0!important; }
 .feed-ph { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; z-index:7; }
 .feed-ph-icon { opacity:0.12; }
 .feed-ph-text { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2); letter-spacing:1px; }
+.feed-ph.camera-needed .feed-ph-icon { opacity:0.22; }
+.feed-ph.camera-needed .feed-ph-text { color:var(--silver); }
 
 /* Searching overlay — blurs YOUR feed while in queue */
 .search-overlay {
@@ -179,6 +181,48 @@ body { padding-right:0!important; }
 .mog-fill { height:100%; background:linear-gradient(90deg,#4A9EFF,#0df2c8); border-radius:999px; width:50%; transition:width 0.8s cubic-bezier(0.34,1.56,0.64,1); }
 .mog-fill-r { background:linear-gradient(270deg,#ef4444,#7b61ff); }
 
+.camera-check-panel {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+.check-item {
+  display:grid;
+  grid-template-columns:8px 1fr;
+  gap:8px;
+  align-items:center;
+  padding:10px 11px;
+  border-radius:6px;
+  border:1px solid rgba(255,255,255,0.07);
+  background:rgba(255,255,255,0.025);
+}
+.check-dot {
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--muted2);
+}
+.check-item.ok { border-color:rgba(34,197,94,0.24); background:rgba(34,197,94,0.045); }
+.check-item.ok .check-dot { background:var(--green); box-shadow:0 0 12px rgba(34,197,94,0.62); }
+.check-item.wait .check-dot { background:var(--amber); box-shadow:0 0 12px rgba(245,158,11,0.42); }
+.check-item.err { border-color:rgba(239,68,68,0.26); background:rgba(239,68,68,0.045); }
+.check-item.err .check-dot { background:var(--red); box-shadow:0 0 12px rgba(239,68,68,0.5); }
+.check-name {
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;
+  letter-spacing:1px;
+  color:var(--muted);
+  text-transform:uppercase;
+}
+.check-state {
+  margin-top:2px;
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  color:var(--muted2);
+  letter-spacing:0;
+}
+.check-item.ok .check-state { color:rgba(255,255,255,0.58); }
+
 .controls-row { display:flex; align-items:center; gap:8px; }
 .skip-btn {
   padding:11px 18px; border-radius:6px; border:1px solid rgba(255,255,255,0.07);
@@ -189,9 +233,10 @@ body { padding-right:0!important; }
 .main-btn {
   flex:1; padding:13px; border-radius:6px; border:none; background:var(--blue); color:#000;
   font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:700; letter-spacing:0.3px;
-  cursor:pointer; transition:opacity 0.2s;
+  cursor:pointer; transition:opacity 0.2s, transform 0.2s, background 0.2s;
+  will-change:transform;
 }
-.main-btn:hover { opacity:0.85; }
+.main-btn:hover:not(:disabled) { opacity:0.9; transform:translateY(-1px); }
 .main-btn:disabled { background:rgba(74,158,255,0.15); color:rgba(74,158,255,0.4); cursor:not-allowed; }
 
 /* RESULT OVERLAY */
@@ -223,9 +268,26 @@ body { padding-right:0!important; }
 .rb-h:hover { color:var(--silver); border-color:rgba(255,255,255,0.12); }
 
 @media(max-width:700px){
-  .arena-stage{grid-template-columns:1fr;grid-template-rows:1fr 44px 1fr;margin:10px 14px 0;}
+  .arena-header{align-items:flex-start;gap:14px;}
+  .arena-stage{grid-template-columns:1fr;grid-template-rows:minmax(260px,1fr) 44px minmax(260px,1fr);margin:10px 14px 0;}
+  .feed-video{min-height:260px;}
   .vs-col{height:44px;} .arena-header,.arena-bottom{padding-left:14px;padding-right:14px;}
   .status-ticker{margin-left:14px;margin-right:14px;}
+  .camera-check-panel{grid-template-columns:1fr;}
+  .controls-row{flex-direction:column;}
+  .skip-btn,.main-btn{width:100%;}
+}
+
+@media(prefers-reduced-motion: reduce){
+  *,
+  *::before,
+  *::after{
+    animation-duration:0.001ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:0.001ms!important;
+    scroll-behavior:auto!important;
+  }
+  .main-btn{will-change:auto;}
 }
 
 /* ── TIER BORDER GLOW ── */
@@ -341,7 +403,7 @@ body { padding-right:0!important; }
     <div class="arena-online"><div class="arena-online-dot"></div><span class="online-count-val">— online</span></div>
   </div>
 
-  <div class="status-ticker">
+  <div class="status-ticker" role="status" aria-live="polite">
     <div class="st-dot" id="sDot"></div>
     <div class="st-text" id="sText">Opening camera...</div>
     <div class="st-queue" id="qText"></div>
@@ -428,6 +490,20 @@ body { padding-right:0!important; }
         <button class="mmk-opt" id="mmk-anyone" onclick="setMMK('anyone')">Anyone</button>
       </div>
     </div>
+    <div class="camera-check-panel" aria-label="Camera readiness">
+      <div class="check-item wait" id="checkPermission">
+        <span class="check-dot"></span>
+        <span><span class="check-name">Camera</span><span class="check-state">Requesting access</span></span>
+      </div>
+      <div class="check-item wait" id="checkFace">
+        <span class="check-dot"></span>
+        <span><span class="check-name">Face lock</span><span class="check-state">Waiting for face</span></span>
+      </div>
+      <div class="check-item wait" id="checkScan">
+        <span class="check-dot"></span>
+        <span><span class="check-name">Scan quality</span><span class="check-state">Calibrating</span></span>
+      </div>
+    </div>
     <div class="mog-section">
       <div class="mog-side">
         <div class="mog-label"><span id="myMogName">You</span><span>Mogging</span></div>
@@ -441,7 +517,7 @@ body { padding-right:0!important; }
     </div>
     <div class="controls-row">
       <button class="skip-btn" id="skipBtn" onclick="skipOpp()">Skip →</button>
-      <button class="main-btn" id="mainBtn" onclick="mainAction()" disabled>Opening Camera...</button>
+      <button class="main-btn" id="mainBtn" onclick="mainAction()" disabled aria-disabled="true">Opening Camera...</button>
     </div>
   </div>
 
@@ -651,10 +727,41 @@ function onMsg(msg){
   }
 }
 
+function setCheck(id,status,text){
+  var el=document.getElementById(id);
+  if(!el) return;
+  el.classList.remove('ok','wait','err');
+  el.classList.add(status);
+  var stateEl=el.querySelector('.check-state');
+  if(stateEl) stateEl.textContent=text;
+}
+
+function showCameraIssue(title,detail){
+  var ph=document.getElementById('myPH');
+  if(ph){
+    ph.classList.add('camera-needed');
+    ph.style.display='flex';
+    var phText=ph.querySelector('.feed-ph-text');
+    if(phText) phText.textContent=title;
+  }
+  var btn=document.getElementById('mainBtn');
+  if(btn){
+    btn.style.display='block';
+    btn.disabled=false;
+    btn.setAttribute('aria-disabled','false');
+    btn.textContent='Retry Camera';
+    btn.onclick=startCam;
+  }
+  setS('',detail||title);
+}
+
 function mainAction(){ if(state==='camera') findMatch(); }
 
 function startCam(){
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){showCameraIssue('Camera unavailable','Open the site over HTTPS and allow camera access.');return;}
+  setCheck('checkPermission','wait','Requesting access');
+  setCheck('checkFace','wait','Waiting for face');
+  setCheck('checkScan','wait','Calibrating');
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){setCheck('checkPermission','err','Unavailable');showCameraIssue('Camera unavailable','Open the site over HTTPS and allow camera access.');return;}
   navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},facingMode:'user'},audio:false})
   .then(function(stream){
     myStream=stream;
@@ -666,23 +773,32 @@ function startCam(){
       document.getElementById('myNamePill').style.display='block';
       document.getElementById('confBarWrap').style.display='flex';
       document.getElementById('myFeedWrap').classList.add('active');
-      state='camera'; setS('','Camera active — joining queue...');
-      var btn=document.getElementById('mainBtn'); btn.disabled=false; btn.textContent='Find Match →'; btn.style.display='block'; btn.onclick=mainAction;
-      if(initFM(v,c)!==false) setTimeout(findMatch,600);
+      setCheck('checkPermission','ok','Access granted');
+      state='camera'; setS('','Camera ready - center your face, then enter queue');
+      var readyBtn=document.getElementById('mainBtn'); readyBtn.disabled=false; readyBtn.setAttribute('aria-disabled','false'); readyBtn.textContent='Enter Queue ->'; readyBtn.style.display='block'; readyBtn.onclick=mainAction;
+      if(initFM(v,c)===false){readyBtn.disabled=true;readyBtn.setAttribute('aria-disabled','true');readyBtn.textContent='Scanner unavailable';}
     };
   }).catch(function(){
-    setS('','Camera denied — allow access to continue');
-    showCameraIssue('Camera permission required','Allow camera access in your browser, then retry to enter the arena.');
+    setCheck('checkPermission','err','Permission denied');
+    setS('','Camera denied - allow access to continue');
+    showCameraIssue('Camera permission required','Allow camera access in your browser, then retry to join a match.');
   });
 }
 
 function initFM(v,c){
+  if(!window.FaceMesh){
+    setCheck('checkScan','err','Scanner failed');
+    showCameraIssue('Face scanner failed to load','Refresh the page. If this keeps happening, the MediaPipe CDN is being blocked.');
+    return false;
+  }
   faceMesh=new FaceMesh({locateFile:function(f){return 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/'+f;}});
   faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.6,minTrackingConfidence:0.6});
   faceMesh.onResults(function(r){
     var ctx=c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height);
     if(r.multiFaceLandmarks&&r.multiFaceLandmarks.length>0){
       myLandmarks=r.multiFaceLandmarks[0]; drawMesh(c,myLandmarks);
+      setCheck('checkFace','ok','Face locked');
+      setCheck('checkScan','ok','Readable scan');
       // Only update score display when NOT searching
       if(state==='camera'||state==='matched'){
         var res=calcScore(myLandmarks); myLastScore=res.score;
@@ -699,10 +815,17 @@ function initFM(v,c){
         var conf=Math.max(0,Math.min(1,(faceW-0.1)*3.5*(1-centerDist*4)));
         var cf=document.getElementById('confFill'); if(cf) cf.style.width=Math.round(conf*100)+'%';
       }
-    }else{ myLandmarks=null; }
+    }else{
+      myLandmarks=null;
+      if(state==='camera'){
+        setCheck('checkFace','wait','Center your face');
+        setCheck('checkScan','wait','Need face lock');
+      }
+    }
   });
   fmReady=true;
   (function loop(){if(!fmReady||!myStream)return;faceMesh.send({image:v}).then(function(){requestAnimationFrame(loop);});})();
+  return true;
 }
 
 function drawMesh(canvas,lm){
@@ -842,19 +965,27 @@ function setMMK(pref){
 
 function findMatch(){
   if(!myStream||state==='searching')return;
+  if(!myLandmarks){
+    setCheck('checkFace','wait','Center your face');
+    setCheck('checkScan','wait','Need face lock');
+    setS('','Center your face before entering queue');
+    return;
+  }
+  setS('searching','Entering queue...');
   if(!wsSend({type:'join_queue',mmkPref:mmkPref})){setS('searching','Connecting...');setTimeout(findMatch,700);return;}
 }
 function cancelSearch(){
   stopQTimer(); wsSend({type:'leave_queue'});
   document.getElementById('myFeedWrap').classList.remove('searching-state');
   document.getElementById('skipBtn').style.display='none';
-  var btn=document.getElementById('mainBtn'); btn.style.display='block'; btn.disabled=false; btn.textContent='Find Match →'; btn.onclick=mainAction;
-  state='camera'; setS('','Camera active — find a match');
+  var btn=document.getElementById('mainBtn'); btn.style.display='block'; btn.disabled=false; btn.setAttribute('aria-disabled','false'); btn.textContent='Enter Queue ->'; btn.onclick=mainAction;
+  state='camera'; setS('','Camera ready - enter queue when ready');
 }
 function showScanBtn(scan){
   var btn=document.getElementById('mainBtn'); btn.style.display='block';
-  if(scan){btn.disabled=false;btn.textContent='Run Scan';btn.onclick=runScan;}
-  else{btn.disabled=false;btn.textContent='Find Match →';btn.onclick=mainAction;}
+  btn.disabled=false; btn.setAttribute('aria-disabled','false');
+  if(scan){btn.textContent='Run Scan';btn.onclick=runScan;}
+  else{btn.textContent='Enter Queue ->';btn.onclick=mainAction;}
 }
 function onMatchFound(msg){
   state='matched'; var opp=msg.opponent||{}; oppSocketId=opp.id; myRole=msg.role;
@@ -899,7 +1030,7 @@ function closeRTC(){if(peerConn){peerConn.close();peerConn=null;}oppSocketId=nul
 
 function runScan(){
   if(!myLandmarks){setS('connected','⚠ Center your face — face not detected');return;}
-  state='scanning'; var btn=document.getElementById('mainBtn'); btn.textContent='Scanning...'; btn.disabled=true;
+  state='scanning'; var btn=document.getElementById('mainBtn'); btn.textContent='Scanning...'; btn.disabled=true; btn.setAttribute('aria-disabled','true');
   document.getElementById('myFeedWrap').classList.add('scanning');
   setS('searching','Analyzing facial structure...');
   soundScanBeep();
@@ -1039,7 +1170,12 @@ function rematch(){
 function skipOpp(){stopQTimer();wsSend({type:'skip_opponent'});resetOpp();closeRTC();state='camera';setS('','Finding new opponent...');document.getElementById('myFeedWrap').classList.remove('searching-state');showScanBtn(false);document.getElementById('skipBtn').style.display='none';setTimeout(findMatch,300);}
 function resetOpp(){var v=document.getElementById('oppVid');v.srcObject=null;v.style.display='none';document.getElementById('oppPH').style.display='flex';document.getElementById('oppPHText').textContent='Waiting for opponent...';document.getElementById('oppScorePill').style.display='none';document.getElementById('oppNamePill').style.display='none';document.getElementById('reportBtn').style.display='none';document.getElementById('oppFeedWrap').classList.remove('active');}
 function reportOpp(){if(confirm('Report this opponent?')){wsSend({type:'report_user',targetId:oppSocketId,reason:'inappropriate'});alert('Report submitted.');}}
-function setS(type,text){var d=document.getElementById('sDot');d.className='st-dot'+(type?' '+type:'');document.getElementById('sText').textContent=text;}
+function setS(type,text){
+  var d=document.getElementById('sDot');
+  var t=document.getElementById('sText');
+  if(d) d.className='st-dot'+(type?' '+type:'');
+  if(t) t.textContent=text||'';
+}
 </script>
 </body>
 </html>
