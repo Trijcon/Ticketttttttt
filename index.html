@@ -6,380 +6,670 @@
 <title>MogMe.TV</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 <style>
-/* ── SEASON BAR ── */
-.season-bar {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:20px 0 28px;
-}
-.season-tag {
-  font-family:'JetBrains Mono',monospace; font-size:9px;
-  letter-spacing:2px; color:var(--blue); text-transform:uppercase;
-  border:1px solid rgba(74,158,255,0.25); border-radius:4px; padding:5px 12px;
-  background:rgba(74,158,255,0.06);
-  box-shadow:0 0 14px rgba(74,158,255,0.1);
-}
-.season-timer {
-  display:flex; align-items:center; gap:0;
-  background:rgba(0,0,0,0.6);
-  border:1px solid rgba(74,158,255,0.18);
-  border-radius:8px; padding:10px 4px;
-  box-shadow:0 0 28px rgba(74,158,255,0.08), inset 0 1px 0 rgba(255,255,255,0.04);
-  position:relative;
-}
-.season-timer::before {
-  content:''; position:absolute; left:0; right:0; top:0; height:1px;
-  background:linear-gradient(90deg,transparent,rgba(74,158,255,0.6),transparent);
-  border-radius:8px 8px 0 0;
-}
-.t-block {
-  text-align:center; padding:0 14px; position:relative;
-}
-.t-block:not(:last-child)::after {
-  content:''; position:absolute; right:0; top:15%; bottom:15%;
-  width:1px; background:rgba(74,158,255,0.12);
-}
-.t-num {
-  font-family:'JetBrains Mono',monospace; font-weight:700;
-  font-size:30px; line-height:1; color:var(--white);
-  text-shadow:0 0 20px rgba(74,158,255,0.4);
-  letter-spacing:-1px;
-}
-.t-label { font-family:'JetBrains Mono',monospace; font-size:7px; letter-spacing:2px; color:rgba(74,158,255,0.6); margin-top:4px; text-transform:uppercase; }
-.t-sep { font-family:'JetBrains Mono',monospace; font-size:22px; color:rgba(74,158,255,0.35); align-self:center; margin-bottom:8px; padding:0 2px; }
-.season-right { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2); letter-spacing:1px; }
-
-/* ── ASYMMETRIC GRID ── */
-.main-grid {
-  display:grid;
-  grid-template-columns:1.8fr 1fr;
-  grid-template-rows:auto auto;
-  gap:10px; margin-bottom:10px;
-}
-.side-stack { display:flex; flex-direction:column; gap:10px; }
-
-/* ── CARDS ── */
-.card {
-  background:var(--glass); border:1px solid var(--border);
-  border-radius:var(--radius); position:relative; overflow:hidden;
-  text-decoration:none; color:inherit; display:block;
-  transition:border-color 0.2s, background 0.2s;
-  cursor:pointer;
-}
-.card:hover { border-color:var(--border2); background:var(--glass2); }
-.card.arena { min-height:360px; padding:28px; display:flex; flex-direction:column; }
-.card.arena:hover { border-color:rgba(74,158,255,0.2); }
-.card.arena::before {
-  content:''; position:absolute; inset:0; pointer-events:none;
-  background:radial-gradient(ellipse at 100% 0%, rgba(74,158,255,0.05) 0%, transparent 55%);
+body.mog-home {
+  padding-right: 0;
+  background:
+    radial-gradient(circle at 13% 18%, rgba(39, 214, 184, 0.11), transparent 28%),
+    radial-gradient(circle at 86% 24%, rgba(245, 158, 11, 0.08), transparent 24%),
+    radial-gradient(circle at 68% 84%, rgba(74, 158, 255, 0.10), transparent 34%),
+    #020304;
 }
 
-/* Scan line on arena card */
-.card.arena .scan-line {
-  position:absolute; left:0; right:0; top:0; height:1px;
-  background:linear-gradient(90deg,transparent,rgba(74,158,255,0.4),transparent);
-  animation:scanline 3s linear infinite; opacity:0;
-  transition:opacity 0.3s;
+body.mog-home .top-nav,
+body.mog-home .guest-banner {
+  right: 0;
 }
-.card.arena:hover .scan-line { opacity:1; }
-@keyframes scanline { 0%{top:0} 100%{top:100%} }
 
-.card.small { padding:22px; display:flex; flex-direction:column; align-items:flex-start; min-height:110px; }
-.card-label {
-  font-family:'JetBrains Mono',monospace; font-size:9px;
-  letter-spacing:2px; color:var(--muted); margin-bottom:8px; text-transform:uppercase;
+body.mog-home .chat-sidebar {
+  display: none;
 }
-.card-title {
-  font-family:'Space Grotesk',sans-serif; font-weight:700;
-  font-size:18px; color:var(--white); margin-bottom:4px; letter-spacing:-0.2px;
-}
-.card-desc { font-size:12px; color:var(--muted); line-height:1.6; }
 
-/* Arena card inner content */
-.arena-badges { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
-.arena-badge {
-  font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1px;
-  color:var(--muted); border:1px solid var(--border2); border-radius:3px;
-  padding:4px 10px; cursor:pointer; transition:all 0.2s;
+.home-wrap {
+  width: min(1180px, calc(100% - 36px));
+  margin: 0 auto;
+  padding: 22px 0 72px;
+  position: relative;
+  z-index: 1;
 }
-.arena-badge:hover { color:var(--silver); border-color:var(--border3); }
-.online-pill {
-  font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.5px;
-  color:var(--blue); display:flex; align-items:center; gap:5px;
-}
-.online-pip { width:4px;height:4px;border-radius:50%;background:var(--blue);opacity:0.8; }
 
-.arena-title {
-  font-family:'Space Grotesk',sans-serif; font-weight:700;
-  font-size:32px; color:var(--white); letter-spacing:-0.5px; margin-bottom:4px;
+.home-wrap::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+  background-size: 72px 72px;
+  -webkit-mask-image: linear-gradient(to bottom, black, transparent 78%);
+  mask-image: linear-gradient(to bottom, black, transparent 78%);
+  opacity: 0.42;
 }
-.arena-sub { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:2px; color:var(--muted); margin-bottom:auto; }
 
-/* Player card inside arena */
-.player-card {
-  margin-top:24px; padding:16px;
-  background:rgba(0,0,0,0.4); border:1px solid var(--border);
-  border-radius:var(--radius);
+.launch-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.14fr) minmax(340px, 0.86fr);
+  gap: 14px;
+  align-items: stretch;
+  min-height: min(690px, calc(100vh - 164px));
 }
-.player-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
-.player-name-wrap { display:flex; align-items:center; gap:8px; }
-.player-name { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13px; color:var(--silver); }
-.player-tier { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:0.5px; }
-.player-elo { font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--blue); font-weight:700; }
-.player-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:12px; }
-.player-stat-label { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:1px; color:var(--muted2); margin-bottom:2px; }
-.player-stat-val { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); }
-.player-stat-val.hi { color:var(--blue); }
 
-/* Tier list in rank card */
-.tier-list { width:100%; margin-top:10px; }
-.tier-row {
-  display:flex; justify-content:space-between; align-items:center;
-  padding:4px 0; border-bottom:1px solid var(--border);
-  font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.5px;
+.launch-card,
+.side-card,
+.proof-card,
+.route-card {
+  border: 1px solid rgba(255,255,255,0.085);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.052), rgba(255,255,255,0.022));
+  box-shadow: 0 24px 70px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.055);
+  overflow: hidden;
 }
-.tier-row:last-child { border-bottom:none; }
-.tier-row-name { color:var(--muted); }
-.tier-row-elo { color:var(--muted2); }
 
-/* Code button */
-.code-cta {
-  margin-top:auto; padding:8px 14px;
-  border:1px solid var(--border2); border-radius:3px;
-  font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1px;
-  color:var(--muted); text-align:center; width:100%; transition:all 0.2s;
+.launch-card {
+  position: relative;
+  padding: clamp(26px, 4vw, 46px);
+  display: flex;
+  flex-direction: column;
 }
-.card:hover .code-cta { border-color:rgba(74,158,255,0.2); color:var(--blue); }
 
-/* Coming soon overlay */
-.coming-badge {
-  position:absolute; top:16px; right:16px;
-  font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1px;
-  color:var(--muted2); border:1px solid var(--border); border-radius:3px;
-  padding:3px 8px; cursor:pointer; transition:all 0.2s;
+.launch-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(120deg, rgba(39,214,184,0.09), transparent 32%),
+    radial-gradient(circle at 72% 20%, rgba(255,255,255,0.06), transparent 30%);
 }
-.coming-badge:hover { color:var(--muted); border-color:var(--border2); }
 
-/* ── BOTTOM GRID ── */
-.bottom-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
-.section-box { background:var(--glass); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
-.section-head {
-  padding:14px 18px; border-bottom:1px solid var(--border);
-  display:flex; align-items:center; justify-content:space-between;
+.launch-topline {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 42px;
 }
-.section-head-title { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13px; color:var(--silver); }
-.section-head-link { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.5px; color:var(--muted); text-decoration:none; transition:color 0.2s; }
-.section-head-link:hover { color:var(--blue); }
-.section-body { padding:14px 16px; }
-.live-indicator { display:flex; align-items:center; gap:6px; }
-.live-dot { width:4px;height:4px;border-radius:50%;background:var(--red);opacity:0.8; }
 
-#activityFeed { display:flex;flex-direction:column;gap:6px; }
-.activity-item {
-  font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2);
-  padding:6px 10px; background:var(--bg3); border-radius:3px;
-  letter-spacing:0.3px;
+.season-chip,
+.home-online,
+.mini-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.28);
+  padding: 0 12px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,0.62);
+  text-transform: uppercase;
 }
-.activity-name { color:var(--silver); font-weight:500; }
-.activity-elo { color:var(--green); }
 
-/* ── SOCIAL GRID ── */
-.social-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-.social-card {
-  background:var(--glass); border:1px solid var(--border); border-radius:var(--radius);
-  padding:14px 16px; display:flex; align-items:center; gap:10px;
-  text-decoration:none; color:inherit; transition:all 0.2s;
+.home-online {
+  color: #c8fff1;
+  border-color: rgba(39,214,184,0.25);
 }
-.social-card:hover { border-color:var(--border2); background:var(--glass2); }
-.social-info { flex:1; }
-.social-label { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:2px; color:var(--muted2); margin-bottom:2px; }
-.social-name { font-family:'Space Grotesk',sans-serif; font-size:12px; font-weight:500; color:var(--silver); }
-.social-arrow { font-size:12px; color:var(--muted2); transition:all 0.2s; }
-.social-card:hover .social-arrow { color:var(--blue); transform:translateX(2px); }
 
-/* ── HOLOGRAM CARD ── */
-.holo-card {
-  background:#000;
-  border:1px solid rgba(74,158,255,0.15);
-  border-radius:var(--radius);
-  position:relative;
-  overflow:hidden;
-  height:240px;
-  flex-shrink:0;
-  transition:border-color 0.3s;
+.home-online .online-pip {
+  width: 6px;
+  height: 6px;
+  background: #27d6b8;
+  box-shadow: 0 0 14px rgba(39,214,184,0.72);
 }
-.holo-card:hover { border-color:rgba(74,158,255,0.3); }
-#dashHoloCanvas {
-  position:absolute;
-  top:0; left:0;
-  width:100% !important;
-  height:100% !important;
-  display:block;
+
+.hero-copy {
+  position: relative;
+  max-width: 720px;
 }
-.holo-card-label {
-  position:absolute; top:10px; left:12px; z-index:2;
-  font-family:'JetBrains Mono',monospace; font-size:8px;
-  letter-spacing:1.5px; color:rgba(74,158,255,0.5);
-  pointer-events:none;
+
+.eyebrow {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #27d6b8;
+  text-transform: uppercase;
+  margin-bottom: 14px;
 }
-.holo-card-status {
-  position:absolute; top:10px; right:12px; z-index:2;
-  font-family:'JetBrains Mono',monospace; font-size:8px;
-  letter-spacing:1px; color:rgba(74,158,255,0.4);
-  pointer-events:none;
+
+.hero-title {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(50px, 7vw, 92px);
+  line-height: 0.94;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: #fff;
+  max-width: 760px;
 }
-.holo-card-btn {
-  position:absolute; bottom:10px; left:50%; transform:translateX(-50%); z-index:2;
-  font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:1px;
-  color:rgba(74,158,255,0.7); background:rgba(74,158,255,0.07);
-  border:1px solid rgba(74,158,255,0.2); border-radius:3px;
-  padding:5px 16px; cursor:pointer; white-space:nowrap; transition:all 0.2s;
+
+.hero-sub {
+  margin-top: 20px;
+  max-width: 650px;
+  color: rgba(255,255,255,0.64);
+  font-size: clamp(15px, 1.5vw, 18px);
+  line-height: 1.65;
 }
-.holo-card-btn:hover { color:var(--blue); border-color:rgba(74,158,255,0.35); background:rgba(74,158,255,0.12); }
-.hbracket { position:absolute; width:10px; height:10px; z-index:2; pointer-events:none; }
-.hbracket.tl{top:6px;left:6px;border-top:1px solid rgba(74,158,255,0.3);border-left:1px solid rgba(74,158,255,0.3);}
-.hbracket.tr{top:6px;right:6px;border-top:1px solid rgba(74,158,255,0.3);border-right:1px solid rgba(74,158,255,0.3);}
-.hbracket.bl{bottom:6px;left:6px;border-bottom:1px solid rgba(74,158,255,0.3);border-left:1px solid rgba(74,158,255,0.3);}
-.hbracket.br{bottom:6px;right:6px;border-bottom:1px solid rgba(74,158,255,0.3);border-right:1px solid rgba(74,158,255,0.3);}
-@media(max-width:900px){.main-grid{grid-template-columns:1fr}.bottom-grid{grid-template-columns:1fr}}
-@media(max-width:560px){.social-grid{grid-template-columns:1fr 1fr}}
+
+.trust-strip {
+  position: relative;
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.trust-item {
+  padding: 12px 13px;
+  border: 1px solid rgba(255,255,255,0.075);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.22);
+}
+
+.trust-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 1.4px;
+  color: rgba(255,255,255,0.38);
+  text-transform: uppercase;
+}
+
+.trust-value {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgba(255,255,255,0.76);
+}
+
+.launch-actions {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 34px;
+}
+
+.start-btn,
+.secondary-btn {
+  min-height: 52px;
+  border-radius: 8px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  transition: transform 0.2s, border-color 0.2s, background 0.2s;
+  will-change: transform;
+}
+
+.start-btn {
+  padding: 0 26px;
+  color: #03100d;
+  background: linear-gradient(135deg, #27d6b8, #f4d675);
+  box-shadow: 0 18px 42px rgba(39,214,184,0.18);
+}
+
+.secondary-btn {
+  padding: 0 18px;
+  color: rgba(255,255,255,0.72);
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.24);
+}
+
+.start-btn:hover,
+.secondary-btn:hover {
+  transform: translateY(-2px);
+}
+
+.secondary-btn:hover {
+  color: #fff;
+  border-color: rgba(255,255,255,0.22);
+}
+
+.side-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.side-card {
+  padding: 18px;
+}
+
+.side-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.side-title {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.readiness-panel {
+  position: relative;
+  min-height: 300px;
+  border-radius: 8px;
+  border: 1px solid rgba(39,214,184,0.16);
+  background:
+    radial-gradient(circle at 50% 35%, rgba(39,214,184,0.12), transparent 34%),
+    linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.36));
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.readiness-panel::before {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 999px;
+}
+
+.readiness-panel::after {
+  content: "";
+  position: absolute;
+  width: 52%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(39,214,184,0.8), transparent);
+  animation: scanHome 3.4s linear infinite;
+}
+
+@keyframes scanHome {
+  from { transform: translateY(-124px); opacity: 0; }
+  12%, 88% { opacity: 1; }
+  to { transform: translateY(124px); opacity: 0; }
+}
+
+.face-outline {
+  width: 160px;
+  aspect-ratio: 0.72;
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 48% 48% 44% 44%;
+  position: relative;
+  box-shadow: 0 0 46px rgba(39,214,184,0.10);
+}
+
+.face-outline::before,
+.face-outline::after {
+  content: "";
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  height: 1px;
+  background: rgba(255,255,255,0.16);
+}
+
+.face-outline::before { top: 35%; }
+.face-outline::after { top: 62%; }
+
+.readiness-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.ready-row {
+  display: grid;
+  grid-template-columns: 8px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.22);
+  border: 1px solid rgba(255,255,255,0.065);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+
+.ready-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #27d6b8;
+  box-shadow: 0 0 12px rgba(39,214,184,0.7);
+}
+
+.ready-state {
+  color: rgba(255,255,255,0.42);
+}
+
+.flow-rail {
+  display: grid;
+  gap: 8px;
+}
+
+.flow-step {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: 11px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.20);
+  border: 1px solid rgba(255,255,255,0.065);
+}
+
+.flow-num {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(39,214,184,0.10);
+  border: 1px solid rgba(39,214,184,0.18);
+  color: #7ef5de;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.flow-name {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.88);
+}
+
+.flow-copy {
+  color: rgba(255,255,255,0.46);
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 2px;
+}
+
+.route-grid,
+.proof-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.route-card {
+  padding: 18px;
+  min-height: 132px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s, border-color 0.2s;
+  will-change: transform;
+}
+
+.route-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(39,214,184,0.25);
+}
+
+.route-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: #27d6b8;
+  text-transform: uppercase;
+}
+
+.route-title {
+  margin-top: 8px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.route-copy {
+  margin-top: 4px;
+  color: rgba(255,255,255,0.46);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.proof-grid {
+  grid-template-columns: 1fr 1fr;
+}
+
+.proof-card {
+  min-height: 220px;
+}
+
+.proof-head {
+  min-height: 50px;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.proof-title {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  color: #fff;
+}
+
+.proof-link {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.7px;
+  color: rgba(255,255,255,0.45);
+  text-decoration: none;
+}
+
+.proof-body {
+  padding: 14px;
+}
+
+.footer-note {
+  margin-top: 22px;
+  text-align: center;
+  color: rgba(255,255,255,0.30);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+@media(max-width: 980px) {
+  .launch-grid,
+  .route-grid,
+  .proof-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .trust-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media(max-width: 620px) {
+  .home-wrap {
+    width: min(100% - 24px, 1180px);
+    padding-top: 12px;
+  }
+
+  .hero-title {
+    font-size: clamp(38px, 14vw, 54px);
+    line-height: 1;
+  }
+
+  .hero-sub {
+    font-size: 14px;
+  }
+
+  .readiness-panel {
+    min-height: 240px;
+  }
+
+  .face-outline {
+    width: 132px;
+  }
+
+  .ready-row {
+    grid-template-columns: 8px 1fr;
+  }
+
+  .ready-state {
+    grid-column: 2;
+  }
+
+  .launch-card {
+    padding: 22px;
+  }
+
+  .launch-topline,
+  .launch-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .start-btn,
+  .secondary-btn {
+    width: 100%;
+  }
+}
+
+@media(prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .start-btn,
+  .secondary-btn,
+  .route-card {
+    will-change: auto;
+  }
+}
 </style>
 </head>
-<body>
-<div class="page-wrap">
-
-  <!-- SEASON -->
-  <div class="season-bar">
-    <div class="season-tag">🏆 Season 1</div>
-    <div class="season-timer">
-      <div class="t-block"><div class="t-num" id="tD">30</div><div class="t-label">Days</div></div>
-      <div class="t-sep">:</div>
-      <div class="t-block"><div class="t-num" id="tH">00</div><div class="t-label">Hours</div></div>
-      <div class="t-sep">:</div>
-      <div class="t-block"><div class="t-num" id="tM">00</div><div class="t-label">Min</div></div>
-      <div class="t-sep">:</div>
-      <div class="t-block"><div class="t-num" id="tS">00</div><div class="t-label">Sec</div></div>
-    </div>
-    <div class="season-right">Ranks reset every month</div>
-  </div>
-
-  <!-- MAIN ASYMMETRIC GRID -->
-  <div class="main-grid">
-
-    <!-- ARENA — big left card -->
-    <a class="card arena" href="arena.html">
-      <div class="scan-line"></div>
-      <div class="arena-badges">
-        <div class="arena-badge" onclick="event.preventDefault();event.stopPropagation();openHowModal()">? How to Mog</div>
-        <div class="online-pill"><div class="online-pip"></div><span class="online-count-val">— online</span></div>
-      </div>
-      <div class="card-label">Ranked Matchmaking</div>
-      <div class="arena-title">1V1 Arena</div>
-      <div class="arena-sub">Peer to peer · AI scan · Live ELO</div>
-      <div class="player-card">
-        <div class="player-row">
-          <div class="player-name-wrap">
-            <div class="player-name" id="dashName">You</div>
-            <div class="player-tier" id="dashTier">Sub3</div>
-          </div>
-          <div class="player-elo" id="dashElo">400 ELO</div>
+<body class="mog-home">
+<div class="home-wrap">
+  <section class="launch-grid">
+    <article class="launch-card">
+      <div class="launch-topline">
+        <div class="season-chip">Season 1 active</div>
+        <div class="home-online online-pill">
+          <div class="online-pip"></div>
+          <span class="online-count-val">-- online</span>
         </div>
-        <div class="player-stats">
-          <div>
-            <div class="player-stat-label">Record</div>
-            <div class="player-stat-val" id="dashRecord">0W — 0L</div>
-          </div>
-          <div>
-            <div class="player-stat-label">Standing</div>
-            <div class="player-stat-val dim">Unranked</div>
-          </div>
-          <div>
-            <div class="player-stat-label">Next rank</div>
-            <div class="player-stat-val hi" id="dashNext">LTN</div>
-          </div>
-        </div>
-        <div class="elo-bar"><div class="elo-bar-fill" id="eloBarFill"></div></div>
-        <div class="elo-bar-labels"><span id="eloBarPct">0%</span><span id="eloBarNeeded">101 TO NEXT</span></div>
       </div>
+
+      <div class="hero-copy">
+        <div class="eyebrow">Live face-off matchmaking</div>
+        <h1 class="hero-title">Camera ready. Rank on the line.</h1>
+        <p class="hero-sub">
+          MogMe.TV is a live 1v1 arena with browser-side face scanning, peer-to-peer video,
+          ELO, rematches, private rooms, and a public ladder.
+        </p>
+      </div>
+
+      <div class="trust-strip" aria-label="Trust and flow">
+        <div class="trust-item">
+          <div class="trust-label">Camera</div>
+          <div class="trust-value">Check your feed before joining the queue.</div>
+        </div>
+        <div class="trust-item">
+          <div class="trust-label">Privacy</div>
+          <div class="trust-value">Face analysis runs in-browser. No camera recording.</div>
+        </div>
+        <div class="trust-item">
+          <div class="trust-label">Match</div>
+          <div class="trust-value">Scan, submit, compare, gain or lose ELO.</div>
+        </div>
+      </div>
+
+      <div class="launch-actions">
+        <a class="start-btn" href="arena.html">Start camera check -></a>
+        <a class="secondary-btn" href="rank.html">View leaderboard</a>
+        <a class="secondary-btn" href="private.html">Private room</a>
+      </div>
+    </article>
+
+    <aside class="side-stack">
+      <div class="side-card">
+        <div class="side-head">
+          <div class="side-title">Readiness cockpit</div>
+          <div class="mini-chip">Local scan</div>
+        </div>
+        <div class="readiness-panel" aria-hidden="true">
+          <div class="face-outline"></div>
+        </div>
+        <div class="readiness-list">
+          <div class="ready-row"><span class="ready-dot"></span><span>Permission gate</span><span class="ready-state">before queue</span></div>
+          <div class="ready-row"><span class="ready-dot"></span><span>Face detected</span><span class="ready-state">live check</span></div>
+          <div class="ready-row"><span class="ready-dot"></span><span>Queue handoff</span><span class="ready-state">one click</span></div>
+        </div>
+      </div>
+
+      <div class="side-card">
+        <div class="side-head">
+          <div class="side-title">How it flows</div>
+          <div class="mini-chip">No dead ends</div>
+        </div>
+        <div class="flow-rail">
+          <div class="flow-step"><div class="flow-num">01</div><div><div class="flow-name">Check camera</div><div class="flow-copy">Allow camera, center your face, confirm your scan is readable.</div></div></div>
+          <div class="flow-step"><div class="flow-num">02</div><div><div class="flow-name">Enter queue</div><div class="flow-copy">Choose matchmaking preference and wait with your feed blurred.</div></div></div>
+          <div class="flow-step"><div class="flow-num">03</div><div><div class="flow-name">Duel and climb</div><div class="flow-copy">Run the scan, compare scores, get ELO, rematch or move on.</div></div></div>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="route-grid" aria-label="MogMe destinations">
+    <a class="route-card" href="arena.html">
+      <div class="route-label">Ranked</div>
+      <div class="route-title">1V1 Arena</div>
+      <div class="route-copy">The main loop: camera check, queue, live scan, result, rematch.</div>
     </a>
+    <a class="route-card" href="rank.html">
+      <div class="route-label">Proof</div>
+      <div class="route-title">Global Rank</div>
+      <div class="route-copy">See ELO, tiers, win rate, streaks, and the top players.</div>
+    </a>
+    <a class="route-card" href="private.html">
+      <div class="route-label">Invite</div>
+      <div class="route-title">Private Room</div>
+      <div class="route-copy">Create a code and run a match without public matchmaking.</div>
+    </a>
+  </section>
 
-    <!-- RIGHT STACK -->
-    <div class="side-stack">
-
-      <!-- HOLOGRAM -->
-      <div class="holo-card" id="holoCard">
-        <canvas id="dashHoloCanvas" width="320" height="240"></canvas>
-        <div class="holo-card-label">THE LAB · ALGORITHM PREVIEW</div>
-        <div class="holo-card-status" id="holoStatus">STANDBY</div>
-        <div class="hbracket tl"></div><div class="hbracket tr"></div>
-        <div class="hbracket bl"></div><div class="hbracket br"></div>
-        <button class="holo-card-btn" id="holoCamBtn" onclick="toggleHoloCam()">Activate Camera</button>
+  <section class="proof-grid" aria-label="Live proof">
+    <div class="proof-card">
+      <div class="proof-head">
+        <div class="proof-title">Live activity</div>
+        <div class="proof-link">Arena feed</div>
       </div>
-
-      <!-- THE LAB -->
-      <div class="card small" onclick="openLabSoonModal()" style="min-height:160px;">
-        <div class="coming-badge" onclick="event.stopPropagation();openLabSoonModal()">In development</div>
-        <div class="card-label">Solo Calibration</div>
-        <div class="card-title">The Lab</div>
-        <div class="card-desc">In-depth AI facial analysis. Coming soon.</div>
-      </div>
-
-      <!-- GLOBAL RANK -->
-      <a class="card small" href="rank.html" style="min-height:auto;">
-        <div class="card-label">Leaderboard</div>
-        <div class="card-title">Global Rank</div>
-        <div class="tier-list">
-          <div class="tier-row"><span class="tier-row-name">💀 Slayer</span><span class="tier-row-elo">5001+</span></div>
-          <div class="tier-row"><span class="tier-row-name">👑 Chad</span><span class="tier-row-elo">3501–5000</span></div>
-          <div class="tier-row"><span class="tier-row-name">🔥 Chadlite</span><span class="tier-row-elo">2001–3500</span></div>
-          <div class="tier-row"><span class="tier-row-name">⭐ HTN</span><span class="tier-row-elo">1501–2000</span></div>
-          <div class="tier-row"><span class="tier-row-name">⚡ MTN</span><span class="tier-row-elo">1001–1500</span></div>
-          <div class="tier-row"><span class="tier-row-name">🌙 LTN</span><span class="tier-row-elo">501–1000</span></div>
-          <div class="tier-row"><span class="tier-row-name">🔴 Sub3</span><span class="tier-row-elo">1–500</span></div>
-          <div class="tier-row"><span class="tier-row-name">🧪 Molecule</span><span class="tier-row-elo">≤0</span></div>
-        </div>
-      </a>
-
-      <!-- PRIVATE ROOM -->
-      <a class="card small" href="private.html">
-        <div class="card-label">Invite Only</div>
-        <div class="card-title">Private Room</div>
-        <div class="card-desc" style="margin-bottom:12px;">Challenge a friend with a 6-digit code.</div>
-        <div class="code-cta">Have a code? Join →</div>
-      </a>
-
+      <div class="proof-body"><div id="activityFeed"></div></div>
     </div>
-  </div>
-
-  <!-- BOTTOM: ACTIVITY + LEADERBOARD -->
-  <div class="bottom-grid">
-    <div class="section-box">
-      <div class="section-head">
-        <div class="section-head-title"><span class="live-indicator" style="display:inline-flex;align-items:center;gap:6px;"><span class="live-dot"></span>Live Activity</span></div>
+    <div class="proof-card">
+      <div class="proof-head">
+        <div class="proof-title">Top Moggers</div>
+        <a class="proof-link" href="rank.html">View all -></a>
       </div>
-      <div class="section-body"><div id="activityFeed"></div></div>
-    </div>
-    <div class="section-box">
-      <div class="section-head">
-        <div class="section-head-title">Top Moggers</div>
-        <a href="rank.html" class="section-head-link">View all →</a>
+      <div id="lbPreview">
+        <div style="padding:20px 16px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);">Loading...</div>
       </div>
-      <div id="lbPreview"><div style="padding:20px 16px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);">Loading...</div></div>
     </div>
-  </div>
+  </section>
 
-  <!-- SOCIAL -->
-  <div class="social-grid">
-    <a href="#" class="social-card" rel="noopener noreferrer" target="_blank"><div class="social-info"><div class="social-label">Discord</div><div class="social-name">Join the server</div></div><div class="social-arrow">→</div></a>
-    <a href="#" class="social-card" rel="noopener noreferrer" target="_blank"><div class="social-info"><div class="social-label">TikTok</div><div class="social-name">Follow MogMe.TV</div></div><div class="social-arrow">→</div></a>
-    <a href="#" class="social-card" rel="noopener noreferrer" target="_blank"><div class="social-info"><div class="social-label">Instagram</div><div class="social-name">Follow MogMe.TV</div></div><div class="social-arrow">→</div></a>
-    <a href="#" class="social-card" rel="noopener noreferrer" target="_blank"><div class="social-info"><div class="social-label">Reddit</div><div class="social-name">Follow MogMe.TV</div></div><div class="social-arrow">→</div></a>
-    <a href="#" class="social-card" rel="noopener noreferrer" target="_blank"><div class="social-info"><div class="social-label">YouTube</div><div class="social-name">Follow MogMe.TV</div></div><div class="social-arrow">→</div></a>
-    <a href="#" class="social-card" rel="noopener noreferrer" target="_blank"><div class="social-info"><div class="social-label">X / Twitter</div><div class="social-name">Follow MogMe.TV</div></div><div class="social-arrow">→</div></a>
-  </div>
-
+  <div class="footer-note">Anti-abuse session checks - 18+ acknowledgement - Not legal identity verification</div>
 </div>
 
 <script src="shared.js"></script>
@@ -387,261 +677,9 @@
 <script>
 injectSharedUI();
 connectWS();
-
-// Timer to June 6 2026
-var endDate=new Date('2026-06-06T00:00:00Z');
-function tick(){
-  var d=endDate-Date.now();if(d<=0)return;
-  document.getElementById('tD').textContent=String(Math.floor(d/864e5)).padStart(2,'0');
-  document.getElementById('tH').textContent=String(Math.floor((d%864e5)/36e5)).padStart(2,'0');
-  document.getElementById('tM').textContent=String(Math.floor((d%36e5)/6e4)).padStart(2,'0');
-  document.getElementById('tS').textContent=String(Math.floor((d%6e4)/1e3)).padStart(2,'0');
-}
-tick(); setInterval(tick,1000);
-
-// Load stats
-var n=localStorage.getItem('mgm_username')||localStorage.getItem('mgm_name');
-if(n) document.getElementById('dashName').textContent=n;
-var e=parseInt(localStorage.getItem('mgm_elo')||'400');
-document.getElementById('dashElo').textContent=e+' ELO';
-document.getElementById('dashTier').textContent=getTierName(e);
-var w=parseInt(localStorage.getItem('mgm_wins')||'0');
-var l=parseInt(localStorage.getItem('mgm_losses')||'0');
-document.getElementById('dashRecord').textContent=w+'W \u2014 '+l+'L';
-
-// Dynamic ELO progress bar
-var prog=calcEloProgress(e);
-document.getElementById('eloBarNeeded').textContent=prog.eloNeeded>0?prog.eloNeeded+' TO NEXT':'MAX TIER';
-document.getElementById('eloBarPct').textContent=prog.pct+'%';
-if(prog.nextTier) document.getElementById('dashNext').textContent=prog.nextTier;
-setTimeout(function(){
-  var f=document.getElementById('eloBarFill');
-  if(f) f.style.width=prog.pct+'%';
-},500);
-
 startActivityFeed();
-setTimeout(function(){loadLeaderboard('lbPreview');},1500);
+setTimeout(function(){loadLeaderboard('lbPreview');},1200);
 setInterval(function(){loadLeaderboard('lbPreview');},30000);
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script>
-/* ════════════════════════════════
-   DASHBOARD HOLOGRAM
-   Triangulated low-poly wireframe face
-   matching Algorithm Preview reference
-════════════════════════════════ */
-var hR,hS,hC,hG,hParticles,hScanLine,hScanDir=1,hScanMat; var hT=0;
-
-window.addEventListener('load', function() {
-  var card=document.getElementById('holoCard');
-  var canvas=document.getElementById('dashHoloCanvas');
-  if(!card||!canvas||!window.THREE) return;
-  var W=card.offsetWidth||320, H=card.offsetHeight||240;
-  canvas.width=W; canvas.height=H;
-
-  hR=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:false});
-  hR.setPixelRatio(Math.min(devicePixelRatio,2));
-  hR.setSize(W,H,false);
-  hR.setClearColor(0x000000,1);
-  hS=new THREE.Scene();
-  hC=new THREE.PerspectiveCamera(38,W/H,0.1,100);
-  hC.position.z=2.8;
-  hG=new THREE.Group();
-  hS.add(hG);
-
-  buildTriMesh();
-  buildParticles();
-
-  // Animated scan line
-  var slg=new THREE.PlaneGeometry(1.1,0.003);
-  hScanMat=new THREE.MeshBasicMaterial({color:0xaaddff,transparent:true,opacity:0.7,side:THREE.DoubleSide});
-  hScanLine=new THREE.Mesh(slg,hScanMat);
-  hScanLine.position.z=0.15;
-  hG.add(hScanLine);
-
-  var btn=document.getElementById('holoCamBtn');
-  if(btn) btn.style.display='none';
-
-  hLoop();
-});
-
-function seg(ax,ay,az,bx,by,bz,mat){
-  var g=new THREE.BufferGeometry();
-  g.setAttribute('position',new THREE.Float32BufferAttribute([ax,ay,az,bx,by,bz],3));
-  hG.add(new THREE.Line(g,mat));
-}
-
-function buildTriMesh(){
-  // Wire material — bright white, matching reference image
-  var matBright=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.85,linewidth:1});
-  var matMid   =new THREE.LineBasicMaterial({color:0xccddff,transparent:true,opacity:0.55,linewidth:1});
-  var matDim   =new THREE.LineBasicMaterial({color:0x88aadd,transparent:true,opacity:0.30,linewidth:1});
-
-  // Build a parametric face surface with proper curvature
-  // The face is a 3D surface: columns=horizontal, rows=vertical
-  // We define it as a grid then triangulate every quad into 2 triangles
-  // and draw all edges — this creates the exact low-poly mesh look
-
-  var COLS=14, ROWS=18;
-
-  // Face surface generator: given (u,v) in [0,1]x[0,1], return [x,y,z]
-  function facePoint(u,v){
-    // u=0 left, u=1 right. v=0 top (crown), v=1 bottom (chin)
-    var y=0.78-v*1.42; // y: 0.78 at top, -0.64 at bottom
-
-    // Face width profile — wider at cheeks, narrower at forehead and chin
-    var widthProfile;
-    if(v<0.15) widthProfile=0.22+v*0.8; // narrow at crown, widening
-    else if(v<0.35) widthProfile=0.34+v*0.2; // mid-forehead
-    else if(v<0.55) widthProfile=0.40+Math.sin((v-0.35)*Math.PI*1.2)*0.06; // cheekbone bulge
-    else if(v<0.75) widthProfile=0.38-((v-0.55)*0.8); // narrowing to jaw
-    else widthProfile=0.22-(v-0.75)*0.55; // jaw to chin taper
-
-    widthProfile=Math.max(0.06,widthProfile);
-    var x=(u*2-1)*widthProfile;
-
-    // Face depth (z) — face curves outward, forehead/chin recede
-    var faceZ;
-    if(v<0.1) faceZ=0.02; // top of head
-    else if(v<0.3) faceZ=0.06+v*0.2; // forehead
-    else if(v<0.45) faceZ=0.18+Math.sin((v-0.3)*Math.PI)*0.22; // brow/nose bridge peak
-    else if(v<0.65) faceZ=0.28+Math.cos((v-0.45)*Math.PI*0.8)*0.08; // nose/cheek
-    else faceZ=0.18-(v-0.65)*0.35; // jaw recede
-
-    // Horizontal face curvature (profile curve from side)
-    var cx=x/widthProfile; // normalized -1 to 1
-    var depthCurve=1.0-Math.pow(Math.abs(cx),1.4)*0.72;
-    var z=faceZ*depthCurve;
-
-    // Feature depressions/protrusions
-    // Eye sockets
-    var eyeLX=-0.28, eyeRX=0.28, eyeY=0.42;
-    var dLE=Math.sqrt((cx*widthProfile-eyeLX)*(cx*widthProfile-eyeLX)+(v-eyeY)*(v-eyeY));
-    var dRE=Math.sqrt((cx*widthProfile-eyeRX)*(cx*widthProfile-eyeRX)+(v-eyeY)*(v-eyeY));
-    if(dLE<0.09) z-=0.04*(1-dLE/0.09);
-    if(dRE<0.09) z-=0.04*(1-dRE/0.09);
-
-    // Nose bridge protrusion
-    var noseX=0.0, noseY=0.48;
-    var dN=Math.sqrt(cx*cx*widthProfile*widthProfile*4+(v-noseY)*(v-noseY)*2);
-    if(dN<0.15 && Math.abs(cx*widthProfile)<0.1) z+=0.06*(1-dN/0.15);
-
-    // Nose tip protrusion  
-    var dNT=Math.sqrt(cx*cx*widthProfile*widthProfile*6+(v-0.62)*(v-0.62)*4);
-    if(dNT<0.1) z+=0.08*(1-dNT/0.1);
-
-    // Lip area slight protrusion
-    var dL=Math.sqrt(cx*cx*widthProfile*widthProfile*3+(v-0.73)*(v-0.73)*3);
-    if(dL<0.09) z+=0.025*(1-dL/0.09);
-
-    return [x,y,z];
-  }
-
-  // Build grid of vertices
-  var grid=[];
-  for(var row=0;row<=ROWS;row++){
-    grid[row]=[];
-    for(var col=0;col<=COLS;col++){
-      var u=col/COLS, v=row/ROWS;
-      grid[row][col]=facePoint(u,v);
-    }
-  }
-
-  // Draw all triangle edges
-  for(var row=0;row<ROWS;row++){
-    for(var col=0;col<COLS;col++){
-      var A=grid[row][col];
-      var B=grid[row][col+1];
-      var C=grid[row+1][col];
-      var D=grid[row+1][col+1];
-
-      // Pick brightness by region
-      var v=row/ROWS;
-      var mat=(v<0.12||v>0.88)?matDim:(v>0.25&&v<0.75)?matBright:matMid;
-
-      // Top edge
-      seg(A[0],A[1],A[2],B[0],B[1],B[2],mat);
-      // Left edge
-      seg(A[0],A[1],A[2],C[0],C[1],C[2],mat);
-      // Diagonal (triangulate the quad)
-      seg(B[0],B[1],B[2],C[0],C[1],C[2],mat);
-      // Bottom edge (last row only)
-      if(row===ROWS-1) seg(C[0],C[1],C[2],D[0],D[1],D[2],mat);
-      // Right edge (last col only)
-      if(col===COLS-1) seg(B[0],B[1],B[2],D[0],D[1],D[2],mat);
-    }
-  }
-
-  // Add eye ring highlights (bright circles)
-  var eyeMatL=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.95});
-  var eyeMatR=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.95});
-  function eyeRing(cx,cy,cz,rx,ry,mat,segs){
-    var pts=[]; for(var i=0;i<=segs;i++){var a=i/segs*Math.PI*2;pts.push(new THREE.Vector3(cx+Math.cos(a)*rx,cy+Math.sin(a)*ry,cz));}
-    var g=new THREE.BufferGeometry().setFromPoints(pts);
-    hG.add(new THREE.Line(g,mat));
-  }
-  eyeRing(-0.28,0.115,0.22,0.09,0.046,eyeMatL,24);
-  eyeRing( 0.28,0.115,0.22,0.09,0.046,eyeMatR,24);
-  // Iris
-  var iMat=new THREE.LineBasicMaterial({color:0xaaddff,transparent:true,opacity:0.7});
-  eyeRing(-0.28,0.115,0.24,0.044,0.044,iMat,16);
-  eyeRing( 0.28,0.115,0.24,0.044,0.044,iMat,16);
-
-  // Pupil dots
-  var pdv=[-0.28,0.115,0.25, 0.28,0.115,0.25];
-  var pdg=new THREE.BufferGeometry(); pdg.setAttribute('position',new THREE.Float32BufferAttribute(pdv,3));
-  hG.add(new THREE.Points(pdg,new THREE.PointsMaterial({color:0xffffff,size:0.026,transparent:true,opacity:1,depthTest:false})));
-
-  // Lips highlight
-  var lipMat=new THREE.LineBasicMaterial({color:0xeef6ff,transparent:true,opacity:0.9});
-  var lipPts=[];
-  for(var i=0;i<=20;i++){var t=i/20;lipPts.push(new THREE.Vector3(-0.18+t*0.36,-0.325+Math.sin(t*Math.PI)*0.035,0.28));}
-  var lg=new THREE.BufferGeometry().setFromPoints(lipPts);
-  hG.add(new THREE.Line(lg,lipMat));
-  var lipPts2=[];
-  for(var i=0;i<=20;i++){var t=i/20;lipPts2.push(new THREE.Vector3(-0.16+t*0.32,-0.375+Math.sin(t*Math.PI)*0.038,0.27));}
-  var lg2=new THREE.BufferGeometry().setFromPoints(lipPts2);
-  hG.add(new THREE.Line(lg2,new THREE.LineBasicMaterial({color:0xeef6ff,transparent:true,opacity:0.7})));
-}
-
-function buildParticles(){
-  var N=40, pv=[];
-  for(var i=0;i<N;i++){
-    pv.push((Math.random()-0.5)*2.2,(Math.random()-0.5)*1.8,(Math.random()-0.5)*0.6);
-  }
-  var pg=new THREE.BufferGeometry();
-  pg.setAttribute('position',new THREE.Float32BufferAttribute(pv,3));
-  hParticles=new THREE.Points(pg,new THREE.PointsMaterial({color:0x88bbff,transparent:true,opacity:0.18,size:0.006,depthTest:false}));
-  hS.add(hParticles);
-}
-
-function hLoop(){
-  requestAnimationFrame(hLoop);
-  hT+=0.005;
-
-  // Gentle idle sway
-  hG.rotation.y=Math.sin(hT*0.24)*0.10;
-  hG.rotation.x=-0.06+Math.sin(hT*0.16)*0.022;
-  hG.position.y=0.04+Math.sin(hT*0.42)*0.010;
-
-  // Animated scan line
-  if(hScanLine){
-    hScanLine.position.y+=0.005*hScanDir;
-    if(hScanLine.position.y>0.82||hScanLine.position.y<-0.68){hScanDir*=-1;}
-    if(hScanMat) hScanMat.opacity=0.55+Math.sin(hT*5)*0.25;
-  }
-
-  // Drift particles
-  if(hParticles){
-    var pos=hParticles.geometry.attributes.position.array;
-    for(var i=0;i<pos.length;i+=3){
-      pos[i+1]+=0.0003;
-      if(pos[i+1]>0.9) pos[i+1]=-0.9;
-    }
-    hParticles.geometry.attributes.position.needsUpdate=true;
-  }
-
-  hR.render(hS,hC);
-}
-</script>
 </body>
+</html>
