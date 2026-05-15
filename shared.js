@@ -8,6 +8,39 @@ const SERVER_HTTP = 'https://mogmetv-production.up.railway.app';
 
 let ws = null, mySocketId = null, reconnectTimer = null, pageOnMsg = null;
 
+/* ═══════════════════════════════════
+   LIVENESS GATE
+   Anti-spoof 4-stage challenge. Pass
+   record stored in localStorage and
+   echoed to server for signed-in users.
+   Valid for 3 hours per browser.
+═══════════════════════════════════ */
+window.LivenessGate = {
+  KEY: 'mgm_liveness_passedAt',
+  TTL_MS: 3 * 60 * 60 * 1000,
+  hasValidPass() {
+    const t = parseInt(localStorage.getItem(this.KEY) || '0');
+    return t > 0 && (Date.now() - t) < this.TTL_MS;
+  },
+  markPassed() {
+    localStorage.setItem(this.KEY, String(Date.now()));
+    // Best-effort echo to server so signed-in users persist across devices.
+    const idToken = localStorage.getItem('mgm_idToken');
+    if (idToken) {
+      fetch(SERVER_HTTP + '/liveness/pass', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + idToken }
+      }).catch(() => {});
+    }
+  },
+  requireOrRedirect(nextUrl) {
+    if (this.hasValidPass()) return true;
+    const next = encodeURIComponent(nextUrl || window.location.pathname + window.location.search);
+    window.location.replace('gate.html?next=' + next);
+    return false;
+  }
+};
+
 let myName     = localStorage.getItem('mgm_username') || localStorage.getItem('mgm_name') || 'Anonymous';
 let myElo      = parseInt(localStorage.getItem('mgm_elo')     || '400');
 let myWins     = parseInt(localStorage.getItem('mgm_wins')    || '0');

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MogMe.TV — Session Challenge</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+body.mog-gate{
+  padding:0; padding-right:0;
+  display:grid; place-items:center; min-height:100vh;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(74,158,255,0.10), transparent 36%),
+    radial-gradient(circle at 50% 100%, rgba(123,97,255,0.08), transparent 40%),
+    #020304;
+}
+body.mog-gate .top-nav,
+body.mog-gate .guest-banner,
+body.mog-gate .chat-sidebar { display:none !important; }
+body.mog-gate { padding-top:0 !important; }
+
+.gate-wrap{
+  width:min(440px, calc(100% - 36px));
+  position:relative; z-index:1;
+}
+
+.gate-exit{
+  position:fixed; top:18px; right:18px; z-index:10;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  width:30px; height:30px; border-radius:8px;
+  color:rgba(255,255,255,0.55);
+  font-size:14px; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all 0.15s;
+}
+.gate-exit:hover{ color:#fff; border-color:rgba(255,255,255,0.18); }
+
+.gate-card{
+  border:1px solid rgba(255,255,255,0.085);
+  border-radius:14px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.018));
+  box-shadow:0 32px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+  overflow:hidden;
+  padding:26px 24px 22px;
+}
+
+.gate-head{ text-align:center; margin-bottom:18px; }
+.gate-title{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700; font-size:20px;
+  color:#fff; letter-spacing:0.5px;
+  text-transform:uppercase;
+}
+.gate-sub{
+  margin-top:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px; letter-spacing:2.5px;
+  color:rgba(255,255,255,0.42);
+  text-transform:uppercase;
+}
+
+.cam-frame{
+  position:relative; aspect-ratio:4/5;
+  border-radius:10px; overflow:hidden;
+  background:#000;
+  border:1px solid rgba(255,255,255,0.07);
+  margin-bottom:14px;
+}
+.cam-frame video,
+.cam-frame canvas{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit:cover;
+}
+.cam-frame video{ transform:scaleX(-1); }
+.cam-frame canvas{ transform:scaleX(-1); pointer-events:none; }
+
+.scan-line{
+  position:absolute; left:6%; right:6%; height:1px;
+  background:linear-gradient(90deg, transparent, rgba(39,214,184,0.85), transparent);
+  pointer-events:none; opacity:0;
+  animation:scan 3s linear infinite;
+}
+@keyframes scan{
+  0%   { transform:translateY(-50px); opacity:0; }
+  10%  { opacity:1; }
+  90%  { opacity:1; }
+  100% { transform:translateY(380px); opacity:0; }
+}
+
+.stage-prompt{
+  position:absolute; left:0; right:0; bottom:0;
+  padding:14px 18px;
+  background:linear-gradient(180deg, transparent, rgba(0,0,0,0.78));
+  display:flex; flex-direction:column; gap:4px;
+  pointer-events:none;
+}
+.stage-prompt-title{
+  font-family:'Space Grotesk',sans-serif; font-weight:700;
+  font-size:18px; color:#fff;
+}
+.stage-prompt-sub{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px; color:rgba(255,255,255,0.6);
+  letter-spacing:0.7px;
+}
+
+.cam-overlay{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  pointer-events:none;
+}
+.cam-overlay svg{ opacity:0.6; }
+
+.cam-err{
+  position:absolute; inset:0;
+  display:none; flex-direction:column; align-items:center; justify-content:center;
+  gap:12px; padding:24px; text-align:center;
+  background:rgba(0,0,0,0.85);
+}
+.cam-err.show{ display:flex; }
+.cam-err-title{
+  font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px;
+  color:#ff6b8a;
+}
+.cam-err-body{
+  font-family:'JetBrains Mono',monospace; font-size:10px;
+  color:rgba(255,255,255,0.55); line-height:1.6; letter-spacing:0.5px;
+}
+.cam-err-btn{
+  margin-top:6px;
+  background:rgba(74,158,255,0.12); border:1px solid rgba(74,158,255,0.32);
+  color:#4A9EFF; font-family:'JetBrains Mono',monospace;
+  font-size:10px; letter-spacing:1.5px;
+  padding:8px 18px; border-radius:6px; cursor:pointer;
+  text-transform:uppercase;
+}
+.cam-err-btn:hover{ background:rgba(74,158,255,0.22); }
+
+.stage-row{
+  display:grid; grid-template-columns:repeat(4, 1fr);
+  gap:6px; margin-bottom:14px;
+}
+.stage-pip{
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:6px; padding:9px 6px;
+  text-align:center;
+  background:rgba(0,0,0,0.22);
+  transition:all 0.25s;
+}
+.stage-pip-label{
+  font-family:'JetBrains Mono',monospace; font-size:9px;
+  letter-spacing:1.4px; color:rgba(255,255,255,0.35);
+  text-transform:uppercase;
+}
+.stage-pip-state{
+  margin-top:3px;
+  font-family:'JetBrains Mono',monospace; font-size:8px;
+  color:rgba(255,255,255,0.25); letter-spacing:0.8px;
+}
+.stage-pip.active{
+  border-color:rgba(39,214,184,0.4);
+  background:rgba(39,214,184,0.06);
+  box-shadow:0 0 16px rgba(39,214,184,0.18);
+}
+.stage-pip.active .stage-pip-label{ color:#27d6b8; }
+.stage-pip.active .stage-pip-state{ color:rgba(39,214,184,0.65); }
+.stage-pip.done{ border-color:rgba(39,214,184,0.22); background:rgba(39,214,184,0.03); }
+.stage-pip.done .stage-pip-label{ color:rgba(255,255,255,0.65); }
+.stage-pip.done .stage-pip-state::before{ content:'✓ '; color:#27d6b8; }
+
+.success-card{
+  display:none;
+  flex-direction:column; align-items:center; gap:10px;
+  padding:32px 18px;
+  text-align:center;
+}
+.success-card.show{ display:flex; }
+.success-tick{
+  width:54px; height:54px; border-radius:50%;
+  background:rgba(39,214,184,0.10); border:1.5px solid rgba(39,214,184,0.45);
+  display:flex; align-items:center; justify-content:center;
+  color:#27d6b8; font-size:24px;
+  box-shadow:0 0 32px rgba(39,214,184,0.28);
+}
+.success-title{
+  font-family:'Space Grotesk',sans-serif; font-weight:700;
+  font-size:16px; color:#fff; letter-spacing:0.5px;
+}
+.success-sub{
+  font-family:'JetBrains Mono',monospace; font-size:10px;
+  color:rgba(255,255,255,0.45); letter-spacing:1px;
+}
+
+.legal-note{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px; line-height:1.7; letter-spacing:0.3px;
+  color:rgba(255,255,255,0.32);
+  text-align:center; padding:0 4px;
+}
+.legal-note a{ color:rgba(255,255,255,0.5); text-decoration:underline; }
+.legal-note a:hover{ color:#fff; }
+
+.session-id{
+  margin-top:10px; text-align:center;
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px; letter-spacing:2px; color:rgba(255,255,255,0.18);
+}
+
+@media(max-width:520px){
+  .gate-wrap{ width:calc(100% - 24px); }
+  .gate-card{ padding:20px 16px 18px; }
+  .gate-title{ font-size:17px; }
+  .stage-pip-label{ font-size:8.5px; }
+}
+</style>
+</head>
+<body class="mog-gate">
+<button class="gate-exit" id="gateExit" title="Exit">✕</button>
+
+<div class="gate-wrap">
+  <div class="gate-card" id="gateCard">
+    <div class="gate-head">
+      <div class="gate-title">Camera Access Check</div>
+      <div class="gate-sub">Short-lived session challenge</div>
+    </div>
+
+    <div class="cam-frame" id="camFrame">
+      <video id="vid" autoplay playsinline muted></video>
+      <canvas id="overlay"></canvas>
+      <div class="scan-line"></div>
+      <div class="cam-overlay" id="alignOutline" aria-hidden="true">
+        <svg width="180" height="225" viewBox="0 0 180 225" fill="none">
+          <ellipse cx="90" cy="112" rx="68" ry="92" stroke="rgba(255,255,255,0.22)" stroke-width="1" stroke-dasharray="4 6"/>
+        </svg>
+      </div>
+      <div class="stage-prompt" id="stagePrompt">
+        <div class="stage-prompt-title" id="promptTitle">Connecting camera…</div>
+        <div class="stage-prompt-sub" id="promptSub">Allow access when prompted.</div>
+      </div>
+      <div class="cam-err" id="camErr">
+        <div class="cam-err-title" id="errTitle">Camera unavailable</div>
+        <div class="cam-err-body" id="errBody">Allow camera access for this site to continue.</div>
+        <button class="cam-err-btn" onclick="window.location.reload()">RETRY</button>
+      </div>
+    </div>
+
+    <div class="stage-row" id="stageRow">
+      <div class="stage-pip" data-stage="align"><div class="stage-pip-label">Align</div><div class="stage-pip-state">center face</div></div>
+      <div class="stage-pip" data-stage="blink"><div class="stage-pip-label">Blink</div><div class="stage-pip-state">close eyes</div></div>
+      <div class="stage-pip" data-stage="turn"><div class="stage-pip-label">Turn</div><div class="stage-pip-state">L then R</div></div>
+      <div class="stage-pip" data-stage="open"><div class="stage-pip-label">Open</div><div class="stage-pip-state">mouth</div></div>
+    </div>
+
+    <div class="success-card" id="successCard">
+      <div class="success-tick">✓</div>
+      <div class="success-title">CHECK COMPLETE</div>
+      <div class="success-sub">Valid for 3 hours · Sending you in…</div>
+    </div>
+
+    <div class="legal-note">
+      This camera check is an anti-abuse and age-acknowledgement gate.
+      Facial landmarks are processed <b>locally in your browser</b> and never uploaded.
+      Continuing means you confirm you are 18+ and accept our
+      <a href="#" id="termsLink">Terms</a> and <a href="#" id="privacyLink">Privacy Policy</a>.
+    </div>
+    <div class="session-id" id="sessionId"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+<script src="shared.js"></script>
+<script>
+/* ════════════════════════════════════════
+   MOGME.TV — LIVENESS GATE
+   4-stage challenge (ALIGN / BLINK / TURN / OPEN)
+   On success → window.LivenessGate.markPassed()
+   then redirect to ?next= (or index.html)
+════════════════════════════════════════ */
+
+(function(){
+  // ── Random session id (cosmetic) ──
+  document.getElementById('sessionId').textContent =
+    'SESSION ' + Math.random().toString(36).slice(2,10).toUpperCase();
+
+  // Skip the gate entirely if user already has a valid pass
+  if (window.LivenessGate && window.LivenessGate.hasValidPass()) {
+    redirectNext(); return;
+  }
+
+  const STAGES = ['align','blink','turn','open'];
+  let stageIdx = 0;
+  let stream = null, faceMesh = null, fmReady = false, running = false;
+
+  // Per-stage state
+  let alignHoldStart = 0;         // time when align condition first true
+  let blinkLastEyeOpen = true;    // tracks open→closed→open transition
+  let blinkClosedAt = 0;
+  let turnLeftDone = false, turnRightDone = false;
+  let mouthOpenAt = 0;
+
+  const PROMPTS = {
+    align: { t:'Center your face', s:'Fit inside the dashed outline. Hold still.' },
+    blink: { t:'Blink once',       s:'Close and re-open your eyes.' },
+    turn:  { t:'Turn your head',   s:'Left, then right. Slowly.' },
+    open:  { t:'Open your mouth',  s:'A clear open — like saying "ah".' },
+  };
+
+  function setPrompt(stage){
+    const p = PROMPTS[stage] || { t:'', s:'' };
+    document.getElementById('promptTitle').textContent = p.t;
+    document.getElementById('promptSub').textContent   = p.s;
+  }
+
+  function renderStages(){
+    document.querySelectorAll('.stage-pip').forEach((el, i)=>{
+      el.classList.remove('active','done');
+      if (i < stageIdx)        el.classList.add('done');
+      else if (i === stageIdx) el.classList.add('active');
+    });
+  }
+
+  function advance(){
+    stageIdx++;
+    if (stageIdx >= STAGES.length){
+      onAllStagesPassed();
+      return;
+    }
+    // Reset per-stage state
+    alignHoldStart = 0;
+    blinkLastEyeOpen = true; blinkClosedAt = 0;
+    turnLeftDone = false; turnRightDone = false;
+    mouthOpenAt = 0;
+    setPrompt(STAGES[stageIdx]);
+    renderStages();
+    // Hide the align outline once past stage 0
+    document.getElementById('alignOutline').style.display = (STAGES[stageIdx]==='align' ? 'flex' : 'none');
+  }
+
+  function onAllStagesPassed(){
+    running = false;
+    document.getElementById('stagePrompt').style.display = 'none';
+    document.getElementById('alignOutline').style.display = 'none';
+    document.getElementById('camFrame').style.display = 'none';
+    document.getElementById('stageRow').style.display = 'none';
+    document.getElementById('successCard').classList.add('show');
+
+    try {
+      if (window.LivenessGate) window.LivenessGate.markPassed();
+    } catch(e){}
+
+    setTimeout(redirectNext, 1500);
+  }
+
+  function redirectNext(){
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get('next') || 'index.html';
+    // Same-origin safety: reject absolute URLs that go elsewhere
+    let target;
+    try {
+      const u = new URL(next, window.location.href);
+      if (u.origin !== window.location.origin) target = 'index.html';
+      else target = u.pathname + u.search + u.hash;
+    } catch(e) { target = 'index.html'; }
+    window.location.replace(target);
+  }
+
+  // ── Camera + MediaPipe init ──
+  async function startCam(){
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video:{ width:{ideal:640}, height:{ideal:480}, facingMode:'user' },
+        audio:false
+      });
+    } catch(e){
+      showErr('Camera blocked', 'Allow camera access for this site, then click RETRY.');
+      return;
+    }
+    const v = document.getElementById('vid');
+    v.srcObject = stream;
+    await new Promise(r => v.onloadedmetadata = r);
+    await v.play().catch(()=>{});
+    // Set canvas size
+    const c = document.getElementById('overlay');
+    c.width = v.videoWidth; c.height = v.videoHeight;
+
+    if (typeof FaceMesh === 'undefined'){
+      showErr('Face scanner failed to load', 'Refresh and try again. (CDN may be blocked on your network.)');
+      return;
+    }
+    faceMesh = new FaceMesh({ locateFile: f => 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/'+f });
+    faceMesh.setOptions({ maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.6, minTrackingConfidence:0.6 });
+    faceMesh.onResults(onResults);
+    fmReady = true;
+    running = true;
+    setPrompt(STAGES[0]);
+    renderStages();
+    (function loop(){
+      if (!running || !fmReady) return;
+      faceMesh.send({ image:v }).then(()=>requestAnimationFrame(loop)).catch(()=>requestAnimationFrame(loop));
+    })();
+  }
+
+  function showErr(title, body){
+    running = false;
+    document.getElementById('errTitle').textContent = title;
+    document.getElementById('errBody').textContent  = body;
+    document.getElementById('camErr').classList.add('show');
+  }
+
+  // ── Per-frame logic ──
+  function onResults(res){
+    const lm = (res.multiFaceLandmarks && res.multiFaceLandmarks[0]) || null;
+    drawDebug(lm);
+    if (!lm) return;
+
+    const stage = STAGES[stageIdx];
+    if (stage === 'align')      checkAlign(lm);
+    else if (stage === 'blink') checkBlink(lm);
+    else if (stage === 'turn')  checkTurn(lm);
+    else if (stage === 'open')  checkOpen(lm);
+  }
+
+  // Helpers
+  function dist(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
+  function ear(lm, t, b, l, r){
+    if (!lm[t]||!lm[b]||!lm[l]||!lm[r]) return 0;
+    const v = dist(lm[t], lm[b]);
+    const h = dist(lm[l], lm[r]);
+    return h > 0 ? v / h : 0;
+  }
+
+  function checkAlign(lm){
+    const top = lm[10], bottom = lm[152], left = lm[234], right = lm[454];
+    if (!top || !bottom || !left || !right) return;
+    const cx = (left.x + right.x) / 2;
+    const cy = (top.y + bottom.y) / 2;
+    const faceH = Math.abs(bottom.y - top.y);
+    const centered = cx > 0.30 && cx < 0.70 && cy > 0.32 && cy < 0.68;
+    const bigEnough = faceH > 0.34;
+    if (centered && bigEnough){
+      if (!alignHoldStart) alignHoldStart = Date.now();
+      if (Date.now() - alignHoldStart > 1100) advance();
+    } else {
+      alignHoldStart = 0;
+    }
+  }
+
+  function checkBlink(lm){
+    const earL = ear(lm, 159, 145, 33, 133);
+    const earR = ear(lm, 386, 374, 263, 362);
+    const e = (earL + earR) / 2;
+    const closed = e < 0.18;
+    const open   = e > 0.28;
+    if (blinkLastEyeOpen && closed){
+      blinkLastEyeOpen = false;
+      blinkClosedAt = Date.now();
+    } else if (!blinkLastEyeOpen && open){
+      // Must be a brief closure (50ms..1500ms) to count
+      const dt = Date.now() - blinkClosedAt;
+      if (dt > 50 && dt < 1500) advance();
+      else { blinkLastEyeOpen = true; blinkClosedAt = 0; }
+    }
+  }
+
+  function checkTurn(lm){
+    const nose = lm[1] || lm[4];
+    const lEar = lm[234], rEar = lm[454];
+    if (!nose || !lEar || !rEar) return;
+    // Positive yaw → looking to user's left (camera right)
+    const lDist = nose.x - lEar.x;
+    const rDist = rEar.x - nose.x;
+    const total = lDist + rDist;
+    if (total <= 0) return;
+    const yaw = (lDist - rDist) / total; // -1..1
+    if (yaw < -0.45) turnLeftDone  = true;
+    if (yaw >  0.45) turnRightDone = true;
+    if (turnLeftDone && turnRightDone) advance();
+  }
+
+  function checkOpen(lm){
+    const top = lm[13], bot = lm[14], l = lm[61], r = lm[291];
+    if (!top || !bot || !l || !r) return;
+    const v = Math.abs(top.y - bot.y);
+    const h = Math.abs(l.x - r.x);
+    const mar = h > 0 ? v / h : 0;
+    if (mar > 0.30){
+      if (!mouthOpenAt) mouthOpenAt = Date.now();
+      if (Date.now() - mouthOpenAt > 350) advance();
+    } else {
+      mouthOpenAt = 0;
+    }
+  }
+
+  // Debug overlay (a few dots so the user sees the system is tracking)
+  function drawDebug(lm){
+    const c = document.getElementById('overlay');
+    if (!c.getContext) return;
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0,0,c.width,c.height);
+    if (!lm) return;
+    const pts = [1,10,152,234,454,33,133,263,362,159,145,386,374,13,14,61,291];
+    ctx.fillStyle = 'rgba(39,214,184,0.55)';
+    for (const i of pts){
+      const p = lm[i]; if (!p) continue;
+      ctx.beginPath();
+      ctx.arc(p.x * c.width, p.y * c.height, 2.2, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+
+  // ── Exit / cleanup ──
+  document.getElementById('gateExit').addEventListener('click', () => {
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    window.location.href = 'index.html';
+  });
+  window.addEventListener('beforeunload', () => {
+    if (stream) stream.getTracks().forEach(t => t.stop());
+  });
+
+  startCam();
+})();
+</script>
+</body>
+</html>

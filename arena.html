@@ -572,6 +572,11 @@ body { padding-right:0!important; }
 <script type="module" src="auth.js"></script>
 <script>
 var state='idle',myStream=null,faceMesh=null,fmReady=false,myLandmarks=null;
+// ── LIVENESS GATE ── redirect to gate.html if no valid pass (3h TTL)
+if (window.LivenessGate && !window.LivenessGate.requireOrRedirect()) {
+  // requireOrRedirect kicks off window.location.replace; nothing else should run
+  throw new Error('redirecting to liveness gate');
+}
 var peerConn=null,oppSocketId=null,myRole=null,myLastScore=0,oppLastScore=0;
 var queueTimer=null,queueStart=0;
 var prevTier='', winStreak=parseInt(localStorage.getItem('mgm_winStreak')||'0');
