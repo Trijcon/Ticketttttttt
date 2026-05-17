@@ -3,29 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MogMe.TV</title>
+<title>MogMe.TV — Live 1v1 face-off</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 <style>
+/* ── Page background + chrome ── */
 body.mog-home {
-  padding-right: 0;
+  padding-right: var(--chat-w, 0px);
   background:
     radial-gradient(circle at 13% 18%, rgba(39, 214, 184, 0.11), transparent 28%),
     radial-gradient(circle at 86% 24%, rgba(245, 158, 11, 0.08), transparent 24%),
     radial-gradient(circle at 68% 84%, rgba(74, 158, 255, 0.10), transparent 34%),
     #020304;
 }
-
-body.mog-home .top-nav,
-body.mog-home .guest-banner {
-  right: 0;
-}
-
-body.mog-home .chat-sidebar {
-  display: none;
-}
+/* chat is visible by default; mountChatToggle() adds .chat-collapsed to body
+   to hide it on load and via the floating button */
 
 .home-wrap {
   width: min(1180px, calc(100% - 36px));
@@ -34,7 +28,6 @@ body.mog-home .chat-sidebar {
   position: relative;
   z-index: 1;
 }
-
 .home-wrap::before {
   content: "";
   position: fixed;
@@ -50,427 +43,348 @@ body.mog-home .chat-sidebar {
   opacity: 0.42;
 }
 
+/* ── HERO + SIDE STACK ── */
 .launch-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.14fr) minmax(340px, 0.86fr);
+  grid-template-columns: minmax(0, 1.32fr) minmax(320px, 0.68fr);
   gap: 14px;
   align-items: stretch;
-  min-height: min(690px, calc(100vh - 164px));
+  min-height: min(720px, calc(100vh - 164px));
 }
-
-.launch-card,
-.side-card,
-.proof-card,
-.route-card {
+.launch-card, .side-card {
   border: 1px solid rgba(255,255,255,0.085);
-  border-radius: 8px;
+  border-radius: 10px;
   background: linear-gradient(180deg, rgba(255,255,255,0.052), rgba(255,255,255,0.022));
   box-shadow: 0 24px 70px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.055);
   overflow: hidden;
 }
 
+/* ── 1V1 Hero card (biggest) ── */
 .launch-card {
   position: relative;
   padding: clamp(26px, 4vw, 46px);
-  display: flex;
-  flex-direction: column;
+  display: flex; flex-direction: column;
 }
-
 .launch-card::before {
   content: "";
-  position: absolute;
-  inset: 0;
+  position: absolute; inset: 0;
   pointer-events: none;
   background:
     linear-gradient(120deg, rgba(39,214,184,0.09), transparent 32%),
     radial-gradient(circle at 72% 20%, rgba(255,255,255,0.06), transparent 30%);
 }
-
 .launch-topline {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between;
   gap: 16px;
   margin-bottom: 42px;
 }
-
-.season-chip,
-.home-online,
-.mini-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+.season-chip, .home-online, .mini-chip {
+  display: inline-flex; align-items: center; gap: 8px;
   min-height: 30px;
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,0.10);
   background: rgba(0,0,0,0.28);
   padding: 0 12px;
   font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  letter-spacing: 1px;
+  font-size: 10px; letter-spacing: 1px;
   color: rgba(255,255,255,0.62);
   text-transform: uppercase;
 }
-
-.home-online {
-  color: #c8fff1;
-  border-color: rgba(39,214,184,0.25);
-}
-
+.home-online { color: #c8fff1; border-color: rgba(39,214,184,0.25); }
 .home-online .online-pip {
-  width: 6px;
-  height: 6px;
+  width: 6px; height: 6px;
+  border-radius: 999px;
   background: #27d6b8;
   box-shadow: 0 0 14px rgba(39,214,184,0.72);
 }
-
-.hero-copy {
-  position: relative;
-  max-width: 720px;
-}
-
+.hero-copy { position: relative; max-width: 760px; }
 .eyebrow {
   font-family: "JetBrains Mono", monospace;
-  font-size: 11px;
-  letter-spacing: 2px;
+  font-size: 11px; letter-spacing: 2px;
   color: #27d6b8;
   text-transform: uppercase;
   margin-bottom: 14px;
 }
-
 .hero-title {
   font-family: "Space Grotesk", sans-serif;
   font-size: clamp(50px, 7vw, 92px);
-  line-height: 0.94;
-  font-weight: 700;
-  letter-spacing: 0;
+  line-height: 0.94; font-weight: 700;
   color: #fff;
-  max-width: 760px;
+  max-width: 800px;
 }
-
 .hero-sub {
   margin-top: 20px;
-  max-width: 650px;
+  max-width: 660px;
   color: rgba(255,255,255,0.64);
   font-size: clamp(15px, 1.5vw, 18px);
   line-height: 1.65;
 }
-
 .trust-strip {
   position: relative;
-  margin-top: 24px;
+  margin-top: 28px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
-
 .trust-item {
   padding: 12px 13px;
   border: 1px solid rgba(255,255,255,0.075);
   border-radius: 8px;
   background: rgba(0,0,0,0.22);
 }
-
 .trust-label {
   font-family: "JetBrains Mono", monospace;
-  font-size: 9px;
-  letter-spacing: 1.4px;
+  font-size: 9px; letter-spacing: 1.4px;
   color: rgba(255,255,255,0.38);
   text-transform: uppercase;
 }
-
 .trust-value {
   margin-top: 5px;
   font-size: 12px;
   line-height: 1.45;
   color: rgba(255,255,255,0.76);
 }
-
 .launch-actions {
   position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  display: flex; flex-wrap: wrap; gap: 10px;
   margin-top: auto;
   padding-top: 34px;
 }
-
-.start-btn,
-.secondary-btn {
+.start-btn, .secondary-btn {
   min-height: 52px;
   border-radius: 8px;
   text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
   font-family: "Space Grotesk", sans-serif;
   font-weight: 700;
-  transition: transform 0.2s, border-color 0.2s, background 0.2s;
-  will-change: transform;
+  transition: transform 0.2s, border-color 0.2s, background 0.2s, box-shadow 0.2s;
 }
-
 .start-btn {
   padding: 0 26px;
   color: #03100d;
   background: linear-gradient(135deg, #27d6b8, #f4d675);
-  box-shadow: 0 18px 42px rgba(39,214,184,0.18);
+  box-shadow: 0 18px 42px rgba(39,214,184,0.18), 0 0 24px rgba(39,214,184,0.16);
 }
-
 .secondary-btn {
   padding: 0 18px;
   color: rgba(255,255,255,0.72);
   border: 1px solid rgba(255,255,255,0.10);
   background: rgba(0,0,0,0.24);
 }
-
-.start-btn:hover,
-.secondary-btn:hover {
+.start-btn:hover, .secondary-btn:hover {
   transform: translateY(-2px);
+  box-shadow: 0 22px 50px rgba(39,214,184,0.24), 0 0 32px rgba(39,214,184,0.25);
 }
+.secondary-btn:hover { color: #fff; border-color: rgba(255,255,255,0.22); }
 
-.secondary-btn:hover {
-  color: #fff;
-  border-color: rgba(255,255,255,0.22);
-}
-
+/* ── Side stack: 3 cards (mesh / Private / Lab) ── */
 .side-stack {
   display: grid;
+  grid-template-rows: 1.05fr 1fr 1fr;
   gap: 14px;
+  min-height: 100%;
 }
-
 .side-card {
-  padding: 18px;
-}
-
-.side-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.side-title {
-  font-family: "Space Grotesk", sans-serif;
-  font-size: 18px;
-  font-weight: 700;
-  color: #fff;
-}
-
-.readiness-panel {
   position: relative;
-  min-height: 300px;
-  border-radius: 8px;
-  border: 1px solid rgba(39,214,184,0.16);
-  background:
-    radial-gradient(circle at 50% 35%, rgba(39,214,184,0.12), transparent 34%),
-    linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.36));
-  display: grid;
-  place-items: center;
+  padding: 18px;
   overflow: hidden;
 }
 
-.readiness-panel::before {
-  content: "";
-  position: absolute;
-  inset: 18px;
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 999px;
-}
-
-.readiness-panel::after {
-  content: "";
-  position: absolute;
-  width: 52%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(39,214,184,0.8), transparent);
-  animation: scanHome 3.4s linear infinite;
-}
-
-@keyframes scanHome {
-  from { transform: translateY(-124px); opacity: 0; }
-  12%, 88% { opacity: 1; }
-  to { transform: translateY(124px); opacity: 0; }
-}
-
-.face-outline {
-  width: 160px;
-  aspect-ratio: 0.72;
-  border: 1px solid rgba(255,255,255,0.22);
-  border-radius: 48% 48% 44% 44%;
+/* — Face mesh viz card (no title, no status rows) — */
+.mesh-card { padding: 0; }
+.mesh-wrap {
   position: relative;
-  box-shadow: 0 0 46px rgba(39,214,184,0.10);
+  width: 100%;
+  height: 100%;
+  min-height: 240px;
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(39,214,184,0.18), transparent 38%),
+    linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.42));
+  display: grid; place-items: center;
+  overflow: hidden;
 }
-
-.face-outline::before,
-.face-outline::after {
-  content: "";
-  position: absolute;
-  left: 20%;
-  right: 20%;
-  height: 1px;
-  background: rgba(255,255,255,0.16);
+.mesh-wrap::before {
+  content:'';
+  position:absolute; inset:14px;
+  border:1px solid rgba(255,255,255,0.05);
+  border-radius:8px;
 }
-
-.face-outline::before { top: 35%; }
-.face-outline::after { top: 62%; }
-
-.readiness-list {
-  display: grid;
-  gap: 8px;
-  margin-top: 14px;
+.face-mesh-svg {
+  width: 78%;
+  max-width: 240px;
+  height: auto;
+  filter: drop-shadow(0 0 22px rgba(39,214,184,0.18));
 }
-
-.ready-row {
-  display: grid;
-  grid-template-columns: 8px 1fr auto;
-  align-items: center;
-  gap: 9px;
-  padding: 9px 10px;
-  border-radius: 8px;
-  background: rgba(0,0,0,0.22);
-  border: 1px solid rgba(255,255,255,0.065);
+.face-mesh-svg .mesh-grid { stroke: rgba(39,214,184,0.18); }
+.face-mesh-svg .mesh-anchor { fill: rgba(39,214,184,0.78); }
+.face-mesh-svg .mesh-anchor-faint { fill: rgba(255,255,255,0.32); }
+.face-mesh-svg .mesh-feature { stroke: rgba(255,255,255,0.32); }
+.mesh-pulse circle {
+  animation: meshPulse 2.4s ease-in-out infinite;
+}
+@keyframes meshPulse {
+  0%, 100% { opacity: 0.6; r: 1.6; }
+  50%      { opacity: 1;   r: 2.3; }
+}
+.scan-rect {
+  animation: scanFace 4.2s ease-in-out infinite;
+}
+@keyframes scanFace {
+  0%, 100% { transform: translateY(20px); opacity: 0; }
+  18% { opacity: 1; }
+  82% { opacity: 1; }
+  50% { transform: translateY(260px); }
+}
+.mesh-foot {
+  position:absolute; left:14px; right:14px; bottom:12px;
+  display:flex; justify-content:space-between;
   font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  letter-spacing: 0.5px;
+  font-size: 9px; letter-spacing: 1.4px;
+  color: rgba(255,255,255,0.34);
+  text-transform: uppercase;
+  pointer-events: none;
+}
+.mesh-foot .mf-dot {
+  width:6px; height:6px; border-radius:50%;
+  background:#27d6b8;
+  box-shadow: 0 0 10px rgba(39,214,184,0.65);
+  display:inline-block; margin-right:6px;
+  vertical-align: middle;
 }
 
-.ready-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #27d6b8;
-  box-shadow: 0 0 12px rgba(39,214,184,0.7);
+/* — Private Room medium card — */
+.priv-side-card {
+  background: linear-gradient(180deg, rgba(123,97,255,0.10), rgba(255,255,255,0.018));
+  border-color: rgba(123,97,255,0.25);
+  display:flex; flex-direction:column;
 }
-
-.ready-state {
-  color: rgba(255,255,255,0.42);
+.priv-side-card::before {
+  content:'';
+  position:absolute; inset:0;
+  background: radial-gradient(ellipse 80% 50% at 30% 0%, rgba(123,97,255,0.14), transparent 70%);
+  pointer-events:none;
 }
-
-.flow-rail {
-  display: grid;
-  gap: 8px;
+.priv-side-card > * { position: relative; z-index: 1; }
+.side-icon {
+  width: 36px; height: 36px;
+  border-radius: 9px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  background: rgba(123,97,255,0.16);
+  border: 1px solid rgba(123,97,255,0.35);
+  margin-bottom: 10px;
 }
-
-.flow-step {
-  display: grid;
-  grid-template-columns: 30px 1fr;
-  gap: 11px;
-  padding: 12px;
-  border-radius: 8px;
-  background: rgba(0,0,0,0.20);
-  border: 1px solid rgba(255,255,255,0.065);
-}
-
-.flow-num {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(39,214,184,0.10);
-  border: 1px solid rgba(39,214,184,0.18);
-  color: #7ef5de;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.flow-name {
+.side-title {
   font-family: "Space Grotesk", sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  color: rgba(255,255,255,0.88);
+  font-size: 19px; font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.2px;
+  margin-bottom: 4px;
 }
-
-.flow-copy {
-  color: rgba(255,255,255,0.46);
-  font-size: 12px;
-  line-height: 1.5;
-  margin-top: 2px;
+.side-sub {
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.55);
+  line-height: 1.55;
+  margin-bottom: 12px;
 }
-
-.route-grid,
-.proof-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-top: 14px;
-}
-
-.route-card {
-  padding: 18px;
-  min-height: 132px;
-  text-decoration: none;
-  color: inherit;
-  transition: transform 0.2s, border-color 0.2s;
-  will-change: transform;
-}
-
-.route-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(39,214,184,0.25);
-}
-
-.route-label {
+.side-cta {
+  margin-top: auto;
+  align-self: flex-start;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 16px;
+  border-radius: 7px;
   font-family: "JetBrains Mono", monospace;
-  font-size: 9px;
-  letter-spacing: 1.5px;
-  color: #27d6b8;
+  font-size: 10px; letter-spacing: 1px;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: transform 0.18s, background 0.18s, border-color 0.18s;
+}
+.priv-side-card .side-cta {
+  background: rgba(123,97,255,0.18);
+  border: 1px solid rgba(123,97,255,0.42);
+  color: #d6c8ff;
+}
+.priv-side-card .side-cta:hover {
+  background: rgba(123,97,255,0.30);
+  border-color: rgba(123,97,255,0.65);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.priv-side-card .side-icon { background: rgba(123,97,255,0.18); border-color: rgba(123,97,255,0.45); color: #c8b7ff; }
+
+/* — Lab medium card — */
+.lab-side-card {
+  background: linear-gradient(180deg, rgba(245,166,35,0.09), rgba(255,255,255,0.018));
+  border-color: rgba(245,166,35,0.22);
+  display:flex; flex-direction:column;
+}
+.lab-side-card::before {
+  content:'';
+  position:absolute; inset:0;
+  background: radial-gradient(ellipse 80% 50% at 70% 0%, rgba(245,166,35,0.14), transparent 70%);
+  pointer-events:none;
+}
+.lab-side-card > * { position: relative; z-index: 1; }
+.lab-side-card .side-icon { background: rgba(245,166,35,0.16); border-color: rgba(245,166,35,0.42); color: #ffd693; }
+.lab-side-card .side-cta {
+  background: rgba(245,166,35,0.16);
+  border: 1px solid rgba(245,166,35,0.42);
+  color: #ffdca0;
+}
+.lab-side-card .side-cta:hover {
+  background: rgba(245,166,35,0.28);
+  border-color: rgba(245,166,35,0.65);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.lab-badge {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(245,166,35,0.14);
+  border: 1px solid rgba(245,166,35,0.36);
+  color: #ffce72;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 8.5px; letter-spacing: 1.5px;
   text-transform: uppercase;
 }
 
-.route-title {
-  margin-top: 8px;
-  font-family: "Space Grotesk", sans-serif;
-  font-size: 18px;
-  font-weight: 700;
-  color: #fff;
-}
-
-.route-copy {
-  margin-top: 4px;
-  color: rgba(255,255,255,0.46);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
+/* ── PROOF row (activity feed + top moggers) ── */
 .proof-grid {
+  display: grid;
   grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
 }
-
 .proof-card {
   min-height: 220px;
+  border: 1px solid rgba(255,255,255,0.085);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.052), rgba(255,255,255,0.022));
+  overflow: hidden;
 }
-
 .proof-head {
   min-height: 50px;
   padding: 0 16px;
   border-bottom: 1px solid rgba(255,255,255,0.07);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between;
 }
-
 .proof-title {
   font-family: "Space Grotesk", sans-serif;
   font-weight: 700;
   color: #fff;
 }
-
 .proof-link {
   font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  letter-spacing: 0.7px;
+  font-size: 10px; letter-spacing: 0.7px;
   color: rgba(255,255,255,0.45);
   text-decoration: none;
 }
-
-.proof-body {
-  padding: 14px;
-}
+.proof-link:hover { color: #fff; }
+.proof-body { padding: 14px; }
 
 .footer-note {
   margin-top: 22px;
@@ -482,79 +396,27 @@ body.mog-home .chat-sidebar {
   text-transform: uppercase;
 }
 
+/* ── RESPONSIVE ── */
 @media(max-width: 980px) {
-  .launch-grid,
-  .route-grid,
-  .proof-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .trust-strip {
-    grid-template-columns: 1fr;
-  }
+  .launch-grid { grid-template-columns: 1fr; }
+  .side-stack { grid-template-rows: auto auto auto; }
+  .proof-grid { grid-template-columns: 1fr; }
+  .trust-strip { grid-template-columns: 1fr; }
 }
-
 @media(max-width: 620px) {
-  .home-wrap {
-    width: min(100% - 24px, 1180px);
-    padding-top: 12px;
-  }
-
-  .hero-title {
-    font-size: clamp(38px, 14vw, 54px);
-    line-height: 1;
-  }
-
-  .hero-sub {
-    font-size: 14px;
-  }
-
-  .readiness-panel {
-    min-height: 240px;
-  }
-
-  .face-outline {
-    width: 132px;
-  }
-
-  .ready-row {
-    grid-template-columns: 8px 1fr;
-  }
-
-  .ready-state {
-    grid-column: 2;
-  }
-
-  .launch-card {
-    padding: 22px;
-  }
-
-  .launch-topline,
-  .launch-actions {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .start-btn,
-  .secondary-btn {
-    width: 100%;
-  }
+  .home-wrap { width: min(100% - 24px, 1180px); padding-top: 12px; }
+  .hero-title { font-size: clamp(38px, 14vw, 54px); line-height: 1; }
+  .hero-sub { font-size: 14px; }
+  .launch-card { padding: 22px; }
+  .launch-topline { align-items: stretch; flex-direction: column; }
+  .launch-actions { flex-direction: column; align-items: stretch; }
+  .start-btn, .secondary-btn { width: 100%; }
 }
-
 @media(prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
     transition-duration: 0.001ms !important;
-  }
-
-  .start-btn,
-  .secondary-btn,
-  .route-card {
-    will-change: auto;
   }
 }
 </style>
@@ -562,12 +424,14 @@ body.mog-home .chat-sidebar {
 <body class="mog-home">
 <div class="home-wrap">
   <section class="launch-grid">
+
+    <!-- 1V1 ARENA — biggest -->
     <article class="launch-card">
       <div class="launch-topline">
         <div class="season-chip">Season 1 active</div>
-        <div class="home-online online-pill">
+        <div class="home-online">
           <div class="online-pip"></div>
-          <span class="online-count-val">-- online</span>
+          <span class="online-count-val">— online</span>
         </div>
       </div>
 
@@ -575,12 +439,12 @@ body.mog-home .chat-sidebar {
         <div class="eyebrow">Live face-off matchmaking</div>
         <h1 class="hero-title">Camera ready. Rank on the line.</h1>
         <p class="hero-sub">
-          MogMe.TV is a live 1v1 arena with browser-side face scanning, peer-to-peer video,
-          ELO, rematches, private rooms, and a public ladder.
+          MogMe.TV is a live 1v1 arena with browser-side face scanning,
+          peer-to-peer video, ELO, rematches, private rooms, and a public ladder.
         </p>
       </div>
 
-      <div class="trust-strip" aria-label="Trust and flow">
+      <div class="trust-strip">
         <div class="trust-item">
           <div class="trust-label">Camera</div>
           <div class="trust-value">Check your feed before joining the queue.</div>
@@ -596,60 +460,98 @@ body.mog-home .chat-sidebar {
       </div>
 
       <div class="launch-actions">
-        <a class="start-btn" href="arena.html">Start camera check -></a>
+        <a class="start-btn" href="arena.html">Start camera check →</a>
         <a class="secondary-btn" href="rank.html">View leaderboard</a>
-        <a class="secondary-btn" href="private.html">Private room</a>
       </div>
     </article>
 
+    <!-- SIDE STACK -->
     <aside class="side-stack">
-      <div class="side-card">
-        <div class="side-head">
-          <div class="side-title">Readiness cockpit</div>
-          <div class="mini-chip">Local scan</div>
+
+      <!-- Decorative face mesh card (no title, no status rows) -->
+      <div class="side-card mesh-card">
+        <div class="mesh-wrap" aria-hidden="true">
+          <svg class="face-mesh-svg" viewBox="0 0 280 320" fill="none">
+            <!-- mesh diagonals -->
+            <g class="mesh-grid" stroke-width="0.6">
+              <path d="M68 96 Q140 80 212 96"/>
+              <path d="M62 130 Q140 116 218 130"/>
+              <path d="M58 165 Q140 152 222 165"/>
+              <path d="M60 198 Q140 192 220 198"/>
+              <path d="M68 232 Q140 244 212 232"/>
+              <path d="M82 262 Q140 280 198 262"/>
+              <path d="M100 82 L100 270" stroke-dasharray="2 4"/>
+              <path d="M180 82 L180 270" stroke-dasharray="2 4"/>
+              <path d="M140 60 L140 290" stroke-dasharray="2 4"/>
+            </g>
+            <!-- face outline -->
+            <ellipse cx="140" cy="160" rx="80" ry="105" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+            <!-- features -->
+            <g class="mesh-feature" stroke-width="1" fill="none">
+              <ellipse cx="110" cy="135" rx="14" ry="6"/>
+              <ellipse cx="170" cy="135" rx="14" ry="6"/>
+              <path d="M140 145 L132 178 L140 188 L148 178 Z"/>
+              <path d="M115 215 Q140 225 165 215"/>
+            </g>
+            <!-- anchors -->
+            <g class="mesh-pulse">
+              <circle class="mesh-anchor" cx="110" cy="95" r="1.6"/>
+              <circle class="mesh-anchor" cx="140" cy="85" r="1.6"/>
+              <circle class="mesh-anchor" cx="170" cy="95" r="1.6"/>
+              <circle class="mesh-anchor" cx="90" cy="160" r="1.8"/>
+              <circle class="mesh-anchor" cx="190" cy="160" r="1.8"/>
+              <circle class="mesh-anchor" cx="100" cy="222" r="1.7"/>
+              <circle class="mesh-anchor" cx="180" cy="222" r="1.7"/>
+              <circle class="mesh-anchor" cx="140" cy="252" r="1.8"/>
+            </g>
+            <g class="mesh-anchor-faint">
+              <circle cx="96"  cy="135" r="1.2"/>
+              <circle cx="124" cy="135" r="1.2"/>
+              <circle cx="156" cy="135" r="1.2"/>
+              <circle cx="184" cy="135" r="1.2"/>
+              <circle cx="140" cy="155" r="1.2"/>
+              <circle cx="140" cy="180" r="1.2"/>
+              <circle cx="132" cy="190" r="1.2"/>
+              <circle cx="148" cy="190" r="1.2"/>
+            </g>
+            <!-- scan bar -->
+            <defs>
+              <linearGradient id="scanGrad" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0%"   stop-color="rgba(39,214,184,0)"/>
+                <stop offset="50%"  stop-color="rgba(39,214,184,0.85)"/>
+                <stop offset="100%" stop-color="rgba(39,214,184,0)"/>
+              </linearGradient>
+            </defs>
+            <rect class="scan-rect" x="55" y="0" width="170" height="2" fill="url(#scanGrad)"/>
+          </svg>
         </div>
-        <div class="readiness-panel" aria-hidden="true">
-          <div class="face-outline"></div>
-        </div>
-        <div class="readiness-list">
-          <div class="ready-row"><span class="ready-dot"></span><span>Permission gate</span><span class="ready-state">before queue</span></div>
-          <div class="ready-row"><span class="ready-dot"></span><span>Face detected</span><span class="ready-state">live check</span></div>
-          <div class="ready-row"><span class="ready-dot"></span><span>Queue handoff</span><span class="ready-state">one click</span></div>
+        <div class="mesh-foot">
+          <span><span class="mf-dot"></span>Local scan ready</span>
+          <span>face mesh / v3</span>
         </div>
       </div>
 
-      <div class="side-card">
-        <div class="side-head">
-          <div class="side-title">How it flows</div>
-          <div class="mini-chip">No dead ends</div>
-        </div>
-        <div class="flow-rail">
-          <div class="flow-step"><div class="flow-num">01</div><div><div class="flow-name">Check camera</div><div class="flow-copy">Allow camera, center your face, confirm your scan is readable.</div></div></div>
-          <div class="flow-step"><div class="flow-num">02</div><div><div class="flow-name">Enter queue</div><div class="flow-copy">Choose matchmaking preference and wait with your feed blurred.</div></div></div>
-          <div class="flow-step"><div class="flow-num">03</div><div><div class="flow-name">Duel and climb</div><div class="flow-copy">Run the scan, compare scores, get ELO, rematch or move on.</div></div></div>
-        </div>
-      </div>
+      <!-- Private Room medium card -->
+      <a class="side-card priv-side-card" href="private.html" style="text-decoration:none;color:inherit;">
+        <div class="side-icon">🔐</div>
+        <div class="side-title">Private Room</div>
+        <div class="side-sub">Create a code, share it with one friend, scan unranked. No queue, no ladder.</div>
+        <span class="side-cta">Open private →</span>
+      </a>
+
+      <!-- The Lab medium card -->
+      <a class="side-card lab-side-card" href="lab.html" style="text-decoration:none;color:inherit;">
+        <div class="lab-badge">PRO • Coming soon</div>
+        <div class="side-icon">⚗</div>
+        <div class="side-title">The Lab</div>
+        <div class="side-sub">Deep facial reports, longitudinal scan history and tier-specific breakdowns.</div>
+        <span class="side-cta">Open the Lab →</span>
+      </a>
+
     </aside>
   </section>
 
-  <section class="route-grid" aria-label="MogMe destinations">
-    <a class="route-card" href="arena.html">
-      <div class="route-label">Ranked</div>
-      <div class="route-title">1V1 Arena</div>
-      <div class="route-copy">The main loop: camera check, queue, live scan, result, rematch.</div>
-    </a>
-    <a class="route-card" href="rank.html">
-      <div class="route-label">Proof</div>
-      <div class="route-title">Global Rank</div>
-      <div class="route-copy">See ELO, tiers, win rate, streaks, and the top players.</div>
-    </a>
-    <a class="route-card" href="private.html">
-      <div class="route-label">Invite</div>
-      <div class="route-title">Private Room</div>
-      <div class="route-copy">Create a code and run a match without public matchmaking.</div>
-    </a>
-  </section>
-
+  <!-- PROOF ROW -->
   <section class="proof-grid" aria-label="Live proof">
     <div class="proof-card">
       <div class="proof-head">
@@ -661,25 +563,26 @@ body.mog-home .chat-sidebar {
     <div class="proof-card">
       <div class="proof-head">
         <div class="proof-title">Top Moggers</div>
-        <a class="proof-link" href="rank.html">View all -></a>
+        <a class="proof-link" href="rank.html">View all →</a>
       </div>
       <div id="lbPreview">
-        <div style="padding:20px 16px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);">Loading...</div>
+        <div style="padding:20px 16px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);">Loading…</div>
       </div>
     </div>
   </section>
 
-  <div class="footer-note">Anti-abuse session checks - 18+ acknowledgement - Not legal identity verification</div>
+  <div class="footer-note">Anti-abuse session checks · 18+ acknowledgement · Not legal identity verification</div>
 </div>
 
 <script src="shared.js"></script>
 <script type="module" src="auth.js"></script>
 <script>
-injectSharedUI();
-connectWS();
-startActivityFeed();
-setTimeout(function(){loadLeaderboard('lbPreview');},1200);
-setInterval(function(){loadLeaderboard('lbPreview');},30000);
+  injectSharedUI();
+  connectWS();
+  startActivityFeed();
+  if (typeof mountChatToggle === 'function') mountChatToggle();
+  setTimeout(function(){ loadLeaderboard('lbPreview'); }, 1200);
+  setInterval(function(){ loadLeaderboard('lbPreview'); }, 30000);
 </script>
 </body>
 </html>

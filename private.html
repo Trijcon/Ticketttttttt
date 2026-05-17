@@ -265,10 +265,6 @@ var myStream=null,faceMesh=null,fmReady=false,myLandmarks=null;
 var peerConn=null,oppId=null,myRole=null,currentCode=null;
 var ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]};
 
-// ── LIVENESS GATE ── redirect to gate.html if no valid pass (3h TTL)
-if (window.LivenessGate && !window.LivenessGate.requireOrRedirect()) {
-  throw new Error('redirecting to liveness gate');
-}
 injectSharedUI();
 connectWS(onMsg);
 startMyCam();

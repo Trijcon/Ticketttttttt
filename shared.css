@@ -454,3 +454,83 @@ body::before {
 .tag { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 1px; padding: 3px 8px; border-radius: 3px; border: 1px solid var(--border2); color: var(--muted); display: inline-block; }
 .tag.blue { border-color: rgba(74,158,255,0.2); color: var(--blue); background: var(--blue-dim); }
 @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+/* ════════════════════════════════════════════════════
+   NAV — glow on hover + active (added 2026-05-15)
+═══════════════════════════════════════════════════ */
+.top-nav .nav-link{
+  position:relative;
+  transition: color 0.2s ease, text-shadow 0.2s ease, background 0.2s ease;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+.top-nav .nav-link::after{
+  content:'';
+  position:absolute; left:10px; right:10px; bottom:-1px;
+  height:2px;
+  background: linear-gradient(90deg, transparent, var(--blue,#4A9EFF), transparent);
+  opacity:0;
+  transition: opacity 0.2s ease;
+  border-radius:2px;
+  filter: drop-shadow(0 0 6px rgba(74,158,255,0.7));
+}
+.top-nav .nav-link:hover{
+  color: #fff;
+  text-shadow: 0 0 12px rgba(74,158,255,0.55);
+  background: rgba(74,158,255,0.04);
+}
+.top-nav .nav-link:hover::after{ opacity:0.65; }
+.top-nav .nav-link.active{
+  color: #fff;
+  text-shadow: 0 0 14px rgba(74,158,255,0.7);
+  background: rgba(74,158,255,0.06);
+}
+.top-nav .nav-link.active::after{ opacity:1; }
+
+/* ════════════════════════════════════════════════════
+   CHAT TOGGLE BUTTON (used on index.html)
+═══════════════════════════════════════════════════ */
+.chat-toggle-btn{
+  position: fixed;
+  right: 18px; bottom: 18px;
+  z-index: 200;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px 10px 14px;
+  background: rgba(20, 24, 36, 0.92);
+  border: 1px solid rgba(74,158,255,0.32);
+  border-radius: 999px;
+  color: #c9e2ff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.5), 0 0 24px rgba(74,158,255,0.18);
+  transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+  backdrop-filter: blur(6px);
+}
+.chat-toggle-btn:hover{
+  transform: translateY(-1px);
+  border-color: rgba(74,158,255,0.55);
+  box-shadow: 0 16px 42px rgba(0,0,0,0.55), 0 0 28px rgba(74,158,255,0.32);
+  color:#fff;
+}
+.chat-toggle-btn .ctb-icon{ font-size:14px; line-height:1; }
+.chat-toggle-btn.open{
+  background: rgba(74,158,255,0.16);
+  border-color: rgba(74,158,255,0.6);
+  color:#fff;
+}
+
+/* When chat is collapsed, slide the sidebar offscreen and reclaim the right margin */
+body.chat-collapsed .chat-sidebar{
+  transform: translateX(100%);
+  pointer-events: none;
+}
+body.chat-collapsed .top-nav,
+body.chat-collapsed .guest-banner{
+  right: 0 !important;
+}
+.chat-sidebar{
+  transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+}

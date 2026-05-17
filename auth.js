@@ -310,6 +310,7 @@ onAuthStateChanged(auth, async (user) => {
         injectUserMenu();
         updateNavForUser(user, profile);
         startInboxBadge(user.uid);
+        if (typeof window.refreshChatInput === 'function') window.refreshChatInput();
         const cm = document.getElementById('claimModal');
         if (cm) cm.classList.remove('open');
 
@@ -345,6 +346,7 @@ onAuthStateChanged(auth, async (user) => {
     startInboxBadge(null);
     if (window.updateInboxBadge) window.updateInboxBadge(0);
     updateNavForUser(null, null);
+    if (typeof window.refreshChatInput === 'function') window.refreshChatInput();
   }
 });
 

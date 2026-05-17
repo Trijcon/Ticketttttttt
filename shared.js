@@ -119,7 +119,9 @@ function connectWS(onMsg) {
     reconnectTimer=setTimeout(()=>connectWS(pageOnMsg),5000); return;
   }
   ws.onopen = () => {
-    chatSys('Connected');
+    // Only the very first connect prints 'Connected'
+    if (!window._mogConnectShown) { chatSys('Connected'); window._mogConnectShown = true; }
+    window._mogReconnectShown = false;
     wsSend({ type:'set_user', name:myUsername||myName, username:myUsername, uid:myUid, photoURL:myPhoto, elo:myElo, wins:myWins, losses:myLosses });
   };
   ws.onmessage = (e) => {
@@ -128,7 +130,8 @@ function connectWS(onMsg) {
     if(typeof pageOnMsg==='function') pageOnMsg(msg);
   };
   ws.onclose = () => {
-    chatSys('Reconnecting...');
+    // Only show 'Reconnecting...' on the FIRST disconnect to avoid chat spam
+    if (!window._mogReconnectShown) { chatSys('Reconnecting...'); window._mogReconnectShown = true; }
     ws=null; reconnectTimer=setTimeout(()=>connectWS(pageOnMsg),3000);
   };
   ws.onerror = ()=>{};
@@ -174,6 +177,9 @@ function handleShared(msg) {
     case 'banned':
       alert(msg.message||'You have been banned from MogMe.TV.');
       window.location.href='index.html'; break;
+    case 'activity':
+      if (typeof renderActivityItem === 'function') renderActivityItem(msg);
+      break;
   }
 }
 
@@ -231,10 +237,34 @@ function sendChat() {
   if(!msgEl) return;
   const text=msgEl.value.trim();
   if(!text) return;
+  // Always read fresh — Firebase auth resolves AFTER shared.js loads
+  myUid      = localStorage.getItem('mgm_uid')      || myUid;
+  myUsername = localStorage.getItem('mgm_username') || myUsername;
   if(!myUid||!myUsername){chatSys('Sign in to chat');return;}
   if(!wsSend({type:'chat',text})){chatSys('Reconnecting...');connectWS(pageOnMsg);return;}
   msgEl.value='';
 }
+
+/* ── refresh chat input after auth state changes
+   (called from auth.js onAuthStateChanged) ── */
+window.refreshChatInput = function(){
+  myUid      = localStorage.getItem('mgm_uid')      || null;
+  myUsername = localStorage.getItem('mgm_username') || '';
+  myName     = localStorage.getItem('mgm_name')     || myUsername || 'Anonymous';
+  myPhoto    = localStorage.getItem('mgm_photo')    || '';
+  myElo      = parseInt(localStorage.getItem('mgm_elo')||'400');
+  myWins     = parseInt(localStorage.getItem('mgm_wins')||'0');
+  myLosses   = parseInt(localStorage.getItem('mgm_losses')||'0');
+  const section = document.querySelector('.chat-input-section');
+  if(!section) return;
+  const loggedIn = !!myUid && !!myUsername;
+  section.innerHTML = loggedIn
+    ? `<div class="chat-input-row">
+         <input type="text" class="chat-in" id="chatMsgIn" placeholder="Say something..." maxlength="200" onkeydown="if(event.key==='Enter')sendChat()">
+         <button class="chat-send" onclick="sendChat()">➤</button>
+       </div>`
+    : `<div class="chat-signin-prompt" onclick="openClaimModal()">Sign in to chat</div>`;
+};
 
 /* ════════════════════════════════
    LEADERBOARD
@@ -259,32 +289,34 @@ function loadLeaderboard(containerId) {
 }
 
 /* ════════════════════════════════
-   ACTIVITY FEED
+   ACTIVITY FEED — real matches only
+   The server broadcasts {type:'activity',...}
+   in resolveMatch(). We render those into
+   #activityFeed if it exists on the page.
 ════════════════════════════════ */
-const _actNames=['ApexK','NordicG','ZeusMode','IronWill','PhiRatio','SilentMax','CanthalK','JawGod','MewingPro','LooksMax'];
 function startActivityFeed() {
-  const el=document.getElementById('activityFeed');
-  if(!el) return;
-  function add(){
-    const n1=_actNames[Math.floor(Math.random()*_actNames.length)];
-    let n2=_actNames[Math.floor(Math.random()*_actNames.length)];
-    while(n2===n1) n2=_actNames[Math.floor(Math.random()*_actNames.length)];
-    const elo=Math.floor(Math.random()*28+10);
-    const div=document.createElement('div'); div.className='activity-item';
-    div.innerHTML=`<span class="activity-name">${n1}</span> beat <span class="activity-name">${n2}</span> <span class="activity-elo">+${elo}</span>`;
-    el.prepend(div);
-    while(el.children.length>6) el.removeChild(el.lastChild);
-    setTimeout(add,4000+Math.random()*6000);
+  const el = document.getElementById('activityFeed');
+  if (!el) return;
+  // Placeholder until the first real match comes in
+  if (!el.children.length) {
+    el.innerHTML = `<div class="activity-empty" style="padding:18px 14px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);letter-spacing:0.5px;">Waiting for matches…</div>`;
   }
-  for(let i=0;i<4;i++) setTimeout(()=>{
-    const n1=_actNames[Math.floor(Math.random()*_actNames.length)];
-    const n2=_actNames[Math.floor(Math.random()*_actNames.length)];
-    const elo=Math.floor(Math.random()*28+10);
-    const div=document.createElement('div'); div.className='activity-item';
-    div.innerHTML=`<span class="activity-name">${n1}</span> beat <span class="activity-name">${n2}</span> <span class="activity-elo">+${elo}</span>`;
-    el.appendChild(div);
-  },i*500);
-  setTimeout(add,4500);
+}
+
+function renderActivityItem(msg){
+  const el = document.getElementById('activityFeed');
+  if (!el || !msg) return;
+  // Clear empty placeholder
+  const empty = el.querySelector('.activity-empty');
+  if (empty) empty.remove();
+  const winner = escapeHtml(msg.winner || '?');
+  const loser  = escapeHtml(msg.loser  || '?');
+  const elo    = Number(msg.eloChange) || 0;
+  const div = document.createElement('div');
+  div.className = 'activity-item';
+  div.innerHTML = `<span class="activity-name">${winner}</span> beat <span class="activity-name">${loser}</span> <span class="activity-elo">+${elo}</span>`;
+  el.prepend(div);
+  while (el.children.length > 8) el.removeChild(el.lastChild);
 }
 
 /* ════════════════════════════════
@@ -449,6 +481,25 @@ function injectSharedUI() {
     }
   });
 }
+
+/* ── Chat show/hide toggle (used on index.html) ── */
+window.mountChatToggle = function(){
+  if (document.getElementById('chatToggleBtn')) return;
+  const sidebar = document.querySelector('.chat-sidebar');
+  if (!sidebar) return;
+  // Hidden by default on index — body class flips it back
+  document.body.classList.add('chat-collapsed');
+  const btn = document.createElement('button');
+  btn.id = 'chatToggleBtn';
+  btn.className = 'chat-toggle-btn';
+  btn.setAttribute('aria-label','Toggle chat');
+  btn.innerHTML = '<span class="ctb-icon">💬</span><span class="ctb-label">Chat</span>';
+  btn.addEventListener('click', ()=>{
+    document.body.classList.toggle('chat-collapsed');
+    btn.classList.toggle('open', !document.body.classList.contains('chat-collapsed'));
+  });
+  document.body.appendChild(btn);
+};
 
 /* ── MODAL HELPERS ── */
 function openModal(id)    { const el=document.getElementById(id); if(el) el.classList.add('open'); }
